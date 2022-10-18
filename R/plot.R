@@ -1176,7 +1176,20 @@ plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxpl
 }
 
 
+#' Displaying most neg and pos gene contribution on a GSDA heatmap.
+#'
+#' @param contributions A list named by pathway. Contains vector of gene contribution to activation scores, named by genes.
+#' @param maxGeneContribAtOneSide Integer. Number of best pos/neg rank displayed on the annotation
+#' @param width Numeric. Width of the annotation heatmap.
+#' @param fontsizeFactor Numeric. Font-size of gene names.
+#'
+#' @return A HeatmapAnnotation object.
+#' @export
+#'
+#' @examples
+
 GSDA.HeatmapAnnot<-function(contributions,maxGeneContribAtOneSide=3,width=unit(3,"cm"),fontsizeFactor=400){
+	require(ComplexHeatmap)
 	AnnotationFunction(fun = function(index, k, n) {
 		pushViewport(viewport(xscale = c(0,10), yscale = c(0.5, length(index) + 0.5)))
 		grid.lines(.5,c(0,1))
