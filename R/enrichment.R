@@ -8,7 +8,7 @@ getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
 	species<-list()
 	species.data<-data.frame(bods)
 	species.index<-which(species.data$species==sample.species)
-	if(len(species.index)!=1) stop("Wrong species name, type \ndata(bods)\nbods[,\"species\"]\nto see available species")
+	if(length(species.index)!=1) stop("Wrong species name, type \ndata(bods)\nbods[,\"species\"]\nto see available species")
 	species$package<-as.character(species.data[species.index,"package"])
 	species$kegg<-as.character(species.data[species.index,"kegg.code"])
 	species$go<-strsplit(as.character(species$package),split = ".",fixed = TRUE)[[1]][2]
@@ -61,7 +61,7 @@ detailOnGenes<-function(x,tfDat,speciesDat){
 #' @param species : species, example: "Rat", "Mouse", "Human"
 #' @param db_terms : precomputed list of term database, automatically computed if not provided
 #' @param ... : additionnal parameters that are passed to fgsea
-#' @param speciesData : result of getSpeciesData2 function, automatically gathered if not provided
+#' @param speciesData : result of getSpeciesData function, automatically gathered if not provided
 enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),
 											maxSize=500,minSize=2,customAnnot=NULL,returnGenes=FALSE,
 											keggDisease=FALSE,species="Human",db_terms=NULL,speciesData=NULL,...){
@@ -74,7 +74,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	}
 
 	if(class(x)!="numeric") stop("Values must be numeric")
-	if(is.null(db_terms)) db_terms<-getDBterms2(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,
+	if(is.null(db_terms)) db_terms<-getDBterm(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,
 																							customAnnot=customAnnot,keggDisease=keggDisease,species=species)
 	if(length(db_terms)==0) stop("Error, no term in any database was found")
 	res<-list()
@@ -101,7 +101,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 #' @param keggDisease : retain kegg disease term ?
 #' @param db_terms : precomputed list of term database, automatically computed if not provided
 #' @param species : species, example: "Rat", "Mouse", "Human"
-#' @param speciesData : result of getSpeciesData2 function, automatically gathered if not provided
+#' @param speciesData : result of getSpeciesData function, automatically gathered if not provided
 enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),
 												minSize=2,maxSize=500,returnGenes=FALSE, keggDisease=FALSE,species="Human",
 												customAnnot=NULL,db_terms=NULL,speciesData=NULL){
@@ -118,7 +118,7 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	if(class(x)!="logical") stop("Values must be logical (TRUE or FALSE)")
 	if(class(names(x))!="character") stop("Values must be named with genes symbol")
 
-	if(is.null(db_terms)) db_terms<-getDBterms2(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,customAnnot=customAnnot,keggDisease=keggDisease,species=species)
+	if(is.null(db_terms)) db_terms<-getDBterm(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,customAnnot=customAnnot,keggDisease=keggDisease,species=species)
 
 	nInterest<-length(which(x))
 	nNotInterest<-length(which(!x))
@@ -210,15 +210,15 @@ GSDA<-function(geneSetEigens=NULL,expressionMatrix=NULL,colData,contrast, corrId
 }
 
 
-getDBterms2<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),customAnnot=NULL,
+getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),customAnnot=NULL,
 											keggDisease=FALSE,species="Human",returnGenesSymbol=TRUE){
 	require(AnnotationDbi)
 	select<-AnnotationDbi::select
 	validDBs<-c("kegg","reactom","goBP","goCC","goMF","custom")
-	if(!(combineLogical(database%in%validDBs))) stop(paste0("Error, valid values for database are: ",paste0(validDBs,collapse=", ")))
+	if(sum(database%in%validDBs)<length(database)) stop(paste0("Error, valid values for database are: ",paste0(validDBs,collapse=", ")))
 	if(is.null(customAnnot) & "custom"%in%database) stop("You must give a value a list in customAnnot if database=custom")
 	if(is.null(speciesData)){
-		speciesData<-getSpeciesData2(species)
+		speciesData<-getSpeciesData(species)
 	}else{
 		species<-speciesData$species
 	}

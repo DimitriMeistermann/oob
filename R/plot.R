@@ -1187,6 +1187,9 @@ plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxpl
 #' @export
 #'
 #' @examples
+data("bulkLogCounts")
+data("sampleAnnot")
+GDSAres<-GSDA(bulkLogCounts,colData = sampleAnnot,contrast = "culture_media")
 
 GSDA.HeatmapAnnot<-function(contributions,maxGeneContribAtOneSide=3,width=unit(3,"cm"),fontsizeFactor=400){
 	require(ComplexHeatmap)
