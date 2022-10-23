@@ -4,6 +4,7 @@
 #' @param keepZero get rid of 0 before computing.
 #'
 #' @return A single numeric value.
+#' @export
 #' @examples
 #' gmean(c(1,2,3))
 #' gmean(c(0,2,3),keepZero = TRUE)
@@ -19,6 +20,7 @@ gmean<-function(x, keepZero=FALSE){ #geometrical mean
 }
 
 #' Get the precise random seed state
+#' @export
 getRandState <- function() {
 	# Using `get0()` here to have `NULL` output in case object doesn't exist.
 	# Also using `inherits = FALSE` to get value exactly from global environment
@@ -28,6 +30,7 @@ getRandState <- function() {
 
 #' Set the precise random seed state
 #' @param state Object saved by getRandState
+#' @export
 setRandState <- function(state) {
 	# Assigning `NULL` state might lead to unwanted consequences
 	if (!is.null(state)) {
@@ -40,7 +43,7 @@ setRandState <- function(state) {
 #' @param x Numeric vector
 #'
 #' @return A single numeric value
-#'
+#' @export
 #' @examples
 #' cv(c(1,2,3,4))
 cv<-function(x){
@@ -52,7 +55,7 @@ cv<-function(x){
 #' @param x Numeric vector
 #'
 #' @return  A single numeric value
-#'
+#' @export
 #' @examples
 #' cv2(c(1,2,3,4))
 cv2<-function(x){
@@ -65,7 +68,7 @@ cv2<-function(x){
 #'
 #' @return A single numeric value
 #'
-#'
+#' @export
 #' @examples
 #' se(c(1,2,3,4))
 se<-function(x){ #
@@ -78,6 +81,7 @@ se<-function(x){ #
 #' @param x Numeric vector
 #'
 #' @return Numeric vector
+#' @export
 #' @examples
 #' uncenter(-5:5)
 uncenter<-function(x){
@@ -94,7 +98,7 @@ uncenter<-function(x){
 #' @param returnIndex Logical. Should the index of first elements or vector of first elements.
 #'
 #' @return Vector of first elements or numeric vector of index.
-#'
+#' @export
 #' @examples
 #' a<-c(1,2,3,3,4,3)
 #' names(a)<-c("a","b","c","d","e","f")
@@ -119,7 +123,7 @@ takefirst<-function(x,returnIndex=FALSE){
 #' @param x A numeric vector.
 #'
 #' @return A single numeric value.
-#'
+#' @export
 #' @examples Mode(c(1:10,3))
 #'
 Mode <- function(x) {
@@ -144,7 +148,7 @@ Mode <- function(x) {
 #' @param x A vector.
 #'
 #' @return A string ready to be copied and embedded as R code.
-#'
+#' @export
 #' @examples
 #' copyReadyVector(1:5)
 copyReadyVector<-function(x){
@@ -161,7 +165,7 @@ copyReadyVector<-function(x){
 #' @param sep A character string used to separate a duplicate name from its sequence number.
 #'
 #' @return A character vector of same length as names with duplicates changed.
-#'
+#' @export
 #' @examples
 #' make.unique2(c("a", "a", "b"))
 make.unique2<-function(sample.name,sep="."){
@@ -180,7 +184,7 @@ make.unique2<-function(sample.name,sep="."){
 #' @param useBytes logical. If TRUE the matching is done byte-by-byte rather than character-by-character, and inputs with marked encodings are not converted. This is forced (with a warning) if any input is found which is marked as "bytes" (see Encoding).
 #'
 #' @return A vector of the same length than x, with the n-th element for the split of each value.
-#'
+#' @export
 #' @examples
 #' strsplitNth(c("ax1","bx2"), "x",1)
 #' strsplitNth(c("ax1","bx2"), "x",2)
@@ -196,7 +200,7 @@ strsplitNth<-function(x, split, n=1, fixed=FALSE, perl=FALSE, useBytes=FALSE){
 #' @param digit A single integer value. The maximum number of digits in the number sequence. It will determine the number of 0 to add.
 #'
 #' @return A charactervector.
-#'
+#' @export
 #' @examples
 #' formatNumber2Character(1:10)
 #' formatNumber2Character(1:10,digit = 4)
@@ -212,7 +216,7 @@ formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
 #' @param factorNames A character vector for providing the names separately.
 #'
 #' @return A list. Each element is named by a factor level of `factorValues`, and contains the provided names that had this level has a value.
-#'
+#' @export
 #' @examples
 #' x<-factor(c("a","a","b","b","c","c","c"))
 #' names(x)<-paste0("x",1:7)
@@ -280,6 +284,29 @@ linearScale <- function(vals,newRange,returnFunction = TRUE) {
 	}
 }
 
+#' Return ordered index of element with top n value.
+#'
+#' @param x Numeric vector.
+#' @param top Integer. Number of element to be returned.
+#' @param decreasing Logical, return top element by decreasing or increasing order.
+#'
+#' @return A vector of integer.
+#' @export
+#'
+#' @examples
+#' x<-c(1,5,6,10,5.2,3,8)
+#' whichTop(x)
+#' whichTop(x,top=3)
+#' whichTop(x,decreasing=FALSE)
+whichTop<-function(x, top=5, decreasing=TRUE){
+	order(x,decreasing = decreasing)[1:top]
+}
+
+#alias
+rn<-rownames
+cn<-colnames
+len<-length
+inter<-intersect
 
 
 

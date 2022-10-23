@@ -1,4 +1,15 @@
 
+#' Title
+#'
+#' @param d
+#' @param transpose
+#' @param scale
+#' @param center
+#'
+#' @return
+#' @export
+#'
+#' @examples
 PCA<-function(d,transpose=T,scale=F,center=T) {
 	if(transpose) d<-t(d);
 	means<-0;sdeviations<-1
@@ -20,6 +31,20 @@ PCA<-function(d,transpose=T,scale=F,center=T) {
 }
 
 
+#' Title
+#'
+#' @param d
+#' @param transpose
+#' @param scale
+#' @param center
+#' @param nPC
+#' @param weight.by.var
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=NULL,
 										weight.by.var = TRUE, ...) {
 	require(irlba)
@@ -58,6 +83,17 @@ fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=NULL,
 	resacp
 }
 
+#' Title
+#'
+#' @param pca
+#' @param newSamplesMatrix
+#' @param transpose
+#' @param combineMat
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,combineMat=TRUE){
 	if(transpose) newSamplesMatrix<-t(newSamplesMatrix)
 	newSamplesMatrix<-newSamplesMatrix[,rownames(pca$rotation),drop=FALSE]
@@ -77,6 +113,16 @@ pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,combineMat=TRUE){
 }
 
 
+#' Title
+#'
+#' @param pca
+#' @param annotationDF
+#' @param nComponent
+#'
+#' @return
+#' @export
+#'
+#' @examples
 PCR<-function(pca,annotationDF,nComponent=10){
 	require(reshape2)
 	annots<-colnames(annotationDF)
@@ -97,6 +143,20 @@ PCR<-function(pca,annotationDF,nComponent=10){
 }
 
 
+#' Title
+#'
+#' @param data
+#' @param transpose
+#' @param scale
+#' @param center
+#' @param metric
+#' @param ndim
+#' @param maxit
+#'
+#' @return
+#' @export
+#'
+#' @examples
 NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,maxit=100){
 	merged<-FALSE
 	require(MASS)
@@ -121,6 +181,24 @@ NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,m
 	return(fit)
 }
 
+#' Title
+#'
+#' @param data
+#' @param nDimPCA
+#' @param transpose
+#' @param n_neighbors
+#' @param n_components
+#' @param min_dist
+#' @param init
+#' @param metric
+#' @param ret_model
+#' @param ret_nn
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 make.umap<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=NULL, n_components = 2,min_dist=0.01,
 										init = "laplacian", metric = "euclidean",ret_model=FALSE,ret_nn=FALSE,...){
 	require(uwot)
@@ -136,6 +214,14 @@ make.umap<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=NULL, n_compone
 }
 
 
+#' Title
+#'
+#' @param data
+#'
+#' @return
+#' @export
+#'
+#' @examples
 CPM<-function(data){ #Normalisation CPM
 	data.CPM <- sweep(data, 2, colSums(data),`/`)
 	data.CPM <-data.CPM * 1000000
@@ -143,12 +229,30 @@ CPM<-function(data){ #Normalisation CPM
 }
 
 
+#' Title
+#'
+#' @param data
+#' @param gene.length
+#'
+#' @return
+#' @export
+#'
+#' @examples
 TPMfullLength<-function(data, gene.length){
 	gene.length.kb <- gene.length[rn(data)]/1000
 	data<-sweep(data, 1, gene.length.kb,`/`)
 	return(CPM(data))
 }
 
+#' Title
+#'
+#' @param data
+#' @param gene.length
+#'
+#' @return
+#' @export
+#'
+#' @examples
 RPKM<-function(data, gene.length){
 	gene.length.kb <- gene.length[rn(data)]/1000
 	data<-CPM(data)
@@ -156,8 +260,20 @@ RPKM<-function(data, gene.length){
 }
 
 
+#' Title
+#'
+#' @param hc
+#' @param min
+#' @param max
+#' @param loss
+#' @param graph
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE, ...){
-	require(ggplot2)
 	if (class(hc)!="hclust") hc <- as.hclust(hc)
 	max <- min(max, length(hc$height)-1)
 	inert.gain <- rev(hc$height)
@@ -181,6 +297,21 @@ best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE, ...){
 
 
 # x : matrix
+#' Title
+#'
+#' @param x
+#' @param transpose
+#' @param method.dist
+#' @param method.hclust
+#' @param bootstrap
+#' @param nboot
+#' @param PCAfirst
+#' @param nDimPCA
+#'
+#' @return
+#' @export
+#'
+#' @examples
 hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method.hclust="ward.D2",
 																 bootstrap=FALSE,nboot=10,PCAfirst=FALSE,nDimPCA=NULL){
 	if(transpose) x<-t(x)
@@ -208,6 +339,14 @@ hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method
 }
 
 
+#' Title
+#'
+#' @param countMatrix
+#'
+#' @return
+#' @export
+#'
+#' @examples
 normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are columns
 	# PS = pseudo reference sample
 	PS<-apply(countMatrix,1,gmean,keepZero=TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
@@ -218,10 +357,20 @@ normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are c
 	sweep(countMatrix,2,normFactors,"/") #divide each sample by the corresponding normalization factor
 }
 
+#' Title
+#'
+#' @param exprData
+#' @param sampleData
+#' @param contrast
+#'
+#' @return
+#' @export
+#'
+#' @examples
 multiLinearModel<-function(exprData,sampleData,contrast){
-	samples<-rn(sampleData)[sampleData[,contrast[1]]%in%contrast[2:3]]
+	samples<-rownames(sampleData)[sampleData[,contrast[1]]%in%contrast[2:3]]
 	data<-exprData[,samples]
-	groups<-droplevels(sampleData[samples,contrast[1]])
+	groups<-droplevels(as.factor(sampleData[samples,contrast[1]]))
 	logicGroup<-rep(F,len(groups))
 	logicGroup[groups==contrast[2]]<-T
 	regTabList<-apply(data,1,function(x){
@@ -237,7 +386,18 @@ multiLinearModel<-function(exprData,sampleData,contrast){
 }
 
 
-getMostVariableGenes4<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
+#' Title
+#'
+#' @param counts
+#' @param minCount
+#' @param plot
+#' @param returnPlot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
 	counts<-counts[rowMeans(counts)>minCount,]
 	dispTable<-data.frame(mu=rowMeans(counts),var=apply(counts,1,var),row.names =rownames(counts))
 	dispTable$cv2<- dispTable$var / dispTable$mu^2
@@ -266,6 +426,17 @@ getMostVariableGenes4<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE)
 	dispTable
 }
 
+#' Title
+#'
+#' @param logCounts
+#' @param minCount
+#' @param plot
+#' @param returnPlot
+#'
+#' @return
+#' @export
+#'
+#' @examples
 getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot=FALSE){
 	if(minCount>0) logCounts<-logCounts[rowMeans(logCounts)>minCount,]
 	dispTable<-data.frame(mu=rowMeans(logCounts),var=apply(logCounts,1,var),row.names =rownames(logCounts))
@@ -295,6 +466,15 @@ getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot
 
 
 # By Miron Kursa https://mbq.me
+#' Title
+#'
+#' @param score
+#' @param bool
+#'
+#' @return
+#' @export
+#'
+#' @examples
 auroc <- function(score, bool) {
 	n1 <- sum(!bool)
 	n2 <- sum(bool)
@@ -302,23 +482,18 @@ auroc <- function(score, bool) {
 	return(1 - U / n1 / n2)
 }
 
-getMarkers2<-function(expressionMatrix,group){
-	if(length(group)!=ncol(expressionMatrix)) stop("group should be a vector with same length as number of column in expressionMatrix")
-	group<-as.factor(group)
-	group<-droplevels(group)
-	binaryGroup<-vapply(levels(group),function(x){
-		x==group & !is.na(group)
-	},FUN.VALUE = numeric(length(group)))
-	apply(binaryGroup,2,function(labels){
-		apply(expressionMatrix,1,function(x){
-			auroc(x,labels)
-		})
-	})
-}
 
-
+#' Title
+#'
+#' @param expressionMatrix
+#' @param group
+#' @param BPPARAM
+#'
+#' @return
+#' @export
+#'
+#' @examples
 getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
-	require(BiocParallel)
 	if(is.null(BPPARAM )) BPPARAM=bpparam()
 	if(!is.matrix(expressionMatrix)) expressionMatrix<-as.matrix(expressionMatrix)
 	if(length(group)!=ncol(expressionMatrix)) stop("group should be a vector with same length as number of column in expressionMatrix")
@@ -339,12 +514,35 @@ getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
 }
 
 
+#' Title
+#'
+#' @param gene
+#' @param expression
+#' @param corFun
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 corGeneToOthers<-function(gene,expression,corFun=cor,...){
 	expression<-as.matrix(expression)
 	t(corFun(expression[gene,],t(expression),...))[,1]
 }
 
 
+#' Title
+#'
+#' @param exprMatrix
+#' @param genes
+#' @param scale
+#' @param center
+#' @param returnContribution
+#'
+#' @return
+#' @export
+#'
+#' @examples
 eigengenes<-function(exprMatrix,genes,scale=F,center=T,returnContribution=F){
 	pca<-prcomp(x = t(exprMatrix[genes,]),retx = T,center = center,scale = scale)
 	eigen<-pca$x[,1]
@@ -361,6 +559,17 @@ eigengenes<-function(exprMatrix,genes,scale=F,center=T,returnContribution=F){
 }
 
 
+#' Title
+#'
+#' @param rawCounts
+#' @param returnLog
+#' @param sizeFactors
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 quickSCnorm<-function(rawCounts,returnLog=TRUE,sizeFactors=NULL,...){
 	require(scran)
 	sce <- SingleCellExperiment(assays=list(counts=rawCounts))
@@ -509,6 +718,20 @@ pacmap <- function(rdf,
 }
 
 
+#' Title
+#'
+#' @param rdf
+#' @param n_dims
+#' @param n_inliers
+#' @param n_outliers
+#' @param apply_pca
+#' @param n_iters
+#' @param knn_tuple
+#'
+#' @return
+#' @export
+#'
+#' @examples
 trimap<-function(rdf,n_dims = 2,n_inliers = 10,n_outliers = 5,
 								 apply_pca=TRUE,n_iters=400,knn_tuple=NULL){
 	# n_dims: Number of dimensions of the embedding (default = 2)
@@ -545,6 +768,25 @@ trimap<-function(rdf,n_dims = 2,n_inliers = 10,n_outliers = 5,
 
 }
 
+#' Title
+#'
+#' @param umapModel
+#' @param n_neighbors
+#' @param metric
+#' @param partition_type
+#' @param returnAsFactor
+#' @param n_iterations
+#' @param resolution_parameter
+#' @param seed
+#' @param laplacian_init
+#' @param initial_membership
+#' @param max_comm_size
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 leidenFromUMAP<-function(umapModel,n_neighbors=10,metric=NULL,
 												 partition_type=c("RBConfigurationVertexPartition", "ModularityVertexPartition","RBERVertexPartition", "CPMVertexPartition", "MutableVertexPartition",
 												 								 "SignificanceVertexPartition", "SurpriseVertexPartition","ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite"),
@@ -660,6 +902,16 @@ leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolut
 
 
 
+#' Title
+#'
+#' @param umapModel
+#' @param n_neighbors
+#' @param metric
+#'
+#' @return
+#' @export
+#'
+#' @examples
 getAdjMatfromUMAPmodel<-function(umapModel,n_neighbors=10,metric=NULL){
 	if(ncol(umapModel$nn[[metric]]$idx) < n_neighbors){
 		stop("The provided umap model contains the data for ",ncol(umapModel$nn[[metric]]$idx),

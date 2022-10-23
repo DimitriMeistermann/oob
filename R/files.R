@@ -10,7 +10,6 @@
 #' @return A dataframe or a matrix.
 #' @seealso fastWrite
 fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsAsFactors=FALSE,...){
-	require(data.table)
 	dat <- as.data.frame(data.table::fread(fileName,stringsAsFactors=stringsAsFactors, sep = sep,...))
 	if(!is.null(row.names)){
 	  rownames(dat) <- dat[,row.names]
@@ -33,7 +32,6 @@ fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsA
 #'
 #' @seealso fastRead
 fastWrite <- function(x, fileName = "default.tsv", headRow="Name",row.names=TRUE,col.names=TRUE, dec=".",sep="\t", ...) {
-	require(data.table)
 	if(is.null(rownames(x))) row.names<-FALSE
 	if(is.null(colnames(x))) col.names<-FALSE
 
@@ -80,7 +78,6 @@ write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.name
 #' @return A list.
 #' @seealso write.vectorList
 read.vectorList<-function(fileName,sep="\t"){
-	require(stringr)
 	con<-fileName(fileName)
 	txt<-readLines(con)
 	elNames<-str_remove_all(txt[seq(1,length(txt),2)],sep)

@@ -1,10 +1,18 @@
-
-#Return gene id correspondance, GO species code and KEGG species code
+#' Return gene id correspondance, GO species code and KEGG species code
+#'
+#' @param sample.species Character. Shortname of the species as described in `data("bods")`.
+#' @param updateSpeciesPackage Logical. Download or update automatically the annotation org.db package corresponding to the species.
+#'
+#' @return A list describing specific data for the species (gene IDs, annotation package...).
+#' @export
+#'
+#' @examples
+#' library(gage)
+#' data(bods)
+#' bods
+#' getSpeciesData("Human")
+#' getSpeciesData("Mouse")
 getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
-	require(gage)
-	require(AnnotationDbi)
-	data(bods)
-
 	species<-list()
 	species.data<-data.frame(bods)
 	species.index<-which(species.data$species==sample.species)
@@ -24,44 +32,40 @@ getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
 }
 
 
-#Take a gene list, add transcription factor data and long Gene name
-detailOnGenes<-function(x,tfDat,speciesDat){
-	require(AnnotationDbi)
-	if(is.data.frame(x) | is.matrix(x)){
-		geneSym<-rn(x)
-		res<-data.frame(x)
-	}else{
-		if(is.null(names(x))){
-			res<-data.frame(row.names=x)
-			geneSym<-x
-		}else{
-			geneSym<-names(x)
-			res<-data.frame(val=x,row.names=names(x))
-		}
-	}
-	geneNames<-select(get(speciesDat$package),geneSym,"GENENAME","SYMBOL")
-	res$LongName<-ConvertKey(geneSym,tabKey = geneNames,colOldKey = "SYMBOL",colNewKey = "GENENAME")
-	genesTF<-intersect(rn(tfDat),geneSym)
-	res$TFdegree<-0
-	res[genesTF,"TFdegree"]<-tfDat[genesTF,"tf_degree"]
-	return(res)
-}
 
-
-# 3rd generation enrichment (fgsea algorithm)
-#' @param x : vector or dataframe/matrix of one column. Values are used to classify the genes, example, it can be Log2(Fold-Change0). Genes are contained in the names/rownames of the vector/dataframe. Example of valid x: x<-rnorm(n = 4); names(x)<-c("GATA2","SOX17","KLF4","POU5F1")
-#' @param corrIdGenes : dataframe of genes id (used to convert genes), automatically computed if not provided
+#' Functional class scoring enrichment (fgsea algorithm)
+#'
+#' @param x vector or dataframe/matrix of one column. Values are used to classify the genes, example, it can be Log2(Fold-Change0). Genes are contained in the names/rownames of the vector/dataframe. Example of valid x: x<-rnorm(n = 4); names(x)<-c("GATA2","SOX17","KLF4","POU5F1")
+#' @param corrIdGenes Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
 #' @param database Which annotation database ? valid: database: kegg reactom goBP goCC goMF custom
-#' @param minSize : mininmum number of gene in each term
-#' @param maxSize : maximum number of gene in each term
-#' @param nperm : number of permutation in the GSEA algorithm
-#' @param customAnnot : custom annotation database, as a list af gene symbols, named by annotations name
-#' @param returnLeadingEdge : return genes that were the most important for the enrichment of term
-#' @param keggDisease : retain kegg disease term ?
-#' @param species : species, example: "Rat", "Mouse", "Human"
-#' @param db_terms : precomputed list of term database, automatically computed if not provided
-#' @param ... : additionnal parameters that are passed to fgsea
-#' @param speciesData : result of getSpeciesData function, automatically gathered if not provided
+#' @param maxSize maximum number of gene in each term
+#' @param minSize Minimum number of gene in each term
+#' @param customAnnot custom annotation database, as a list of terms, each element contain a vector of gene symbols.
+#' @param returnGenes  return genes that were the most important for the enrichment of term
+#' @param keggDisease Logical. Retain kegg disease term ?
+#' @param species Character. Shortname of the species as described in `data("bods")`.
+#' @param db_terms A list or NULL. A named list were each element is a database. Inside each database, a list terms, named by the term and containing gene vectors as gene symbols.
+#' If this argument is not NULL, no additional database are downloaded.
+#' @param speciesData  object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
+#' @param ... Additionnal parameters that are passed to fgsea
+#'
+#' @return
+#' A dataframe with the following columns:
+#' - pathway: name of the pathway/term
+#' - pval: an enrichment p-value
+#' - padj: a BH-adjusted p-value
+#' - log2err: the expected error for the standard deviation of the P-value logarithm
+#' - ES: enrichment score, same as in Broad GSEA implementation
+#' - NES: enrichment score normalized to mean enrichment of random samples of the same size
+#' - size: number of gene in the term after removing genes not present
+#' - genes (if `returnGenes`). Vector of genes of the term.
+#' @export
+#'
+#' @examples
+#' data("DEgenesPrime_Naive")
+#' fcsScore<-fcsScoreDEgenes(rownames(DEgenesPrime_Naive),DEgenesPrime_Naive$pvalue,DEgenesPrime_Naive$log2FoldChange)
+#' resEnrich<-enrich.fcs(fcsScore,database = "kegg",species = "Human")
+#' View(resEnrich)
 enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),
 											maxSize=500,minSize=2,customAnnot=NULL,returnGenes=FALSE,
 											keggDisease=FALSE,species="Human",db_terms=NULL,speciesData=NULL,...){
@@ -74,7 +78,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	}
 
 	if(class(x)!="numeric") stop("Values must be numeric")
-	if(is.null(db_terms)) db_terms<-getDBterm(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,
+	if(is.null(db_terms)) db_terms<-getDBterms(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,
 																							customAnnot=customAnnot,keggDisease=keggDisease,species=species)
 	if(length(db_terms)==0) stop("Error, no term in any database was found")
 	res<-list()
@@ -90,18 +94,42 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	return(res)
 }
 
-# 2nd generation enrichment (fisher algorithm)
-#' @param x : vector or dataframe/matrix of one column. Values are booleans and say if gene is from the list of interest or not. Genes are contained in the names/rownames of the vector/dataframe. Example of valid x: x<-c(TRUE,TRUE,FALSE,FALSE); names(x)<-c("GATA2","SOX17","KLF4","POU5F1"). In this case, GATA2, SOX17, KLF4, POU5F1 are the universe of gene and GATA2 and SOX17 are the genes of interest
-#' @param corrIdGenes : dataframe of genes id (used to convert genes), automatically computed if not provided
+
+
+#' Over Representation Analysis (enrichment, Fischer tests)
+#'
+#' @param x vector or dataframe/matrix of one column.
+#' Values are booleans and say if gene is from the list of interest or not.
+#' Genes are contained in the names/rownames of the vector/dataframe.
+#' Example of valid x: x<-c(TRUE,TRUE,FALSE,FALSE); names(x)<-c("GATA2","SOX17","KLF4","POU5F1").
+#' In this case, GATA2, SOX17, KLF4, POU5F1 are the universe of gene and GATA2 and SOX17 are the genes of interest
+#' @param corrIdGenes  Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
 #' @param database Which annotation database ? valid: database: kegg reactom goBP goCC goMF custom
-#' @param minSize : mininmum number of gene in each term
-#' @param maxSize : maximum number of gene in each term
-#' @param customAnnot : custom annotation database, as a list af gene symbols, named by annotations name
-#' @param returnGenes : return genes of interest that are in the term
-#' @param keggDisease : retain kegg disease term ?
-#' @param db_terms : precomputed list of term database, automatically computed if not provided
-#' @param species : species, example: "Rat", "Mouse", "Human"
-#' @param speciesData : result of getSpeciesData function, automatically gathered if not provided
+#' @param minSize Minimum number of gene in each term.
+#' @param maxSize Maximum number of gene in each term.
+#' @param returnGenes Return genes that were the most important for the enrichment of term.
+#' @param keggDisease Logical. Retain kegg disease term in kegg database?
+#' @param species Character. Shortname of the species as described in `data("bods")`.
+#' @param customAnnot Custom annotation database, as a list of terms, each element contain a vector of gene symbols.
+#' @param db_terms A list or NULL. A named list were each element is a database. Inside each database, a list terms, named by the term and containing gene vectors as gene symbols.
+#' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
+#'
+#' @return
+#' A dataframe with the following columns:
+#' - term: name of the term
+#' - pval: an enrichment p-value
+#' - padj: a BH-adjusted p-value
+#' - nGeneOfInterest: number of gene of interest in the term.
+#' - nGene: number of gene in the term after removing genes not present.
+#' - genes (if `returnGenes`). Vector of genes of the term.
+#' @export
+#'
+#' @examples
+#' @examples
+#' data("DEgenesPrime_Naive")
+#' vectorIsDE<-DEgenesPrime_Naive$isDE!="NONE";names(vectorIsDE)<-rownames(DEgenesPrime_Naive)
+#' resEnrich<-enrich.ora(vectorIsDE,database = "kegg",species = "Human")
+#' View(resEnrich)
 enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),
 												minSize=2,maxSize=500,returnGenes=FALSE, keggDisease=FALSE,species="Human",
 												customAnnot=NULL,db_terms=NULL,speciesData=NULL){
@@ -118,7 +146,7 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	if(class(x)!="logical") stop("Values must be logical (TRUE or FALSE)")
 	if(class(names(x))!="character") stop("Values must be named with genes symbol")
 
-	if(is.null(db_terms)) db_terms<-getDBterm(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,customAnnot=customAnnot,keggDisease=keggDisease,species=species)
+	if(is.null(db_terms)) db_terms<-getDBterms(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,customAnnot=customAnnot,keggDisease=keggDisease,species=species)
 
 	nInterest<-length(which(x))
 	nNotInterest<-length(which(!x))
@@ -148,9 +176,38 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 }
 
 
+#' Compute the activation score of gene sets from an expression matrix.
+#'
+#' @description Perform a PCA for each gene set, from the matrix of [ genes from gene set × all samples ]. Return the first PCs as activations scores of the gene sets.
+#'
+#' @param expressionMatrix An expression matrix (normalized log2(x+1) counts). Genes as rows and sample as columns. If `db_terms` is not given, must be named by gene symbols.
+#' @param corrIdGenes Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
+#' @param scaleScores Logical. Divide expression of gene by its standard deviation before doing the PCA.
+#' @param centerScores Logical. Subtract mean to gene expression before doing the PCA.
+#' @param database Which annotation database ? valid: database: kegg reactom goBP goCC goMF custom.
+#' @param maxSize Maximum number of gene in each term.
+#' @param minSize Minimum number of gene in each term.
+#' @param customAnnot Custom annotation database, as a list of terms, each element contain a vector of gene symbols.
+#' @param keggDisease Logical. Retain kegg disease term in kegg database?
+#' @param species Character. Shortname of the species as described in `data("bods")`.
+#' @param db_terms A list or NULL. A named list were each element is a database. Inside each database, a list terms, named by the term and containing gene vectors as gene symbols.
+#' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
+#'
+#' @return A list where each element is a database of gene set given as input.
+#' For each database, contain a list of activation score (eigen), with gene sets as rows and samples as columns ;
+#' and the list of contribution (or weight) to activation score of each gene per gene set.
+#'
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' keggDB<-getDBterms(rownames(bulkLogCounts),database = "kegg")
+#' geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = keggDB)
+#' #same as
+#' geneSetActivScore<-computeActivationScore(bulkLogCounts,database = "kegg")
 computeActivationScore<-function(expressionMatrix,corrIdGenes=NULL,scaleScores=FALSE,centerScores=TRUE,
 																 database=c("kegg","reactom","goBP","goCC","goMF"),
-																 maxSize=500,minSize=2,nperm=1000,customAnnot=NULL,
+																 maxSize=500,minSize=2,customAnnot=NULL,
 																 keggDisease=FALSE,species="Human",db_terms=NULL,speciesData=NULL){
 
 	if(!class(expressionMatrix)[1]%in%c("data.frame","matrix")) stop("expressionMatrix should be a matrix or a dataframe")
@@ -177,28 +234,70 @@ computeActivationScore<-function(expressionMatrix,corrIdGenes=NULL,scaleScores=F
 }
 
 
-GSDA<-function(geneSetEigens=NULL,expressionMatrix=NULL,colData,contrast, corrIdGenes=NULL,
+#' Gene Set Differential Activation (GSDA)
+#'
+#' @param geneSetActivScore A list of database with an element "eigen" containing the matrix of gene set activation score (see what `computeActivationScore` returns).
+#' If NULL, this is computed automatically from the `expressionMatrix` and the gene set database given via `db_terms` or requested via `database`.
+#' @param expressionMatrix An expression matrix (normalized log2(x+1) counts). Genes as rows and sample as columns. If `db_terms` is not given, must be named by gene symbols.
+#' @param colData An annotation dataframe. Each column is a feature, each row a sample.
+#' @param contrast A vector of 3 character.
+#' 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
+#' 2. Condition considered as the reference.
+#' 3. Condition considered as the target group.
+#' @param corrIdGenes Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
+#' @param database Which annotation database ? valid: database: kegg reactom goBP goCC goMF custom.
+#' @param maxSize Maximum number of gene in each term.
+#' @param minSize Minimum number of gene in each term.
+#' @param customAnnot  Custom annotation database, as a list of terms, each element contain a vector of gene symbols.
+#' @param keggDisease Logical. Retain kegg disease term in kegg database?
+#' @param species Character. Shortname of the species as described in `data("bods")`.
+#' @param db_terms A list or NULL. A named list were each element is a database. Inside each database, a list terms, named by the term and containing gene vectors as gene symbols.
+#' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
+#'
+#' @return
+#' A dataframe with the following columns:
+#' - term: name of the term/gene set
+#' - baseMean: mean of activation score in the gene set
+#' - sd: standard deviation  in the gene set
+#' - log2FoldChange: Log(Log Fold Change) of activation score between the two tested groups.
+#' - pval: an enrichment p-value
+#' - padj: a BH-adjusted p-value
+#' - database: origin of the gene set
+#' - size: number of gene in the term after removing genes not present.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#'
+#' keggDB<-getDBterms(rownames(bulkLogCounts),database = "kegg")
+#' geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = keggDB)
+#' resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms =  keggDB)
+#'
+#' #or
+#' resGSDA<-GSDA(expressionMatrix = bulkLogCounts,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),database = "kegg")
+GSDA<-function(geneSetActivScore=NULL,expressionMatrix=NULL,colData,contrast, corrIdGenes=NULL,
 							 database=c("kegg","reactom","goBP","goCC","goMF"),
 							 maxSize=500,minSize=2,customAnnot=NULL,keggDisease=FALSE,species="Human",db_terms=NULL,speciesData=NULL){
 
-	if(is.null(geneSetEigens) & is.null(geneSetEigens)) stop("At least expressionMatrix or geneSetEigens miiust be given")
+	if(is.null(geneSetActivScore) & is.null(expressionMatrix)) stop("At least expressionMatrix or geneSetEigens must be given")
 
 	if(is.null(db_terms)){
 		db_terms<-getDBterms(geneSym=rownames(expressionMatrix), corrIdGenes=corrIdGenes,database=database,
 												 customAnnot=customAnnot,keggDisease=keggDisease,species=species,returnGenesSymbol = TRUE)
 	}
 
-	if(is.null(geneSetEigens)){
-		geneSetEigens<-computeActivationScore(expressionMatrix=expressionMatrix,db_terms=db_terms)
+	if(is.null(geneSetActivScore)){
+		geneSetActivScore<-computeActivationScore(expressionMatrix=expressionMatrix,db_terms=db_terms)
 	}
 
 	res<-list()
 
 	for(db in names(db_terms)){
-		if(is.list(geneSetEigens[[db]])){
-			eigenPerPathway<-geneSetEigens[[db]]$eigen
+		if(is.list(geneSetActivScore[[db]])){
+			eigenPerPathway<-geneSetActivScore[[db]]$eigen
 		}else{
-			eigenPerPathway<-geneSetEigens[[db]]
+			eigenPerPathway<-geneSetActivScore[[db]]
 		}
 
 		db_terms[[db]]<-db_terms[[db]][rownames(eigenPerPathway)]
@@ -210,6 +309,25 @@ GSDA<-function(geneSetEigens=NULL,expressionMatrix=NULL,colData,contrast, corrId
 }
 
 
+#' Download database of term/pathway for enrichment analyses.
+#'
+#' @param geneSym A vector of gene symbols.
+#' @param geneEntrez NULL or a vector of gene Entrez ID.
+#' @param corrIdGenes Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
+#' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
+#' @param database Which annotation database ? valid: database: kegg reactom goBP goCC goMF custom.
+#' @param customAnnot  Custom annotation database, as a list of terms, each element contain a vector of gene symbols.
+#' @param keggDisease Logical. Retain kegg disease term in kegg database?
+#' @param species Character. Shortname of the species as described in `data("bods")`.
+#' @param returnGenesSymbol Logical, return gene symbol in each term instead of Entrez ID.
+#'
+#' @return
+#' A list where each element is a database that contain a list of term with the associated gene symbols.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' enrichDBs<-getDBterms(rownames(bulkLogCounts),species="Human",database=c("kegg","reactom"))
 getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),customAnnot=NULL,
 											keggDisease=FALSE,species="Human",returnGenesSymbol=TRUE){
 	require(AnnotationDbi)
@@ -265,7 +383,19 @@ getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL
 }
 
 
-calConsensusRanking<-function(genes,pvalues,logFoldChanges){
+#' Compute a "interest score" for a set of genes.
+#'
+#' @param genes A vector of gene names
+#' @param pvalues A vector of numeric corresponding to p-values.
+#' @param logFoldChanges A vector of numeric corresponding to Log2(Fold-change).
+#'
+#' @return A vector of numeric corresponding to interest scores, named by genes.
+#' @export
+#'
+#' @examples
+#' data("DEgenesPrime_Naive")
+#' fcsScore<-fcsScoreDEgenes(rownames(DEgenesPrime_Naive),DEgenesPrime_Naive$pvalue,DEgenesPrime_Naive$log2FoldChange)
+fcsScoreDEgenes<-function(genes,pvalues,logFoldChanges){
 	InvPvalues <- 1-pvalues;
 	InvPvalues[logFoldChanges<0]<- -InvPvalues[logFoldChanges<0]
 	names(InvPvalues)<-genes
