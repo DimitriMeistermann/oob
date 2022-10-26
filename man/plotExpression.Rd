@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plotExpression}
 \alias{plotExpression}
-\title{Pot the expression of one or several genes}
+\title{Plot the expression of one or several genes}
 \usage{
 plotExpression(
   expr,
@@ -14,7 +14,7 @@ plotExpression(
   violinArgs = list(),
   boxplotArgs = list(),
   dotplotArgs = list(),
-  colorScale = mostDistantColor2,
+  colorScale = mostDistantColor,
   defaultGroupName = "group",
   dodge.width = 0.9,
   returnGraph = FALSE
@@ -51,9 +51,11 @@ plotExpression(
 Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
 }
 \description{
-Pot the expression of one or several genes
+Plot the expression of one or several genes
 }
 \examples{
+library(MASS)
+library(ggplot2)
 exprMat<-rbind(
 	rnegbin(30,theta = 10,mu = 10),
 	rnegbin(30,theta = 1,mu = 10),

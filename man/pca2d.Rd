@@ -77,5 +77,5 @@ pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species)
 pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2)
 
 pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2,returnGraph = TRUE)+
-	theme_dark()
+	ggplot2::theme_dark()
 }

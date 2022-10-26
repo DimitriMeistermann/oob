@@ -13,6 +13,7 @@
 #' getSpeciesData("Human")
 #' getSpeciesData("Mouse")
 getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
+	data("bods",package = "gage")
 	species<-list()
 	species.data<-data.frame(bods)
 	species.index<-which(species.data$species==sample.species)
@@ -21,9 +22,8 @@ getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
 	species$kegg<-as.character(species.data[species.index,"kegg.code"])
 	species$go<-strsplit(as.character(species$package),split = ".",fixed = TRUE)[[1]][2]
 	if(updateSpeciesPackage | !(require(species$package,character.only = TRUE))){
-		require("BiocManager")
 		print(paste0("Downloading species package: ",species.data$package))
-		install(species$package, update=FALSE)
+		BiocManager::install(species$package, update=FALSE)
 	}
 	require(species$package,character.only = TRUE)
 	suppressMessages(species$GeneIdTable<-AnnotationDbi::select(get(species$package),keys = AnnotationDbi::keys(get(species$package),"SYMBOL") , "ENTREZID","SYMBOL"))
@@ -69,8 +69,6 @@ getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
 enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),
 											maxSize=500,minSize=2,customAnnot=NULL,returnGenes=FALSE,
 											keggDisease=FALSE,species="Human",db_terms=NULL,speciesData=NULL,...){
-	require(fgsea)
-
 	if(is.data.frame(x) | is.matrix(x)){
 		tempx<-x
 		x<-tempx[,1]
@@ -83,7 +81,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	if(length(db_terms)==0) stop("Error, no term in any database was found")
 	res<-list()
 	for(db in names(db_terms)){
-		res[[db]]<-fgseaMultilevel (db_terms[[db]], x ,minSize=minSize,maxSize=maxSize,eps = 0,...)
+		res[[db]]<-fgsea::fgseaMultilevel (db_terms[[db]], x ,minSize=minSize,maxSize=maxSize,eps = 0,...)
 		res[[db]]<-res[[db]][order(res[[db]]$padj),]
 		res[[db]]$database<-db
 		res[[db]]$leadingEdge<-NULL
@@ -124,7 +122,6 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 #' - genes (if `returnGenes`). Vector of genes of the term.
 #' @export
 #'
-#' @examples
 #' @examples
 #' data("DEgenesPrime_Naive")
 #' vectorIsDE<-DEgenesPrime_Naive$isDE!="NONE";names(vectorIsDE)<-rownames(DEgenesPrime_Naive)
@@ -239,7 +236,7 @@ computeActivationScore<-function(expressionMatrix,corrIdGenes=NULL,scaleScores=F
 #' @param geneSetActivScore A list of database with an element "eigen" containing the matrix of gene set activation score (see what `computeActivationScore` returns).
 #' If NULL, this is computed automatically from the `expressionMatrix` and the gene set database given via `db_terms` or requested via `database`.
 #' @param expressionMatrix An expression matrix (normalized log2(x+1) counts). Genes as rows and sample as columns. If `db_terms` is not given, must be named by gene symbols.
-#' @param colData An annotation dataframe. Each column is a feature, each row a sample.
+#' @param colData An annotation dataframe. Each column is a feature, each row a sample. Same number of samples than in `expressionMatrix`.
 #' @param contrast A vector of 3 character.
 #' 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
 #' 2. Condition considered as the reference.
@@ -324,13 +321,12 @@ GSDA<-function(geneSetActivScore=NULL,expressionMatrix=NULL,colData,contrast, co
 #' @return
 #' A list where each element is a database that contain a list of term with the associated gene symbols.
 #' @export
-#'
+#' @import AnnotationDbi
 #' @examples
 #' data("bulkLogCounts")
 #' enrichDBs<-getDBterms(rownames(bulkLogCounts),species="Human",database=c("kegg","reactom"))
 getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL,database=c("kegg","reactom","goBP","goCC","goMF"),customAnnot=NULL,
 											keggDisease=FALSE,species="Human",returnGenesSymbol=TRUE){
-	require(AnnotationDbi)
 	select<-AnnotationDbi::select
 	validDBs<-c("kegg","reactom","goBP","goCC","goMF","custom")
 	if(sum(database%in%validDBs)<length(database)) stop(paste0("Error, valid values for database are: ",paste0(validDBs,collapse=", ")))
@@ -355,19 +351,15 @@ getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL
 	}
 	if(!(length(database)<=1 & database[1]=="custom")){
 		if("reactom"%in%database){
-			require("fgsea")
-			require("reactome.db")
-			db_terms$reactom<- reactomePathways(geneEntrez)
+			db_terms$reactom<- fgsea::reactomePathways(geneEntrez)
 			db_terms$reactom<-db_terms$reactom[unique(names(db_terms$reactom))]
 		}
 		if("kegg"%in%database){
-			require("gage")
-			kg.species <- kegg.gsets(speciesData$kegg, id.type="entrez")
+			kg.species <- gage::kegg.gsets(speciesData$kegg, id.type="entrez")
 			db_terms$kegg<- if(keggDisease) kg.species$kg.sets else kg.species$kg.sets[kg.species$sigmet.idx]
 		}
 		if("go"%in%substr(database,1,2)){
-			require("gage")
-			go.species <- go.gsets(tolower(species), id.type="entrez")
+			go.species <- gage::go.gsets(tolower(species), id.type="entrez")
 			if("goBP"%in%database) db_terms$goBP<-go.species$go.sets[go.species$go.subs$BP]
 			if("goMF"%in%database) db_terms$goMF<-go.species$go.sets[go.species$go.subs$MF]
 			if("goCC"%in%database) db_terms$goCC<-go.species$go.sets[go.species$go.subs$CC]

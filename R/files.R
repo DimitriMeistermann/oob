@@ -8,6 +8,7 @@
 #' @param ... Other parameters passed to data.table::fread.
 #'
 #' @return A dataframe or a matrix.
+#' @export
 #' @seealso fastWrite
 fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsAsFactors=FALSE,...){
 	dat <- as.data.frame(data.table::fread(fileName,stringsAsFactors=stringsAsFactors, sep = sep,...))
@@ -29,7 +30,7 @@ fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsA
 #' @param dec Character that serve as a decimal separator.
 #' @param sep Separator ("\\t"=tab-separated values).
 #' @param ... Other parameters passed to data.table::fwrite.
-#'
+#' @export
 #' @seealso fastRead
 fastWrite <- function(x, fileName = "default.tsv", headRow="Name",row.names=TRUE,col.names=TRUE, dec=".",sep="\t", ...) {
 	if(is.null(rownames(x))) row.names<-FALSE
@@ -53,6 +54,7 @@ fastWrite <- function(x, fileName = "default.tsv", headRow="Name",row.names=TRUE
 #' @param sep Separator ("\\t"=tab-separated values).
 #' @param list.names Save list names in the row before the values.
 #' @param vector.names Save value name vector in the row before the values.
+#' @export
 #' @seealso read.vectorList
 write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.names=FALSE) {
 	if( (!is.list(list))) stop("list must be a list")
@@ -76,6 +78,7 @@ write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.name
 #' @param sep Separator ("\\t"=tab-separated values).
 #'
 #' @return A list.
+#' @export
 #' @seealso write.vectorList
 read.vectorList<-function(fileName,sep="\t"){
 	con<-fileName(fileName)
@@ -99,7 +102,7 @@ read.vectorList<-function(fileName,sep="\t"){
 #' @param geneCol The column that contain the list of gene of the term.
 #' @param ... Other parameters passed to write.table.
 #'
-#' @return
+#' @return Write a text file.
 #' @export
 #'
 exportEnrich<-function(enrichResults,file,quote = FALSE,sep = "\t",col.names = TRUE,row.names = FALSE,geneCol="genes",...){

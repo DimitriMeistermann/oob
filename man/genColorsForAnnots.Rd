@@ -7,7 +7,7 @@
 genColorsForAnnots(
   annots,
   colorScales = NULL,
-  discreteFuns = list(mostDistantColor2),
+  discreteFuns = list(mostDistantColor),
   returnContinuousFun = FALSE,
   continuousPalettes = list(c("#440154", "#6BA75B", "#FDE725"), c("#2EB538", "#1D1D1B",
     "#DC0900"), c("#FFFFC6", "#FF821B", "#950961")),
@@ -20,7 +20,7 @@ genColorsForAnnots(
 \item{colorScales}{List or NULL. Precomputed color scales. Color scales will be only generated for the features not described.
 Must be in the format of a list named by columns of `annots`.
 Each element contains the colors at breaks for continuous values or a mapping function if `returnContinuousFun=TRUE` (a function that return a color for a given numeric value).
-In the case of factors, the colors named to its corresponding level.}
+In the case of factors, the colors are named to their corresponding level, or in the order of the levels.}
 
 \item{discreteFuns}{A list functions that take a single integer n and return n colors.
 If several functions are provided it will be used for each factor column successively.}

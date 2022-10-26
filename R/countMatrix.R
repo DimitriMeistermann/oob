@@ -1,15 +1,25 @@
 
-#' Title
+#' Principal Component Analysis
 #'
-#' @param d
-#' @param transpose
-#' @param scale
-#' @param center
+#' @param d A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param scale Logical. Divide features by their standard deviation.
+#' @param center Logical. Subtract features by their average.
 #'
 #' @return
+#' A list with the following element:
+#' - sdev: the standard deviations of the principal components (i.e., the square roots of the eigenvalues of the covariance/correlation matrix, though the calculation is actually done with the singular values of the data matrix).
+#' - rotation: the matrix of variable loadings (i.e., a matrix whose columns contain the eigenvectors). The function princomp returns this in the element loadings.
+#' - x: if retx is true the value of the rotated data (the centred (and scaled if requested) data multiplied by the rotation matrix) is returned. Hence, cov(x) is the diagonal matrix diag(sdev^2). For the formula method, napredict() is applied to handle the treatment of values omitted by the na.action.
+#' - center, scale: the centering and scaling used, or FALSE.
+#' - n.obs: Number of samples
+#' - propExplVar: proportion of explained variance by principals components on total variance.
+#' - transform: a list containing the scaling (sdeviations) and centering factors (means) for each principal component.
 #' @export
 #'
 #' @examples
+#' data(iris)
+#' pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
 PCA<-function(d,transpose=T,scale=F,center=T) {
 	if(transpose) d<-t(d);
 	means<-0;sdeviations<-1
@@ -23,7 +33,7 @@ PCA<-function(d,transpose=T,scale=F,center=T) {
 	}
 	resacp <-prcomp(x = d,retx = T,center = FALSE,scale = FALSE);
 	resacp$n.obs<-dim(d)[1];
-	resacp$percentVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
+	resacp$propExplVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
 	resacp$scale<-scale
 	resacp$center<-center
 	resacp$transform<-list(sdeviations=sdeviations,means=means)
@@ -31,23 +41,34 @@ PCA<-function(d,transpose=T,scale=F,center=T) {
 }
 
 
-#' Title
+#' Faster Principal Component Analysis
 #'
-#' @param d
-#' @param transpose
-#' @param scale
-#' @param center
-#' @param nPC
-#' @param weight.by.var
-#' @param ...
+#' @param d A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param scale Logical. Divide features by their standard deviation.
+#' @param center Logical. Subtract features by their average.
+#' @param nPC Integer. Number of Principal Component to be computed.
+#' @param weight.by.var Logical. Weight PC by variables. If TRUE return a regular PCA.
+#' @param ... Other parameters passed to `irlba`.
 #'
 #' @return
+#' A list with the following element:
+#' - sdev: the standard deviations of the principal components (i.e., the square roots of the eigenvalues of the covariance/correlation matrix, though the calculation is actually done with the singular values of the data matrix).
+#' - rotation: the matrix of variable loadings (i.e., a matrix whose columns contain the eigenvectors). The function princomp returns this in the element loadings.
+#' - x: if retx is true the value of the rotated data (the centred (and scaled if requested) data multiplied by the rotation matrix) is returned. Hence, cov(x) is the diagonal matrix diag(sdev^2). For the formula method, napredict() is applied to handle the treatment of values omitted by the na.action.
+#' - center, scale: the centering and scaling used, or FALSE.
+#' - n.obs: Number of samples
+#' - propExplVar: proportion of explained variance by principals components on total variance.
+#' - transform: a list containing the scaling (sdeviations) and centering factors (means) for each principal component.
+#'
 #' @export
 #'
 #' @examples
-fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=NULL,
+#' data("bulkLogCounts")
+#' pca<-fastPCA(bulkLogCounts,nPC=10)
+#' pca2d(pca)
+fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=min(ncol(d) - 1, nrow(d) -1, 30),
 										weight.by.var = TRUE, ...) {
-	require(irlba)
 	if(transpose) d<-t(d);
 	d<-as.matrix(d)
 	means<-0;sdeviations<-1
@@ -55,17 +76,13 @@ fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=NULL,
 	if(center) means<-attr(d,"scaled:center")
 	if(scale) sdeviations<-attr(d,"scaled:scale")
 
-	if(is.null(nPC | nPC>=min(nrow(d),ncol(d)))) {
-		nPC <- min(ncol(d) - 1, nrow(d) -1)
-	}
-
 	resacp<-list()
 	resacp$n.obs<-dim(d)[1];
 	resacp$scale<-scale
 	resacp$center<-center
 	resacp$transform<-list(sdeviations=sdeviations,means=means)
 
-	irlbaResults <- irlba(A = d, nv = nPC, ...)
+	irlbaResults <- irlba::irlba(A = d, nv = nPC, ...)
 	rotation <- irlbaResults$v
 	resacp$sdev <- irlbaResults$d/sqrt(max(1, nrow(d) - 1))
 	if (weight.by.var) {
@@ -79,22 +96,30 @@ fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=NULL,
 	colnames(reducedSpace) <- colnames(rotation)
 	resacp$x<-reducedSpace
 	resacp$rotation<-rotation
-	resacp$percentVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
+	resacp$propExplVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
 	resacp
 }
 
-#' Title
+#' Add new samples to an existing PCA.
 #'
-#' @param pca
-#' @param newSamplesMatrix
-#' @param transpose
-#' @param combineMat
+#' @param pca The existing PCA as an object returned by `PCA` or `fastPCA`.
+#' @param newSamplesMatrix The matrix of numeric of new samples. It must have the same features than the original PCA.
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param returnPCA Logical. Return the updated PCA. If false, just returned the coordinates of new samples on PCs.
 #'
-#' @return
+#' @return A PCA list if `returnPCA` or a matrix of coordinates of samples on PCs.
 #' @export
 #'
 #' @examples
-pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,combineMat=TRUE){
+#' data("iris")
+#' iris1<-iris[1:75,]
+#' iris2<-iris[76:150,]
+#' pca<-PCA(iris1[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
+#' pca2d(pca,colorBy = iris1$Species)
+#' pcaUpdated<-pcaAddSamples(pca,iris2[,1:4],transpose = FALSE)
+#' pca2d(pcaUpdated,colorBy = iris$Species)
+
+pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,returnPCA=TRUE){
 	if(transpose) newSamplesMatrix<-t(newSamplesMatrix)
 	newSamplesMatrix<-newSamplesMatrix[,rownames(pca$rotation),drop=FALSE]
 
@@ -104,7 +129,7 @@ pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,combineMat=TRUE){
 	newSamplesCoord<-t(apply(newSamplesMatrix,1,function(x){
 		colSums(x*pca$rotation)
 	}))
-	if(combineMat){
+	if(returnPCA){
 		pca$x<-rbind(pca$x,newSamplesCoord)
 		return(pca)
 	}else{
@@ -113,18 +138,24 @@ pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,combineMat=TRUE){
 }
 
 
-#' Title
+#' Principal Component Regression
 #'
-#' @param pca
-#' @param annotationDF
-#' @param nComponent
+#' @description PCR is a way to link experimental variable to principal components.
 #'
-#' @return
+#' @param pca A PCA as an object returned by `PCA` or `fastPCA`.
+#' @param annotationDF A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than the PCA.
+#' @param nComponent Integer, number of PC used in the regression.
+#'
+#' @return A dataframe with the PC, annotation and the corresponding R squared.
 #' @export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#'
+#' pca<-fastPCA(bulkLogCounts,nPC=10)
+#' PCR(pca,annotationDF=sampleAnnot[,c("culture_media","line","passage")])
 PCR<-function(pca,annotationDF,nComponent=10){
-	require(reshape2)
 	annots<-colnames(annotationDF)
 	rSquaredMat<-matrixFromDimnames(cn(pca$x),annots,value = NA)
 	for(x in cn(pca$x)){
@@ -135,31 +166,57 @@ PCR<-function(pca,annotationDF,nComponent=10){
 	if(ncol(annotationDF)<2){
 		retDt<-data.frame(Rsquared=rSquaredMat[,1],PC=rownames(rSquaredMat),Annotation=colnames(annotationDF))
 	}else{
-		retDt<-melt(rSquaredMat[1:nComponent,], value.name = "Rsquared",varnames=c("PC","Annotation"))
+		retDt<-reshape2::melt(rSquaredMat[1:nComponent,], value.name = "Rsquared",varnames=c("PC","Annotation"))
 	}
 
 	retDt$PC<-factor(retDt$PC,levels=cn(pca$x)[1:nComponent]) #so the levels of PCs are well ordered
 	retDt
 }
 
+merge0dist<-function(disMat){
+	mat<-as.matrix(disMat)
+	merged<-list()
+	found<-TRUE
+	while(found==TRUE){
+		found<-FALSE
+		for(i in 2:nrow(mat)){
+			for(j in 1:(i-1)){
+				if(mat[i,j]==0){
+					newNames<-rownames(mat)
+					newNames<-newNames[-i]
+					newMat<-mat[-i,-i]
+					colnames(newMat)<-rownames(newMat)<-newNames
+					merged[[rownames(mat)[j]]]<-c(merged[[rownames(mat)[j]]],rownames(mat)[i])
+					mat<-newMat
+					found<-TRUE
+					break
+				}
+			}
+			if(found) break
+		}
+	}
+	return(list(distMat=as.dist(mat),merged=merged))
+}
 
-#' Title
+#' Non-metric Multidimensional Scaling (dimension reduction)
 #'
-#' @param data
-#' @param transpose
-#' @param scale
-#' @param center
-#' @param metric
-#' @param ndim
-#' @param maxit
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param scale  Logical. Divide features by their standard deviation.
+#' @param center Logical. Subtract features by their average.
+#' @param metric A function that return a object of class "dist".
+#' @param ndim Integer. Dimensions of the embedded space.
+#' @param maxit The maximum number of iterations.
 #'
-#' @return
+#' @return A matrix of coordinates with samples as rows.
 #' @export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' NMDSproj<-NMDS(bulkLogCounts)
+#' proj2d(NMDSproj)
 NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,maxit=100){
 	merged<-FALSE
-	require(MASS)
 	if(transpose) data <- t(data)
 	d <- metric(data)  # euclidean distances between the rows
 	if(min(d,na.rm=TRUE)==0){
@@ -168,7 +225,7 @@ NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,m
 		d<-md$distMat
 		mergedSample<-md$merged
 	}
-	fit <- isoMDS(d, k=ndim, maxit=maxit) # k is the number of dim
+	fit <- MASS::isoMDS(d, k=ndim, maxit=maxit) # k is the number of dim
 	fit$coord<-fit$points
 	fit$points<-NULL
 	if(merged){
@@ -178,50 +235,23 @@ NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,m
 			fit$coord<-rbind(fit$coord,values)
 		}
 	}
-	return(fit)
+	return(fit$coord)
 }
 
-#' Title
+#' Count Per Million normalization
 #'
-#' @param data
-#' @param nDimPCA
-#' @param transpose
-#' @param n_neighbors
-#' @param n_components
-#' @param min_dist
-#' @param init
-#' @param metric
-#' @param ret_model
-#' @param ret_nn
-#' @param ...
+#' @param data A raw count table with rows as genes
 #'
-#' @return
+#' @return A normalized count table.
 #' @export
 #'
 #' @examples
-make.umap<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=NULL, n_components = 2,min_dist=0.01,
-										init = "laplacian", metric = "euclidean",ret_model=FALSE,ret_nn=FALSE,...){
-	require(uwot)
-	if(transpose) data<-t(data)
-	if(is.null(n_neighbors)) n_neighbors=nrow(data)
-	if(!is.null(nDimPCA)){
-		data<-fastPCA(data,transpose = FALSE,scale = FALSE,nPC = nDimPCA)$x
-	}
-	res<-uwot::umap(as.matrix(data),n_neighbors = n_neighbors, n_components = n_components,
-									min_dist=min_dist, init = init, metric = metric,ret_model=ret_model,ret_nn = ret_nn,...)
-	if(!ret_model & !ret_nn) rownames(res)<-rownames(data)
-	res
-}
-
-
-#' Title
-#'
-#' @param data
-#'
-#' @return
-#' @export
-#'
-#' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' CPM(countMat)
 CPM<-function(data){ #Normalisation CPM
 	data.CPM <- sweep(data, 2, colSums(data),`/`)
 	data.CPM <-data.CPM * 1000000
@@ -229,30 +259,42 @@ CPM<-function(data){ #Normalisation CPM
 }
 
 
-#' Title
+#' Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.
 #'
-#' @param data
-#' @param gene.length
+#' @param data A raw count table with rows as genes
+#' @param gene.length A vector of numeric corresponding to gene length in base pair. Must be named by genes.
 #'
-#' @return
+#' @return A normalized count table where 1 count is equal in theory to one transcript per milion.
 #' @export
 #'
 #' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' TPMfullLength(countMat,geneLengthGRCh38)
 TPMfullLength<-function(data, gene.length){
-	gene.length.kb <- gene.length[rn(data)]/1000
+	gene.length.kb <- gene.length[rownames(data)]/1000
 	data<-sweep(data, 1, gene.length.kb,`/`)
 	return(CPM(data))
 }
 
-#' Title
+#' Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.
 #'
-#' @param data
-#' @param gene.length
+#' @param data A raw count table with rows as genes
+#' @param gene.length A vector of numeric corresponding to gene length in base pair. Must be named by genes.
 #'
-#' @return
+#' @return A normalized count table of RPKM.
 #' @export
 #'
 #' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' RPKM(countMat,geneLengthGRCh38)
 RPKM<-function(data, gene.length){
 	gene.length.kb <- gene.length[rn(data)]/1000
 	data<-CPM(data)
@@ -260,20 +302,83 @@ RPKM<-function(data, gene.length){
 }
 
 
-#' Title
+#' Quick DESeq2 normalization
 #'
-#' @param hc
-#' @param min
-#' @param max
-#' @param loss
-#' @param graph
-#' @param ...
+#' @param countMatrix A raw count table with rows as genes
 #'
-#' @return
+#' @return A normalized count table.
 #' @export
 #'
 #' @examples
-best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE, ...){
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' normDeseq(countMat)
+normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are columns
+	# PS = pseudo reference sample
+	PS<-apply(countMatrix,1,gmean,keepZero=TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
+	keptRow<-PS>0 #get rid of genes containing one zero ore more
+	PS<-PS[keptRow]
+	ratioMat<-sweep(countMatrix[keptRow,],1,PS,"/") #get the ratio matrix (expression/expression from PS)
+	normFactors<-apply(ratioMat,2,median) #get the median of the ratios for each sample to get the normalization factors
+	sweep(countMatrix,2,normFactors,"/") #divide each sample by the corresponding normalization factor
+}
+
+
+#' Quick single cell normalization (scran method).
+#'
+#' @param rawCounts RNA-Seq raw counts with rows as genes.
+#' @param returnLog Logical. Return log counts.
+#' @param sizeFactors NULL or a vector of numeric containing precomputed size factor, same size as number of cells in `rawCounts`.
+#' @param ... Other parameter passed to `computeSumFactors`.
+#'
+#' @return A normalized count table.
+#' @export
+#'
+#' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' quickSCnorm(countMat, returnLog=FALSE)
+#' quickSCnorm(countMat, returnLog=TRUE)
+quickSCnorm<-function(rawCounts,returnLog=TRUE,sizeFactors=NULL,...){
+	sce <- SingleCellExperiment::SingleCellExperiment(assays=list(counts=rawCounts))
+	if(!is.null(sizeFactors)){
+		sizeFactors(sce)<-sizeFactors
+	}else{
+		sce <- scran::computeSumFactors(sce,...)
+	}
+	if(returnLog){
+		scater::normalizeCounts(sce,transform = "log",pseudo_count = 1,size_factors = sizeFactors(sce))
+	}else{
+		scater::normalizeCounts(sce,transform = "none",pseudo_count = 0,size_factors = sizeFactors(sce))
+	}
+}
+
+
+#' Determine the best partition in a hierarchichal clustering
+#'
+#' @param hc A hclust object.
+#' @param min Minimum number of class in the partition.
+#' @param max Maximum number of class in the partition
+#' @param loss Logical. Return the list of computed partition with their derivative loss.
+#' @param graph Logical. Plot a graph of computed partition with their derivative loss.
+#'
+#' @return A single integer (best partition) or print a graph if `graph` or a vector of numeric if `loss`.
+#' @export
+#'
+#' @examples
+#' data(iris)
+#' resClust<-hierarchicalClustering(iris[,1:3],transpose = FALSE)
+#' best.cutree(resClust,graph=TRUE)
+#' best.cutree(resClust)
+#' best.cutree(resClust, loss=TRUE)
+#' cutree(resClust,k = best.cutree(resClust))
+best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE){
 	if (class(hc)!="hclust") hc <- as.hclust(hc)
 	max <- min(max, length(hc$height)-1)
 	inert.gain <- rev(hc$height)
@@ -285,7 +390,7 @@ best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE, ...){
 		print(
 			ggplot(data.frame(partition=min:max,derivative.loss=derivative.loss),aes(x=partition,y=derivative.loss))+
 				geom_point()+
-				scale_x_continuous(breaks=min:max)
+				scale_x_continuous(breaks=min:max,minor_breaks = NULL)
 		)
 	} else {
 		if (loss)
@@ -296,40 +401,42 @@ best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE, ...){
 }
 
 
-# x : matrix
-#' Title
+#' Perform a hierarchical clustering from a matrix/df of observation × features
 #'
-#' @param x
-#' @param transpose
-#' @param method.dist
-#' @param method.hclust
-#' @param bootstrap
-#' @param nboot
-#' @param PCAfirst
-#' @param nDimPCA
+#' @param x A matrix or dataframe of numeric.
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param method.dist A method from the "dist" function. Can be also "pearson" or "bicor" for correlation distance.
+#' @param method.hclust the agglomeration method to be used. This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2", "single", "complete", "average" (= UPGMA), "mcquitty" (= WPGMA), "median" (= WPGMC) or "centroid" (= UPGMC).
+#' @param bootstrap Logical. Use bootstrapping for determining the best clustering.
+#' @param nboot The number of bootstrap replications.
+#' @param PCAfirst Compute a PCA before computing teh clustering, if x contains a lot of features, it can reduce computation time.
+#' @param nDimPCA Integer. If `PCAfirst`, compute a PCA first and take n first principal components.
 #'
-#' @return
+#' @return A hclust object.
 #' @export
 #'
 #' @examples
+#' data(iris)
+#' resClust<-hierarchicalClustering(iris[,1:3],transpose = FALSE)
+#' plot(resClust,hang=-1)
+#' resClust<-hierarchicalClustering(iris[,1:3],transpose = TRUE,bootstrap = TRUE,nboot = 20)
+#' plot(resClust,hang=-1)
 hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method.hclust="ward.D2",
 																 bootstrap=FALSE,nboot=10,PCAfirst=FALSE,nDimPCA=NULL){
 	if(transpose) x<-t(x)
 	if(PCAfirst){
-		x<-ACP(x,transpose = FALSE,scale = FALSE)$x
+		x<-PCA(x,transpose = FALSE,scale = FALSE)$x
 		if(!is.null(nDimPCA)){
 			x<-x[,1:nDimPCA]
 		}
 	}
 	if(bootstrap){
-		require(pvclust)
-		resClust<-pvclust(t(x),nboot=nboot,method.hclust = method.hclust,parallel = TRUE,method.dist = method.dist)$hclust
+		resClust<-pvclust::pvclust(t(x),nboot=nboot,method.hclust = method.hclust,parallel = TRUE,method.dist = method.dist)$hclust
 	}else{
 		if(method.dist=="pearson"){
 			resDist<-corrDist(x)
 		}else if(method.dist=="bicor"){
-			require("WGCNA")
-			resDist<-as.dist((1 - suppressWarnings(bicor(Matrix::t(x))))/2)
+			resDist<-as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(x))))/2)
 		}else{
 			resDist<-dist(x, method = method.dist)
 		}
@@ -338,35 +445,28 @@ hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method
 	return(resClust)
 }
 
-
-#' Title
+#' Test a linear model on each gene following an experimental design.
 #'
-#' @param countMatrix
+#' @param exprData A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param sampleData A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData
+#' @param contrast A vector of 3 character.
+#' 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
+#' 2. Condition considered as the reference.
+#' 3. Condition considered as the target group.
 #'
 #' @return
+#' A dataframe with the following columns:
+#' - baseMean: mean
+#' - log2FoldChange: Log(Log Fold Change)  between the two tested groups.
+#' - pval: an enrichment p-value
+#' - padj: a BH-adjusted p-value
+#'
 #' @export
 #'
 #' @examples
-normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are columns
-	# PS = pseudo reference sample
-	PS<-apply(countMatrix,1,gmean,keepZero=TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
-	keptRow<-PS>0 #get rid of genes containing one zero ore more
-	PS<-PS[keptRow]
-	ratioMat<-sweep(countMatrix[keptRow,],1,PS,"/") #get the ratio matrix (expression/expression from PS)
-	normFactors<-apply(ratioMat,2,median) #get the median of the ratios for each sample to get the normalization factors
-	sweep(countMatrix,2,normFactors,"/") #divide each sample by the corresponding normalization factor
-}
-
-#' Title
-#'
-#' @param exprData
-#' @param sampleData
-#' @param contrast
-#'
-#' @return
-#' @export
-#'
-#' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#' res<-multiLinearModel(bulkLogCounts,sampleData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"))
 multiLinearModel<-function(exprData,sampleData,contrast){
 	samples<-rownames(sampleData)[sampleData[,contrast[1]]%in%contrast[2:3]]
 	data<-exprData[,samples]
@@ -386,17 +486,26 @@ multiLinearModel<-function(exprData,sampleData,contrast){
 }
 
 
-#' Title
+#' Compute over dispersion values for each gene.
 #'
-#' @param counts
-#' @param minCount
-#' @param plot
-#' @param returnPlot
+#' @param counts Normalized count table with genes as rows.
+#' @param minCount Minimum average expression to not be filtered out.
+#' @param plot Logical. Show the overdispersion plot.
+#' @param returnPlot Logical, if `plot` return it as a ggplot object instead of printing it.
 #'
-#' @return
+#' @return A ggplot graph if `returnPlot`, otherwise a dataframe with the following columns:
+#' - mu: average expression
+#' - var: variance
+#' - cv2: squared coefficient of variation. Used as a dispersion value.
+#' - residuals: y-distance from teh regression. Can be used as an overdispersion value.
+#' - residuals2: squared residuals
+#' - fitted: theoretical dispersion for the gene average (y value of the curve).
 #' @export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' normCount<-2^(bulkLogCounts-1)
+#' dispData<-getMostVariableGenes(normCount,minCount=1)
 getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
 	counts<-counts[rowMeans(counts)>minCount,]
 	dispTable<-data.frame(mu=rowMeans(counts),var=apply(counts,1,var),row.names =rownames(counts))
@@ -411,9 +520,6 @@ getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
 	dispTable$residuals2<-dispTable$residuals^2
 	dispTable$fitted<-10^fit$fitted
 	if(plot){
-		require(ggplot2)
-		require(ggrepel)
-		require(circlize)
 		g<-ggplot(dispTable,aes(x=mu,y=cv2,label=rownames(dispTable),fill=residuals))+
 			geom_point(stroke=1/8,colour = "black",shape=21)+geom_line(aes(y=fitted),color="red",size=1.5)+
 			scale_x_log10()+scale_y_log10()
@@ -426,17 +532,25 @@ getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
 	dispTable
 }
 
-#' Title
+#' Compute over dispersion values for each gene from log counts. Do not used, need to be fixed
 #'
-#' @param logCounts
-#' @param minCount
-#' @param plot
-#' @param returnPlot
+#' @param logCounts Normalized log count table with genes as rows.
+#' @param minCount Minimum average expression to not be filtered out.
+#' @param plot Logical. Show the overdispersion plot.
+#' @param returnPlot Logical, if `plot` return it as a ggplot object instead of printing it.
 #'
-#' @return
-#' @export
+#' @return A ggplot graph if `returnPlot`, otherwise a dataframe with the following columns:
+#' - mu: average expression
+#' - var: variance
+#' - cv2: squared coefficient of variation. Used as a dispersion value.
+#' - residuals: y-distance from the regression. Can be used as an overdispersion value.
+#' - residuals2: squared residuals
+#' - fitted: theoretical dispersion for the gene average (y value of the curve).
+#' not export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' dispDataLog<-getMostVariableGenes(bulkLogCounts,minCount=1)
 getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot=FALSE){
 	if(minCount>0) logCounts<-logCounts[rowMeans(logCounts)>minCount,]
 	dispTable<-data.frame(mu=rowMeans(logCounts),var=apply(logCounts,1,var),row.names =rownames(logCounts))
@@ -450,9 +564,6 @@ getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot
 	dispTable$fitted<-fit$fitted
 
 	if(plot){
-		require(ggplot2)
-		require(ggrepel)
-		require(circlize)
 		g<-ggplot(dispTable,aes(x=mu,y=var,label=rownames(dispTable),fill=residuals))+
 			geom_point(stroke=1/8,colour = "black",shape=21)+geom_line(aes(y=fitted),color="red",size=1.5)
 		if(returnPlot){
@@ -465,16 +576,19 @@ getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot
 }
 
 
-# By Miron Kursa https://mbq.me
-#' Title
+#' Quick approximation of area under ROC curve
 #'
-#' @param score
-#' @param bool
+#' @description By Miron Kursa https://mbq.me
 #'
-#' @return
+#' @param score a vector of numeric representing the measure of a feature in a set of samples.
+#' @param bool a vector of logical, same size as score. Is the sample in the target group?
+#'
+#' @return A numeric value. Close to 1 = perfect marker, around 0.5 = as good as random values, close to 0 = perfect anti-marker.
 #' @export
 #'
 #' @examples
+#' data(iris)
+#' auroc(iris$Sepal.Length,iris$Species=="virginica")
 auroc <- function(score, bool) {
 	n1 <- sum(!bool)
 	n2 <- sum(bool)
@@ -483,18 +597,21 @@ auroc <- function(score, bool) {
 }
 
 
-#' Title
+#' Compute a matrix of AUROC describing best gene marker per group of samples.
 #'
-#' @param expressionMatrix
-#' @param group
-#' @param BPPARAM
+#' @param expressionMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param group A feature of factor/character, same length as number of sample. Describe group of each sample.
+#' @param BPPARAM A BPPARAM object as return by `BiocParallel::bpparam()`. Use for multi-threading.
 #'
-#' @return
+#' @return A matrix of AUROC where each row is a gene and each column a level of `group`.
 #' @export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#' res <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
 getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
-	if(is.null(BPPARAM )) BPPARAM=bpparam()
+	if(is.null(BPPARAM )) BPPARAM=BiocParallel::bpparam()
 	if(!is.matrix(expressionMatrix)) expressionMatrix<-as.matrix(expressionMatrix)
 	if(length(group)!=ncol(expressionMatrix)) stop("group should be a vector with same length as number of column in expressionMatrix")
 
@@ -505,7 +622,7 @@ getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
 	});names(binaryGroup)<-levels(group)
 
 	res<-as.matrix(data.frame(lapply(binaryGroup,function(labels){
-		unlist(bplapply(seq_len(nrow(expressionMatrix)),function(i,expressionMatrix,labels,auroc){
+		unlist(BiocParallel::bplapply(seq_len(nrow(expressionMatrix)),function(i,expressionMatrix,labels,auroc){
 			auroc(expressionMatrix[i,],labels)
 		},labels=labels,expressionMatrix=expressionMatrix,auroc=auroc,BPPARAM=BPPARAM),recursive = FALSE)
 	})))
@@ -514,36 +631,44 @@ getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
 }
 
 
-#' Title
+#' Correlation from one gene to all others.
 #'
-#' @param gene
-#' @param expression
-#' @param corFun
-#' @param ...
+#' @param gene A single charachter. The gene (or feature) name that will be used for correlating to all others.
+#' @param expression A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param corFun A function to compute a correlation between two feature.
+#' @param ... Parameters passed to `corFun`.
 #'
-#' @return
+#' @return A vector of numeric. Correlations values named by their corresponding gene.
 #' @export
 #'
 #' @examples
+#' data("bulkLogCounts")
+#' corGeneToOthers("NANOG",bulkLogCounts)
 corGeneToOthers<-function(gene,expression,corFun=cor,...){
 	expression<-as.matrix(expression)
 	t(corFun(expression[gene,],t(expression),...))[,1]
 }
 
 
-#' Title
+#' Compute the activation score of a gene set from 1st component of its PCA
 #'
-#' @param exprMatrix
-#' @param genes
-#' @param scale
-#' @param center
-#' @param returnContribution
+#' @param exprMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param genes A character vector. The gene set where the activation score has to be computed. Must be a subset of `exprMatrix` row names.
+#' @param scale  Logical. Divide features by their standard deviation.
+#' @param center Logical. Subtract features by their average.
+#' @param returnContribution Logical. Return list with activation score (eigengenes) and contribution of genes to the activation score.
 #'
-#' @return
+#' @return A vector of numeric corresponding to activation scores, named by genes. If `returnContribution` return a list with activation scores and contributions of genes.
 #' @export
 #'
 #' @examples
-eigengenes<-function(exprMatrix,genes,scale=F,center=T,returnContribution=F){
+#' data("bulkLogCounts")
+#' keggData<-getDBterms(rownames(bulkLogCounts),database = "kegg")
+#' geneSet<-keggData$kegg$`hsa00190 Oxidative phosphorylation`
+#' geneSet<-intersect(geneSet,rownames(bulkLogCounts))
+#' eigengenes(bulkLogCounts,genes = geneSet)
+#' eigengenes(bulkLogCounts,genes = geneSet,returnContribution = TRUE)
+eigengenes<-function(exprMatrix,genes,scale=FALSE,center=TRUE,returnContribution=FALSE){
 	pca<-prcomp(x = t(exprMatrix[genes,]),retx = T,center = center,scale = scale)
 	eigen<-pca$x[,1]
 	contribution<-pca$rotation[,1]
@@ -559,200 +684,72 @@ eigengenes<-function(exprMatrix,genes,scale=F,center=T,returnContribution=F){
 }
 
 
-#' Title
+#' UMAP projection
 #'
-#' @param rawCounts
-#' @param returnLog
-#' @param sizeFactors
-#' @param ...
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param nDimPCA Integer. If not NULL compute a PCA first and take n first princpal components.
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param n_neighbors The size of local neighborhood (in terms of number of neighboring sample points) used for manifold approximation.
+#' Larger values result in more global views of the manifold, while smaller values result in more local data being preserved.
+#' In general values should be in the range 2 to 100.
+#' @param n_components Integer. Dimensions of the embedded space.
+#' @param min_dist The effective minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together, while larger values will result on a more even dispersal of points. The value should be set relative to the spread value, which determines the scale at which embedded points will be spread out.
+#' @param init Type of initialization for the coordinates (see `uwot` for more details).
+#' @param metric Type of distance metric to use to find nearest neighbors (see `uwot` for more details).
+#' @param ret_model If TRUE, then return extra data that can be used to add new data to an existing embedding via umap_transform. The embedded coordinates are returned as the list item embedding. If FALSE, just return the coordinates. This parameter can be used in conjunction with ret_nn and ret_extra. Note that some settings are incompatible with the production of a UMAP model: external neighbor data (passed via a list to nn_method), and factor columns that were included via the metric parameter. In the latter case, the model produced is based only on the numeric data. A transformation using new data is possible, but the factor columns in the new data are ignored
+#' @param ret_nn If TRUE, then in addition to the embedding, also return nearest neighbor data that can be used as input to nn_method to avoid the overhead of repeatedly calculating the nearest neighbors when manipulating unrelated parameters (e.g. min_dist, n_epochs, init). See the "Value" section for the names of the list items. If FALSE, just return the coordinates. Note that the nearest neighbors could be sensitive to data scaling, so be wary of reusing nearest neighbor data if modifying the scale parameter. This parameter can be used in conjunction with ret_model and ret_extra.
+#' @param ... Other parameters passed to uwot.
 #'
-#' @return
+#' @return A matrix of coordinates with samples as rows, or:
+#' - if ret_model = TRUE (or ret_extra contains "model"), returns a list containing extra information that can be used to add new data to an existing embedding via umap_transform. In this case, the coordinates are available in the list item embedding. NOTE: The contents of the model list should not be considered stable or part of the public API, and are purposely left undocumented.
+#' - if ret_nn = TRUE (or ret_extra contains "nn"), returns the nearest neighbor data as a list called nn. This contains one list for each metric calculated, itself containing a matrix idx with the integer ids of the neighbors; and a matrix dist with the distances. The nn list (or a sub-list) can be used as input to the nn_method parameter.
 #' @export
 #'
 #' @examples
-quickSCnorm<-function(rawCounts,returnLog=TRUE,sizeFactors=NULL,...){
-	require(scran)
-	sce <- SingleCellExperiment(assays=list(counts=rawCounts))
-	if(!is.null(sizeFactors)){
-		sizeFactors(sce)<-sizeFactors
-	}else{
-		sce <- computeSumFactors(sce,...)
+#' data(iris)
+#' irisUMAP<-UMAP(iris[,1:4],transpose = FALSE)
+#' proj2d(irisUMAP,colorBy = iris$Species)
+#' irisUMAP<-UMAP(rowScale(iris[,1:4],center = TRUE,scaled = TRUE),transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
+#' proj2d(irisUMAP$embedding,colorBy = iris$Species,nnMatrix = irisUMAP$nn$euclidean$idx[,1:3],fixedCoord = TRUE)
+UMAP<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=20, n_components = 2,min_dist=0.01,
+							 init = "laplacian", metric = "euclidean",ret_model=FALSE,ret_nn=FALSE,...){
+	if(transpose) data<-t(data)
+	if(nrow(data)<n_neighbors){
+		n_neighbors<-nrow(data)
+		warning("n_neighbors must not exceed number of samples, adjusting n_neighbors to number of samples (",n_neighbors,")")
 	}
-	scater::normalizeCounts(sce,log=returnLog,pseudo_count = 0,size_factors = sizeFactors(sce))
+	if(is.null(n_neighbors)) n_neighbors=nrow(data)
+	if(!is.null(nDimPCA)){
+		data<-fastPCA(data,transpose = FALSE,scale = FALSE,nPC = nDimPCA)$x
+	}
+	res<-uwot::umap(as.matrix(data),n_neighbors = n_neighbors, n_components = n_components,
+									min_dist=min_dist, init = init, metric = metric,ret_model=ret_model,ret_nn = ret_nn,...)
+	if(!ret_model & !ret_nn) rownames(res)<-rownames(data)
+	res
 }
 
 
-#' @title pacmap
+#' TriMap dimension reduction.
 #'
-#' @description An R wrapper for the PaCMAP Python module found at
-#' https://github.com/YingfanWang/PaCMAP
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param n_dims Integer. Dimensions of the embedded space.
+#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param n_inliers Number of nearest neighbors for forming the nearest neighbor triplets.
+#' @param n_outliers Number of outliers for forming the nearest neighbor triplets.
+#' @param apply_pca Reduce the number of dimensions of the data to 100 if necessary before applying the nearest-neighbor search.
+#' @param n_iters Number of iterations.
+#' @param knn_tuple Use the precomputed nearest-neighbors information in form of a tuple (knn_nbrs, knn_distances).
 #'
-#' PaCMAP (Pairwise Controlled Manifold Approximation) is a
-#' dimensionality reduction method that can be used for
-#' visualization, preserving both local and global structure
-#' of the data in original space. PaCMAP optimizes the low
-#' dimensional embedding using three kinds of pairs of points:
-#' neighbor pairs (pair_neighbors), mid-near pair (pair_MN),
-#' and further pairs (pair_FP).
-#'
-#' @param rdf A variable by observation data frame
-#' @param n_components integer Dimensions of the embedded space. Default: 3
-#' @param perplexity numeric The perplexity is related to the
-#' number of nearest neighbors that is used in other manifold learning
-#' algorithms. Larger datasets usually require a larger perplexity. Consider
-#' selecting a value between 5 and 50. The choice is not extremely critical
-#' since t-SNE is quite insensitive to this parameter. Default: 30
-#' @param early_exaggeration numeric Controls how tight natural
-#' clusters in the original space are in the embedded space and how much space
-#' will be between them. For larger values, the space between natural clusters
-#' will be larger in the embedded space. Again, the choice of this parameter
-#' is not very critical. If the cost function increases during initial
-#' optimization, the early exaggeration factor or the learning rate might be
-#' too high. Default: 12.0
-#' @param learning_rate numeric The learning rate for t-SNE is
-#' usually in the range [10.0, 1000.0]. If the learning rate is too high, the
-#' data may look like a ‘ball’ with any point approximately equidistant from
-#' its nearest neighbours. If the learning rate is too low, most points may
-#' look compressed in a dense cloud with few outliers. If the cost function
-#' gets stuck in a bad local minimum increasing the learning rate may help. Default: 200.0
-#' @param n_iter integer Maximum number of iterations for the
-#' optimization. Should be at least 250. Default: 1000
-#' @param n_iter_without_progress integer Maximum number of
-#' iterations without progress before we abort the optimization, used after
-#' 250 initial iterations with early exaggeration. Note that progress is only
-#' checked every 50 iterations so this value is rounded to the next multiple
-#' of 50. Default: 300
-#' @param min_grad_norm numeric If the gradient norm is below
-#' this threshold, the optimization will be stopped. Default: 1e-7
-#' @param metric character or callable The metric to use when calculating distance
-#' between instances in a feature array. If metric is a character, it must be one
-#' of the options allowed by scipy.spatial.distance.pdist for its metric
-#' parameter, or a metric listed in pairwise.PAIRWISE.DISTANCE.FUNCTIONS. If
-#' metric is “precomputed”, X is assumed to be a distance matrix.
-#' Alternatively, if metric is a callable function, it is called on each pair
-#' of instances (rows) and the resulting value recorded. The callable should
-#' take two arrays from X as input and return a value indicating the distance
-#' between them. The default is “euclidean” which is interpreted as squared
-#' euclidean distance.
-#' @param init character or numpy array Initialization of
-#' embedding. Possible options are ‘random’, ‘pca’, and a numpy array of shape
-#' (n.samples, n.components). PCA initialization cannot be used with
-#' precomputed distances and is usually more globally stable than random
-#' initialization. Default: “random”
-#' @param verbose integer Verbosity level. Default: 0
-#' @param random_state int, RandomState instance or NULL If int,
-#' random.state is the seed used by the random number generator; If
-#' RandomState instance, random.state is the random number generator; If NULL,
-#' the random number generator is the RandomState instance used by np.random.
-#' Note that different initializations might result in different local minima
-#' of the cost function. Default: NULL
-#' @param method character By default the gradient
-#' calculation algorithm uses Barnes-Hut approximation running in \eqn{O(N log N)}
-#' time. method=’exact’ will run on the slower, but exact, algorithm in \eqn{O(N^2)}
-#' time. The exact algorithm should be used when nearest-neighbor errors need
-#' to be better than 3%. However, the exact method cannot scale to millions of
-#' examples. Default: ‘barnes.hut’
-#' @param angle numeric Only used if method=’barnes.hut’ This is
-#' the trade-off between speed and accuracy for Barnes-Hut T-SNE. ‘angle’ is
-#' the angular size (also referred to as theta) of a distant node as
-#' measured from a point. If this size is below ‘angle’ then it is used as a
-#' summary node of all points contained within it. This method is not very
-#' sensitive to changes in this parameter in the range of 0.2 - 0.8. Angle
-#' less than 0.2 has quickly increasing computation time and angle greater 0.8
-#' has quickly increasing error.#' Default: 0.5
-#' @param auto_iter boolean Should optimal parameters be determined?
-#' If false, behaves like stock MulticoreTSNE Default: TRUE
-#' @param auto_iter_end intNumber of iterations for parameter
-#' optimization. Default: 5000
-#' @param n_jobs Number of processors to use.  Default: all.
-#'
-#' @importFrom reticulate import py_module_available
-#' @importFrom parallel detectCores
-#'
-#' @return data.frame with tSNE coordinates
-#' @export
-#'
-pacmap <- function(rdf,
-									 n_dims         = 2,
-									 n_neighbors    = NULL,
-									 MN_ratio       = 0.5,
-									 FP_ratio       = 2.0,
-									 pair_neighbors = NULL,
-									 pair_MN        = NULL,
-									 pair_FP        = NULL,
-									 distance       = "euclidean",
-									 lr             = 1.0,
-									 num_iters      = 450,
-									 verbose        = FALSE,
-									 apply_pca      = TRUE,
-									 intermediate   = FALSE,
-									 init=NULL){
-
-	require(reticulate)
-	if (!py_module_available("pacmap")){
-		stop("The pacmap module is unavailable.  Please activate the appropriate environment or install the module.")
-	}
-
-	pacmap_module <-import(
-		module = "pacmap",
-		delay_load = TRUE
-	)
-
-	pacmap <- pacmap_module$PaCMAP(
-		n_dims         = as.integer(n_dims),
-		n_neighbors    = as.integer(n_neighbors),
-		MN_ratio       = as.numeric(MN_ratio),
-		FP_ratio       = as.numeric(FP_ratio),
-		pair_neighbors = pair_neighbors,
-		pair_MN        = pair_MN,
-		pair_FP        = pair_FP,
-		distance       = distance,
-		lr             = as.numeric(lr),
-		num_iters      = as.integer(num_iters),
-		verbose        = verbose,
-		apply_pca      = apply_pca,
-		intermediate   = intermediate
-	)
-
-	pacmap$fit_transform(rdf,init=init)
-}
-
-
-#' Title
-#'
-#' @param rdf
-#' @param n_dims
-#' @param n_inliers
-#' @param n_outliers
-#' @param apply_pca
-#' @param n_iters
-#' @param knn_tuple
-#'
-#' @return
+#' @return A matrix of coordinates with samples as rows.
 #' @export
 #'
 #' @examples
-trimap<-function(rdf,n_dims = 2,n_inliers = 10,n_outliers = 5,
+#' data(iris)
+#' irisTrimap<-TRIMAP(iris[,1:4],transpose=FALSE)
+#' proj2d(irisTrimap,colorBy = iris$Species)
+TRIMAP<-function(data,n_dims = 2,transpose=TRUE, n_inliers = 10,n_outliers = 5,
 								 apply_pca=TRUE,n_iters=400,knn_tuple=NULL){
-	# n_dims: Number of dimensions of the embedding (default = 2)
-	# n_inliers: Number of nearest neighbors for forming the nearest neighbor triplets (default = 10).
-	# n_outliers: Number of outliers for forming the nearest neighbor triplets (default = 5).
-	# n_random: Number of random triplets per point (default = 5).
-	# distance: Distance measure ('euclidean' (default), 'manhattan', 'angular', 'hamming')
-	# weight_adj: The value of gamma for the log-transformation (default = 500.0).
-	# lr: Learning rate (default = 1000.0).
-	# n_iters: Number of iterations (default = 400).
-	#
-	# The other parameters include:
-	#
-	# 	knn_tuple: Use the precomputed nearest-neighbors information in form of a tuple (knn_nbrs, knn_distances) (default = None)
-	# use_dist_matrix: Use the precomputed pairwise distance matrix (default = False)
-	# apply_pca: Reduce the number of dimensions of the data to 100 if necessary before applying the nearest-neighbor search (default = True).
-	# opt_method: Optimization method {'sd' (steepest descent), 'momentum' (GD with momentum), 'dbd' (delta-bar-delta, default)}.
-	# verbose: Print the progress report (default = True).
-	# return_seq: Store the intermediate results and return the results in a tensor (default = False).
-	#
-
+	if(transpose)  data<-t(data)
 	trimap_module <- reticulate::import( module = "trimap", delay_load = TRUE)
 
 	trimap <- trimap_module$TRIMAP(
@@ -763,47 +760,45 @@ trimap<-function(rdf,n_dims = 2,n_inliers = 10,n_outliers = 5,
 		n_iters = as.integer(n_iters),
 		knn_tuple=knn_tuple
 	)
-
-	trimap$fit_transform(rdf)
-
+	trimap$fit_transform(as.matrix(data))
 }
 
-#' Title
+#' Compute a Leiden clustering from a UMAP model.
 #'
-#' @param umapModel
-#' @param n_neighbors
-#' @param metric
-#' @param partition_type
-#' @param returnAsFactor
-#' @param n_iterations
-#' @param resolution_parameter
-#' @param seed
-#' @param laplacian_init
-#' @param initial_membership
-#' @param max_comm_size
-#' @param ...
+#' @param umapWithNN A list with the UMAP coordinates and the nearest neighbor data as returned by `UMAP` if `ret_nn = TRUE`.
+#' @param n_neighbors The size of local neighborhood (in terms of number of neighboring sample points) used for the Leiden clustering.
+#' @param metric Character. One of the metric used for computing the UMAP model. If NULL take the first available one.
+#' @param partition_type 	Type of partition to use. Defaults to RBConfigurationVertexPartition. Options include: ModularityVertexPartition, RBERVertexPartition, CPMVertexPartition, MutableVertexPartition, SignificanceVertexPartition, SurpriseVertexPartition, ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the Leiden python module documentation for more details)
+#' @param returnAsFactor If TRUE return the clusters attributions as a factor vector and not as characters.
+#' @param n_iterations Number of iterations. If the number of iterations is negative, the Leiden algorithm is run until an iteration in which there was no improvement.
+#' @param resolution_parameter A parameter controlling the coarseness of the clusters.
+#' @param seed Seed for the random number generator. By default uses a random seed if nothing is specified.
+#' @param laplacian_init  Derive edge weights from the Laplacian matrix, otherwise weights are derived from the distance between cells. Not used for the moment
+#' @param initial_membership Initial membership for the partition. If MULL then defaults to a singleton partition.
+#' @param max_comm_size Maximal total size of nodes in a community. If zero (the default), then communities can be of any size.
+#' @param ... Other parameters passed to `leidenFromPygraph`.
 #'
-#' @return
+#' @return A vector of character or factor if `returnAsFactor`, same length as number of samples in the UMAP. Cluster attribution of samples.
 #' @export
 #'
 #' @examples
-leidenFromUMAP<-function(umapModel,n_neighbors=10,metric=NULL,
+#' data("bulkLogCounts")
+#' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
+#' proj2d(umapWithNN$embedding,colorBy = leidenFromUMAP(umapWithNN))
+leidenFromUMAP<-function(umapWithNN,n_neighbors=10,metric=NULL,
 												 partition_type=c("RBConfigurationVertexPartition", "ModularityVertexPartition","RBERVertexPartition", "CPMVertexPartition", "MutableVertexPartition",
 												 								 "SignificanceVertexPartition", "SurpriseVertexPartition","ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite"),
 												 returnAsFactor=FALSE,n_iterations=-1,resolution_parameter = .5,seed=666,laplacian_init = TRUE,
 												 initial_membership=NULL, max_comm_size = 0L,...){
 
-	require(leiden)
-	require(igraph)
-
 	if(is.null(metric)){
-		metric<-names(umapModel$nn)[1]
+		metric<-names(umapWithNN$nn)[1]
 	}else{
-		if(!metric %in% names(umapModel$nn)) stop(metric, " distance metric is not computed in the provided model")
+		if(!metric %in% names(umapWithNN$nn)) stop(metric, " distance metric is not computed in the provided model")
 	}
 
 	partition_type <- match.arg(partition_type)
-	pygraph<-adjMat2Pygraph(getAdjMatfromUMAPmodel(umapModel,n_neighbors=n_neighbors,metric=metric))
+	pygraph<-adjMat2Pygraph(getAdjMatfromUMAPWithNN(umapWithNN,n_neighbors=n_neighbors,metric=metric))
 
 	leidenFromPygraph(pygraph,returnAsFactor=returnAsFactor,n_iterations=n_iterations,
 										resolution_parameter = resolution_parameter,seed=seed,laplacian_init = laplacian_init,
@@ -811,18 +806,58 @@ leidenFromUMAP<-function(umapModel,n_neighbors=10,metric=NULL,
 }
 
 
+#' Python igraph object from an adjacency matrix.
+#'
+#' @param adjMat An adjacency matrix of a graph.
+#' @param mode A character, the mode to be used. Possible values are:
+#' -"directed" - the graph will be directed and a matrix element gives the number of edges between two vertex.
+#' -"undirected" - alias to "max" for convenience.
+#' -"max" - undirected graph will be created and the number of edges between vertex i and j is max(A(i,j),A(j,i))
+#' -"min" - like "max", but with min(A(i,j),A(j,i))
+#' -"plus" - like "max", but with A(i,j)+A(j,i)
+#' -"upper" - undirected graph with the upper right triangle of the matrix (including the diagonal)
+#' -"lower" - undirected graph with the lower left triangle of the matrix (including the diagonal)
+#' @param ... Other parameters passed to the igraph python function `Weighted_Adjacency`.
+#'
+#' @return A python igraph object.
+#' @export
+#'
+#' @examples
+#' adjMat<-matrix(round(runif(25,min = 0,max = 1)),ncol = 5)
+#' res<-adjMat2Pygraph(adjMat)
 adjMat2Pygraph<-function(adjMat,mode = "directed",...){
 	ig<-reticulate::import("igraph")
 	graph<-ig$Graph$Weighted_Adjacency(matrix = adjMat,mode = mode,...)
 }
 
+#' Compute a Leiden clustering from K Nearest Neighbors graph from python igraph.
+#'
+#' @param pygraph  A python igraph object as computed by `adjMat2Pygraph`.
+#' @param returnAsFactor  If TRUE return the clusters attributions as a factor vector and not as characters.
+#' @param n_iterations Number of iterations. If the number of iterations is negative, the Leiden algorithm is run until an iteration in which there was no improvement.
+#' @param resolution_parameter  A parameter controlling the coarseness of the clusters.
+#' @param seed  Seed for the random number generator. By default uses a random seed if nothing is specified.
+#' @param laplacian_init  Derive edge weights from the Laplacian matrix, otherwise weights are derived from the distance between cells. Not used for the moment.
+#' @param initial_membership  Initial membership for the partition. If MULL then defaults to a singleton partition.
+#' @param max_comm_size  Maximal total size of nodes in a community. If zero (the default), then communities can be of any size.
+#' @param node_sizes
+#' @param weight_parameter Weight of the graph as a numeric value for each edge.  Not used for the moment.
+#' @param partition_type 	Type of partition to use. Defaults to RBConfigurationVertexPartition. Options include: ModularityVertexPartition, RBERVertexPartition, CPMVertexPartition, MutableVertexPartition, SignificanceVertexPartition, SurpriseVertexPartition, ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the Leiden python module documentation for more details).
+#'
+#' @return  A vector of character or factor if `returnAsFactor`, same length as number of nodes in the graph. Cluster attribution of samples.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
+#' pygraph<-adjMat2Pygraph(getAdjMatfromUMAPWithNN(umapWithNN))
+#' proj2d(umapWithNN$embedding,colorBy = leidenFromPygraph(pygraph))
 leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolution_parameter = .5,seed=666,laplacian_init = TRUE,
 														initial_membership=NULL, max_comm_size = 0L,node_sizes = NULL,weight_parameter=NULL,
 														partition_type = c("RBConfigurationVertexPartition", "ModularityVertexPartition",
 																							 "RBERVertexPartition", "CPMVertexPartition", "MutableVertexPartition",
 																							 "SignificanceVertexPartition", "SurpriseVertexPartition",
-																							 "ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite"),...){
-	require(reticulate)
+																							 "ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite")){
 	ig<-import("igraph")
 	numpy <- import("numpy", delay_load = TRUE)
 	leidenalg <- import("leidenalg", delay_load = TRUE)
@@ -843,57 +878,56 @@ leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolut
 	max_comm_size<-as.integer(max_comm_size)
 
 	part <- switch(EXPR = partition_type,
+		RBConfigurationVertexPartition = leidenalg$find_partition(pygraph,
+						 		leidenalg$RBConfigurationVertexPartition, initial_membership = initial_membership,
+						 		weights = w, seed = seed, n_iterations = n_iterations,
+						 		max_comm_size = max_comm_size,
+						 		resolution_parameter = resolution_parameter),
 
-								 RBConfigurationVertexPartition = leidenalg$find_partition(pygraph,
-								 																													leidenalg$RBConfigurationVertexPartition, initial_membership = initial_membership,
-								 																													weights = w, seed = seed, n_iterations = n_iterations,
-								 																													max_comm_size = max_comm_size,
-								 																													resolution_parameter = resolution_parameter),
+		ModularityVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$ModularityVertexPartition, initial_membership = initial_membership,
+								weights = w, seed = seed, n_iterations = n_iterations,
+								max_comm_size = max_comm_size),
 
-								 ModularityVertexPartition = leidenalg$find_partition(pygraph,
-								 																										 leidenalg$ModularityVertexPartition, initial_membership = initial_membership,
-								 																										 weights = w, seed = seed, n_iterations = n_iterations,
-								 																										 max_comm_size = max_comm_size),
+		RBERVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$RBERVertexPartition, initial_membership = initial_membership,
+								weights = w, seed = seed, n_iterations = n_iterations,
+								max_comm_size = max_comm_size,
+								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
 
-								 RBERVertexPartition = leidenalg$find_partition(pygraph,
-								 																							 leidenalg$RBERVertexPartition, initial_membership = initial_membership,
-								 																							 weights = w, seed = seed, n_iterations = n_iterations,
-								 																							 max_comm_size = max_comm_size,
-								 																							 node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+		CPMVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$CPMVertexPartition, initial_membership = initial_membership,
+								weights = w, seed = seed, n_iterations = n_iterations,
+								max_comm_size = max_comm_size,
+								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
 
-								 CPMVertexPartition = leidenalg$find_partition(pygraph,
-								 																							leidenalg$CPMVertexPartition, initial_membership = initial_membership,
-								 																							weights = w, seed = seed, n_iterations = n_iterations,
-								 																							max_comm_size = max_comm_size,
-								 																							node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+		MutableVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$MutableVertexPartition, initial_membership = initial_membership,
+								seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size),
 
-								 MutableVertexPartition = leidenalg$find_partition(pygraph,
-								 																									leidenalg$MutableVertexPartition, initial_membership = initial_membership,
-								 																									seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size),
+		SignificanceVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$SignificanceVertexPartition, initial_membership = initial_membership,
+								seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size,
+								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
 
-								 SignificanceVertexPartition = leidenalg$find_partition(pygraph,
-								 																											 leidenalg$SignificanceVertexPartition, initial_membership = initial_membership,
-								 																											 seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size,
-								 																											 node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+		SurpriseVertexPartition = leidenalg$find_partition(pygraph,
+								leidenalg$SurpriseVertexPartition, initial_membership = initial_membership,
+								weights = w, seed = seed, n_iterations = n_iterations,
+								max_comm_size = max_comm_size, node_sizes = node_sizes),
 
-								 SurpriseVertexPartition = leidenalg$find_partition(pygraph,
-								 																									 leidenalg$SurpriseVertexPartition, initial_membership = initial_membership,
-								 																									 weights = w, seed = seed, n_iterations = n_iterations,
-								 																									 max_comm_size = max_comm_size, node_sizes = node_sizes),
+		ModularityVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
+								initial_membership = initial_membership, weights = w,
+								resolution_parameter_01 = resolution_parameter,
+								resolution_parameter_0 = 0, resolution_parameter_1 = 0,
+								degree_as_node_size = TRUE, types = "type", seed = seed,
+								n_iterations = n_iterations),
 
-								 ModularityVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
-								 																																 initial_membership = initial_membership, weights = w,
-								 																																 resolution_parameter_01 = resolution_parameter,
-								 																																 resolution_parameter_0 = 0, resolution_parameter_1 = 0,
-								 																																 degree_as_node_size = TRUE, types = "type", seed = seed,
-								 																																 n_iterations = n_iterations),
-
-								 CPMVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
-								 																													initial_membership = initial_membership, weights = w,
-								 																													resolution_parameter_01 = resolution_parameter,
-								 																													resolution_parameter_0 = 0, resolution_parameter_1 = 0,
-								 																													degree_as_node_size = degree_as_node_size, types = "type",
-								 																													seed = seed, n_iterations = n_iterations), stop("please specify a partition type as a string out of those documented"))
+		CPMVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
+								initial_membership = initial_membership, weights = w,
+								resolution_parameter_01 = resolution_parameter,
+								resolution_parameter_0 = 0, resolution_parameter_1 = 0,
+								degree_as_node_size = degree_as_node_size, types = "type",
+								seed = seed, n_iterations = n_iterations), stop("please specify a partition type as a string out of those documented"))
 
 	res <- paste0("k",formatNumber2Character(part$membership + 1))
 	if(returnAsFactor) res<-as.factor(res)
@@ -901,30 +935,32 @@ leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolut
 }
 
 
-
-#' Title
+#' Compute an adjacency matrix from the nearest neighbor matrix of a UMAP model
 #'
-#' @param umapModel
-#' @param n_neighbors
-#' @param metric
+#' @param umapWithNN A UMAP model as returned by UMAP if `ret_nn = TRUE`,
+#' @param n_neighbors The size of local neighborhood (in terms of number of neighboring sample points) used for the Leiden clustering.
+#' @param metric  Character. One of the metric used for computing the UMAP model. If NULL take the first available one.
 #'
-#' @return
+#' @return A sparse adjacency matrix from the class `dgTMatrix`.
 #' @export
 #'
 #' @examples
-getAdjMatfromUMAPmodel<-function(umapModel,n_neighbors=10,metric=NULL){
-	if(ncol(umapModel$nn[[metric]]$idx) < n_neighbors){
-		stop("The provided umap model contains the data for ",ncol(umapModel$nn[[metric]]$idx),
+#' data("bulkLogCounts")
+#' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
+#' getAdjMatfromUMAPWithNN(umapWithNN)
+getAdjMatfromUMAPWithNN<-function(umapWithNN,n_neighbors=10,metric=NULL){
+	if(is.null(metric)){
+		metric<-names(umapWithNN$nn)[1]
+	}else{
+		if(!metric %in% names(umapWithNN$nn)) stop(metric, " distance metric is not computed in the provided model")
+	}
+	if(ncol(umapWithNN$nn[[metric]]$idx) < n_neighbors){
+		stop("The provided umap model contains the data for ",ncol(umapWithNN$nn[[metric]]$idx),
 				 " neighbors, please decrease the n_neighbors parameter or recompute the model on a higher number of neighbors")
 	}
-	if(is.null(metric)){
-		metric<-names(umapModel$nn)[1]
-	}else{
-		if(!metric %in% names(umapModel$nn)) stop(metric, " distance metric is not computed in the provided model")
-	}
 	#from 2 --> rm diagonals
-	knn_indices<-umapModel$nn[[metric]]$idx[,2:n_neighbors]
-	knn_dists<-umapModel$nn[[metric]]$dist[,2:n_neighbors]
+	knn_indices<-umapWithNN$nn[[metric]]$idx[,2:n_neighbors]
+	knn_dists<-umapWithNN$nn[[metric]]$dist[,2:n_neighbors]
 
 	n<-nrow(knn_indices)
 	as(Matrix::sparseMatrix(

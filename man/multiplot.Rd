@@ -19,6 +19,7 @@ multiplot(..., plotlist = NULL, cols = 1, layout = NULL)
 Multiple ggplot one one page
 }
 \examples{
+library(ggplot2)
 p1<-ggplot(data = data.frame(x=1:5,y=1:5),aes(x=x,y=y))+geom_point()+ggtitle("p1")
 p2<-qplot(c("a","a","b","b","b","c"))+ggtitle("p2")
 p3<-qplot(c("a","a","b","b","b"))+ggtitle("p3")

@@ -59,7 +59,7 @@ corrDist<-function(x,method="pearson"){
 #' data("iris")
 #' corrDistBicor(t(iris[,1:3]))
 corrDistBicor<-function(x){
-	return(as.dist((1 - suppressWarnings(bicor(Matrix::t(x))))/2))
+	return(as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(x))))/2))
 }
 
 

@@ -91,12 +91,12 @@ proj1d(iris$Sepal.Length,pointSize = .1)
 proj1d(iris$Sepal.Length,variable.name = "Length of sepal" ,main = "Two features from iris")
 
 
-proj1d(iris$Sepal.Length,colorBy = iris$Species,ellipse = TRUE,plotFactorsCentroids = TRUE,legendTitle = "Species")
+proj1d(iris$Sepal.Length,colorBy = iris$Species,plotFactorsCentroids = TRUE,legendTitle = "Species")
 proj1d(iris$Sepal.Length,colorBy = iris$Species,pointStroke = 3,strokeColor = "grey")
 
 proj1d(iris$Sepal.Length,colorBy = iris$Species,emph = "setosa",na.color = "white")
 proj1d(iris$Sepal.Length,colorBy = iris$Species,returnGraph = TRUE)+
-	geom_vline(xintercept = 6)
+	ggplot2::geom_vline(xintercept = 6)
 
 proj1d(iris$Sepal.Length,colorBy = iris$Species,colorScale = c("blue","white","red"))
 proj1d(iris$Sepal.Length,colorBy = iris$Species,funAutoColorScale = mostDistantColor)

@@ -28,6 +28,7 @@ autoGparFontSizeMatrix<-function(n,...){
 #' @export
 #'
 #' @examples
+#' library(ggplot2)
 #' p1<-ggplot(data = data.frame(x=1:5,y=1:5),aes(x=x,y=y))+geom_point()+ggtitle("p1")
 #' p2<-qplot(c("a","a","b","b","b","c"))+ggtitle("p2")
 #' p3<-qplot(c("a","a","b","b","b"))+ggtitle("p3")
@@ -153,7 +154,7 @@ convertColorAdd2Sub<-function(color,returnHex=TRUE){
 #'
 mostDistantColor<-function(n, colorspace = "rainbow", cvd = c("protan", "deutan","tritan"), cvd_severity = 0, n_threads = NULL){
 	if(n==1) return("#000000")
-	qualpal(n=n, colorspace = colorspace, cvd = cvd, cvd_severity = cvd_severity, n_threads = n_threads)$hex
+	qualpalr::qualpal(n=n, colorspace = colorspace, cvd = cvd, cvd_severity = cvd_severity, n_threads = n_threads)$hex
 }
 
 
@@ -170,7 +171,7 @@ mostDistantColor<-function(n, colorspace = "rainbow", cvd = c("protan", "deutan"
 #' pointdensity.nrd(coord)
 pointdensity.nrd<-function(mat,eps=1){
 	if(!is.matrix(mat)) mat<-as.matrix(mat)
-	pointdensity(apply(mat,2,function(d) d/bandwidth.nrd(d)),eps = eps,type = "density")
+	dbscan::pointdensity(apply(mat,2,function(d) d/bandwidth.nrd(d)),eps = eps,type = "density")
 }
 
 
@@ -388,6 +389,7 @@ genColorsForAnnots<-function(annots, colorScales=NULL,discreteFuns = list(mostDi
 #' @export
 #'
 #' @examples
+#' library(ggplot)
 #' g<-ggplot(data.frame(x=c("A","A","B","B","B","C")),aes(x=x))+geom_bar()
 #' g
 #' ggBorderedFactors(g)
@@ -441,20 +443,20 @@ ggBorderedFactors<-function(gg,borderSize=.75,borderColor="grey75"){
 #' pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2)
 #'
 #' pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2,returnGraph = TRUE)+
-#' 	theme_dark()
+#' 	ggplot2::theme_dark()
 pca2d<-function(pca, comp=1:2,colorBy=NULL, plotVars = FALSE, pointSize=2, plotText=FALSE,ratioPerPercentVar=FALSE,main=NULL,
 								ellipse=FALSE,colorScale=NULL,returnGraph=FALSE, outlierLabel=FALSE,outlierLabelThres=NULL,
 								outlierLabelSize=3,customRatio=NULL,...){
 	if(length(comp)!=2) stop("You must give a vector of 2 integer for comp parameter");
-	percentVar <- pca$percentVar
+	propExplVar <- pca$propExplVar
 	if(ratioPerPercentVar){
-		customRatio<-percentVar[comp[2]]/percentVar[comp[1]]
+		customRatio<-propExplVar[comp[2]]/propExplVar[comp[1]]
 	}
 	dt<-pca[[ifelse(plotVars, "rotation","x")]]
 	graph<-proj2d(coord = dt,axis = comp,colorBy = colorBy,returnGraph = T,colorScale = colorScale,main = main,plotText = plotText,
 								ellipse = ellipse,pointSize=pointSize,customRatio=customRatio,...)+
-		xlab(paste0("PC",comp[1],": ",round(percentVar[comp[1]] * 100),"% variance")) +
-		ylab(paste0("PC",comp[2],": ",round(percentVar[comp[2]] * 100),"% variance"))
+		xlab(paste0("PC",comp[1],": ",round(propExplVar[comp[1]] * 100),"% variance")) +
+		ylab(paste0("PC",comp[2],": ",round(propExplVar[comp[2]] * 100),"% variance"))
 	if(outlierLabel){
 		if(is.null(rownames(dt))) rownames(dt)<-as.character(1:nrow(dt))
 		dtOutlier<-data.frame(x=dt[,comp[1]],y=dt[,comp[2]],label=rownames(dt))
@@ -521,7 +523,7 @@ pca2d<-function(pca, comp=1:2,colorBy=NULL, plotVars = FALSE, pointSize=2, plotT
 #'
 #' proj2d(iris,colorBy = iris$Species,emph = "setosa",na.color = "white")
 #' proj2d(iris,colorBy = iris$Species,returnGraph = TRUE)+
-#' 	geom_vline(xintercept = 6)
+#' 	ggplot2::geom_vline(xintercept = 6)
 #'
 #' proj2d(iris,colorBy = iris$Species,colorScale = c("blue","white","red"))
 #' proj2d(iris,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
@@ -532,7 +534,7 @@ pca2d<-function(pca, comp=1:2,colorBy=NULL, plotVars = FALSE, pointSize=2, plotT
 #' proj2d(iris,sizeProp2Dens = TRUE)
 #' proj2d(iris,sizeProp2Dens = TRUE,densEps = 2)
 #'
-#' umap<-make.umap(scale(iris[,c(1:4)]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
+#' umap<-UMAP(scale(iris[,c(1:4)]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
 #'
 #' proj2d(umap)
 #' proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,1:3],fixedCoord = TRUE)
@@ -708,12 +710,12 @@ proj2d<-function(coord,colorBy=NULL,axis=1:2, pointSize=3, plotText=FALSE,main=N
 #' proj1d(iris$Sepal.Length,variable.name = "Length of sepal" ,main = "Two features from iris")
 #'
 #'
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,ellipse = TRUE,plotFactorsCentroids = TRUE,legendTitle = "Species")
+#' proj1d(iris$Sepal.Length,colorBy = iris$Species,plotFactorsCentroids = TRUE,legendTitle = "Species")
 #' proj1d(iris$Sepal.Length,colorBy = iris$Species,pointStroke = 3,strokeColor = "grey")
 #'
 #' proj1d(iris$Sepal.Length,colorBy = iris$Species,emph = "setosa",na.color = "white")
 #' proj1d(iris$Sepal.Length,colorBy = iris$Species,returnGraph = TRUE)+
-#' 	geom_vline(xintercept = 6)
+#' 	ggplot2::geom_vline(xintercept = 6)
 #'
 #' proj1d(iris$Sepal.Length,colorBy = iris$Species,colorScale = c("blue","white","red"))
 #' proj1d(iris$Sepal.Length,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
@@ -903,7 +905,6 @@ proj3d<-function(coord, axis=1:3, colorBy=NULL, pointSize=5, plotText=FALSE,colo
 #' @examples
 #' qplotDensity(rnorm(10000))
 qplotDensity<-function(x,returnGraph=FALSE,...){
-
 	if(class(x)=="data.frame" | class(x)=="list") x<-unlist(x)
 	if(class(x)=="matrix") x<-as.vector(x)
 	g<-qplot(x,geom="density",...)
@@ -979,8 +980,8 @@ qplotAutoX<-function(x,returnGraph=FALSE,geom="point",...){
 #' pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
 #' barplotPercentVar(pca)
 #' barplotPercentVar(pca, nPC = 2)
-barplotPercentVar<-function(pca, nPC=length(pca$percentVar),returnGraph=FALSE,...){
-	g<-qplotBarplot(pca$percentVar[1:nPC]*100,returnGraph=TRUE)+ylab("% variance explained")+xlab("Principal component")+
+barplotPercentVar<-function(pca, nPC=length(pca$propExplVar),returnGraph=FALSE,...){
+	g<-qplotBarplot(pca$propExplVar[1:nPC]*100,returnGraph=TRUE)+ylab("% variance explained")+xlab("Principal component")+
 		scale_x_continuous(breaks = seq(1,nPC,by = 2))+
 		theme(
 			panel.background = element_rect(fill = NA,colour="black"),
@@ -1009,7 +1010,7 @@ barplotPercentVar<-function(pca, nPC=length(pca$percentVar),returnGraph=FALSE,..
 #'
 #' @examples
 #' filledDoubleArrow()
-#' qplot(1:5)
+#' ggplot2::qplot(1:5)
 #' filledDoubleArrow()
 filledDoubleArrow<-function(x=0,y=0,width=1,height=1,just = c("left", "bottom"),gp=gpar(col="black"),...){
 	pushViewport(viewport(x=x,y=y,width = width, height = height,just=just,...))
@@ -1018,7 +1019,7 @@ filledDoubleArrow<-function(x=0,y=0,width=1,height=1,just = c("left", "bottom"),
 }
 
 
-#' Pot the expression of one or several genes
+#' Plot the expression of one or several genes
 #'
 #' @param expr Numeric 2D matrix. Each row is gene and each column a sample. Row must be named by genes.
 #' @param group Factor vector, same length as number of column in expr. Experimental group attributed to each sample.
@@ -1038,6 +1039,8 @@ filledDoubleArrow<-function(x=0,y=0,width=1,height=1,just = c("left", "bottom"),
 #' @export
 #'
 #' @examples
+#' library(MASS)
+#' library(ggplot2)
 #' exprMat<-rbind(
 #' 	rnegbin(30,theta = 10,mu = 10),
 #' 	rnegbin(30,theta = 1,mu = 10),
@@ -1165,13 +1168,15 @@ plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxpl
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
 #'
+#' library(ComplexHeatmap)
+#'
 #' keggDB<-getDBterms(rownames(bulkLogCounts),database = "kegg")
 #' geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = keggDB)
 #' resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms =  keggDB)
 #' bestPathay<-whichTop(resGSDA$padj,top = 30,decreasing = FALSE)
 #'
 #' heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=FALSE,
-#' 	name = "Activation score",preSet = "default",colData = sampleAnnot["culture_media"],
+#' 	name = "Activation score",preSet = NULL,colData = sampleAnnot["culture_media"],
 #' 	right_annotation=rowAnnotation("gene contribution" =
 #' 		GSDA.HeatmapAnnot(contributions = geneSetActivScore$kegg$contribution[bestPathay],width = unit(12,"cm"),fontsizeFactor = 300)
 #' 	),
@@ -1244,7 +1249,7 @@ viewKEGG<-function(x,pathway,corrIdGenes=NULL,species="Human",speciesData=NULL,k
 		dat<-dat[takefirst(names(dat),returnIndex = T)]
 
 
-		pathview(gene.data = dat, pathway.id = pathway, species = speciesData$kegg,kegg.native=TRUE,
+		pathview::pathview(gene.data = dat, pathway.id = pathway, species = speciesData$kegg,kegg.native=TRUE,
 						 low="#4B9AD5",mid="white",high="#FAB517",na.col="grey75",kegg.dir=kegg.dir,...)
 	}else{
 		warning("no entrez id were found")

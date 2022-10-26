@@ -124,7 +124,8 @@ takefirst<-function(x,returnIndex=FALSE){
 #'
 #' @return A single numeric value.
 #' @export
-#' @examples Mode(c(1:10,3))
+#' @examples
+#' Mode(c(1:10,3))
 #'
 Mode <- function(x) {
 	### Initial Checks
@@ -303,6 +304,8 @@ whichTop<-function(x, top=5, decreasing=TRUE){
 }
 
 #alias
+
+#' @export
 rn<-rownames
 cn<-colnames
 len<-length

@@ -32,6 +32,9 @@ exportEnrich(
 
 \item{...}{Other parameters passed to write.table.}
 }
+\value{
+Write a text file.
+}
 \description{
 Export enrichment results with the gene list associated to each term/row.
 }
