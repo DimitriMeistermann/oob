@@ -28,7 +28,7 @@ rowScale<-function(data,center=TRUE,scaled=FALSE){
 #' data("sampleAnnot")
 #' chead(sampleAnnot)
 chead<-function(x, n=5){
-	print(x[1:min(n,nrow(n)),1:min(n,ncol(n))])
+	print(x[1:min(n,nrow(x)),1:min(n,ncol(x))])
 }
 
 #' Compute correlation distance
@@ -185,8 +185,6 @@ matrixFromDimnames<-function(row,col,value=0){
 
 #' Put rows of a matrix on the same range than another.
 #'
-#' @description
-#'
 #' @param matToAdjust Matrix of numeric where the range of each row has to be adjusted.
 #' @param matGoodRange. Matrix of numeric, same dimension as `matToAdjust`.
 #'
@@ -300,7 +298,7 @@ subSampleColumnPerGroup<-function(mat,groupVector,n=NULL){
 		samples <-which(groupVector==lvl)
 		selected<-sample(samples,size = n)
 		mat[,selected]
-	});names(subSampledData)<-lvls
+	});
 	do.call("cbind",subSampledData)
 }
 

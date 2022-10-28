@@ -30,6 +30,8 @@ Displaying most neg and pos gene contribution on a GSDA heatmap.
 data("bulkLogCounts")
 data("sampleAnnot")
 
+library(ComplexHeatmap)
+
 keggDB<-getDBterms(rownames(bulkLogCounts),database = "kegg")
 geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = keggDB)
 resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms =  keggDB)

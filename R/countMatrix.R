@@ -621,11 +621,13 @@ getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
 		x==group & !is.na(group)
 	});names(binaryGroup)<-levels(group)
 
-	res<-as.matrix(data.frame(lapply(binaryGroup,function(labels){
-		unlist(BiocParallel::bplapply(seq_len(nrow(expressionMatrix)),function(i,expressionMatrix,labels,auroc){
-			auroc(expressionMatrix[i,],labels)
-		},labels=labels,expressionMatrix=expressionMatrix,auroc=auroc,BPPARAM=BPPARAM),recursive = FALSE)
-	})))
+	suppressWarnings(
+		res<-as.matrix(data.frame(lapply(binaryGroup,function(labels){
+			unlist(BiocParallel::bplapply(seq_len(nrow(expressionMatrix)),function(i,expressionMatrix,labels,auroc){
+				auroc(expressionMatrix[i,],labels)
+			},labels=labels,expressionMatrix=expressionMatrix,auroc=auroc,BPPARAM=BPPARAM),recursive = FALSE)
+		})))
+	)
 	rownames(res)<-rownames(expressionMatrix)
 	res
 }
@@ -840,7 +842,7 @@ adjMat2Pygraph<-function(adjMat,mode = "directed",...){
 #' @param laplacian_init  Derive edge weights from the Laplacian matrix, otherwise weights are derived from the distance between cells. Not used for the moment.
 #' @param initial_membership  Initial membership for the partition. If MULL then defaults to a singleton partition.
 #' @param max_comm_size  Maximal total size of nodes in a community. If zero (the default), then communities can be of any size.
-#' @param node_sizes
+#' @param node_sizes Vector of numerics. The quality function takes into account the size of a community, which is defined as the sum over the sizes of each individual node. By default, the node sizes are set to 1, meaning that the size of a community equals the number of nodes of a community. If a node already represents an aggregation, this could be reflect in its node size.
 #' @param weight_parameter Weight of the graph as a numeric value for each edge.  Not used for the moment.
 #' @param partition_type 	Type of partition to use. Defaults to RBConfigurationVertexPartition. Options include: ModularityVertexPartition, RBERVertexPartition, CPMVertexPartition, MutableVertexPartition, SignificanceVertexPartition, SurpriseVertexPartition, ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the Leiden python module documentation for more details).
 #'

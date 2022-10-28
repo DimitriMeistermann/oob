@@ -226,6 +226,7 @@ formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
 #' @seealso VectorListToFactor
 factorToVectorList<-function(factorValues,factorNames=NULL){
 	if(is.null(factorNames)) factorNames<-names(factorValues)
+	if(is.character(factorValues)) factorValues<-as.factor(factorValues)
 	res<-lapply(levels(factorValues),function(x) factorNames[factorValues==x])
 	names(res)<-levels(factorValues)
 	res
@@ -305,12 +306,19 @@ whichTop<-function(x, top=5, decreasing=TRUE){
 
 #alias
 
+#' colnames alias
 #' @export
-rn<-rownames
-cn<-colnames
-len<-length
-inter<-intersect
+cn<-function(x, do.NULL = TRUE, prefix = "col") BiocGenerics::colnames(x, do.NULL = TRUE, prefix = "col")
 
+#' rownames alias
+#' @export
+rn<-function(x, do.NULL = TRUE, prefix = "row") BiocGenerics::rownames(x, do.NULL = TRUE, prefix = "row")
 
+#' length alias
+#' @export
+len<-function(x) length(x)
 
+#' intersect alias
+#' @export
+inter<-function(x, y, ...) BiocGenerics::intersect(x, y, ...)
 

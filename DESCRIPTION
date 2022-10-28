@@ -11,6 +11,7 @@ LazyData: true
 RoxygenNote: 7.2.1
 Imports:
     AnnotationDbi,
+    BiocGenerics,
     BiocManager,
     BiocParallel,
     circlize,
@@ -41,3 +42,7 @@ Imports:
     stringr,
     uwot,
     WGCNA
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

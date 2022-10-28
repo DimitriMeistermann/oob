@@ -81,7 +81,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	if(length(db_terms)==0) stop("Error, no term in any database was found")
 	res<-list()
 	for(db in names(db_terms)){
-		res[[db]]<-fgsea::fgseaMultilevel (db_terms[[db]], x ,minSize=minSize,maxSize=maxSize,eps = 0,...)
+		res[[db]]<-suppressWarnings(fgsea::fgseaMultilevel (db_terms[[db]], x ,minSize=minSize,maxSize=maxSize,eps = 0,...))
 		res[[db]]<-res[[db]][order(res[[db]]$padj),]
 		res[[db]]$database<-db
 		res[[db]]$leadingEdge<-NULL

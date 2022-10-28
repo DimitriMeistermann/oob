@@ -1031,7 +1031,7 @@ filledDoubleArrow<-function(x=0,y=0,width=1,height=1,just = c("left", "bottom"),
 #' @param boxplotArgs List. Additional arguments given to `geom_boxplot`.
 #' @param dotplotArgs List. Additional arguments given to `geom_beeswarm`.
 #' @param colorScale A list of color. Must be the same length as number of levels in group.
-#' @param defaultGroupName Character. Displayed in legend title.
+#' @param legendTitle Character. Displayed in legend title.
 #' @param dodge.width Numeric. Width of individual distribution element (violin/boxplot/dotplot).
 #' @param returnGraph Logical. Print the ggplot object or return it.
 #'
@@ -1050,29 +1050,28 @@ filledDoubleArrow<-function(x=0,y=0,width=1,height=1,just = c("left", "bottom"),
 #'
 #' group=c(rep("A",10),rep("B",10),rep("C",10))
 #'
-#' plotExpression(exprMat)
-#' plotExpression(exprMat["gene1",])
-#' plotExpression(exprMat["gene1",],group = group)
-#' plotExpression(exprMat,group = group)
+#' plotExpr(exprMat)
+#' plotExpr(exprMat["gene1",])
+#' plotExpr(exprMat["gene1",],group = group)
+#' plotExpr(exprMat,group = group)
 #'
-#' plotExpression(exprMat,group = group,log10Plus1yScale = FALSE)
-#' plotExpression(exprMat,group = group,dodge.width = .5,defaultGroupName = "Letter")
-#' plotExpression(exprMat,boxplot = FALSE,violin = FALSE,dotplot = TRUE)
-#' plotExpression(exprMat,group = group,colorScale = c("blue","white","red"))
-#' plotExpression(exprMat,group = group,returnGraph = TRUE)+
+#' plotExpr(exprMat,group = group,log10Plus1yScale = FALSE)
+#' plotExpr(exprMat,group = group,dodge.width = .5,legendTitle = "Letter")
+#' plotExpr(exprMat,boxplot = FALSE,violin = FALSE,dotplot = TRUE)
+#' plotExpr(exprMat,group = group,colorScale = c("blue","white","red"))
+#' plotExpr(exprMat,group = group,returnGraph = TRUE)+
 #' 	geom_point()
 #'
-#' plotExpression(exprMat,group = group,violinArgs = list(scale="area"))
+#' plotExpr(exprMat,group = group,violinArgs = list(scale="area"))
 
-plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxplot=TRUE,dotplot=FALSE,
+plotExpr<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxplot=TRUE,dotplot=FALSE,
 												 violinArgs=list(),boxplotArgs=list(),dotplotArgs=list(),colorScale=mostDistantColor,
-												 defaultGroupName="group",dodge.width=.9,returnGraph=FALSE){
+									 legendTitle="group",dodge.width=.9,returnGraph=FALSE){
 	barplotGraph=greyGraph=coloredGraph=FALSE
 
 	if(is.vector(expr))expr<-t(as.matrix(expr))
 	if(is.vector(group) | is.factor(group)){
 		group = data.frame(group=group,stringsAsFactors = TRUE)
-		colnames(group)<-defaultGroupName
 		rownames(group)<-colnames(expr)
 	}
 
@@ -1117,7 +1116,7 @@ plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxpl
 			colors <- if(is.function(colorScale)) colorScale(nlevels(group[,1])) else colorScale
 			g<-ggplot(ggData,mapping = aes_string(x="gene",y="expression",fill=groupName))+
 				theme_bw()+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=.3,face = "bold.italic"))+
-				scale_fill_manual(values = colors[!levels(group[,1])%in%factor2drop])
+				scale_fill_manual(values = colors[!levels(group[,1])%in%factor2drop], name=legendTitle)
 		}
 	}
 	if(greyGraph){
@@ -1140,10 +1139,10 @@ plotExpression<-function(expr,group=NULL,log10Plus1yScale=NULL,violin=TRUE,boxpl
 	}
 	if(log10Plus1yScale){
 		maxExpr<-max(expr)
-		breaks<-c(0,2,round(10^(seq(1,nchar(maxExpr),0.5))))
+		ncharMaxExpr<-nchar(round(maxExpr))
+		breaks<-c(0,2,round(10^(seq(1,ncharMaxExpr,0.5))))
 		#breaks<-c(0,rbind(breaks/2,breaks)) #intelacing 1,10,100... and 5,50,500...
 		if(maxExpr<breaks[length(breaks)-1]) breaks<-breaks[1:length(breaks)-1]
-
 		g<-g+scale_y_continuous(trans=log10plus1(),limits = c(breaks[1],breaks[length(breaks)]),breaks = breaks,minor_breaks = NULL)
 	}
 	if(!returnGraph){
@@ -1367,7 +1366,7 @@ genTopAnnot<-function(annot,colorScales=NULL,border = TRUE,...){
 #' ```
 #' clustering_distance_rows ="euclidean"
 #' clustering_distance_columns ="euclidean"
-#' name="Pearson\ncorrelation"
+#' name="Pearson correlation"
 #' colorScale=c("darkblue","white","#FFAA00")
 #' center=FALSE
 #' scale=FALSE
@@ -1375,7 +1374,7 @@ genTopAnnot<-function(annot,colorScales=NULL,border = TRUE,...){
 #' ## preSet is `"dist" (distance)
 #' ```
 #' clustering_distance_rows ="euclidean"
-#' name="Euclidean\ndistance"
+#' name="Euclidean distance"
 #' colorScale=c("white","yellow","red","purple")
 #' center=FALSE
 #' scale=FALSE

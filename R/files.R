@@ -81,7 +81,7 @@ write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.name
 #' @export
 #' @seealso write.vectorList
 read.vectorList<-function(fileName,sep="\t"){
-	con<-fileName(fileName)
+	con<-file(fileName)
 	txt<-readLines(con)
 	elNames<-str_remove_all(txt[seq(1,length(txt),2)],sep)
 	res<-strsplit(txt[seq(2,length(txt),2)],sep)
