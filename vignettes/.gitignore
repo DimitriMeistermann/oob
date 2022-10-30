@@ -1,2 +1,4 @@
-*.html
 *.R
+functionalities_cache
+functionalities_files
+test

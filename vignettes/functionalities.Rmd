@@ -12,7 +12,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.dim = c(7,7),
-  fig.align = "center"
+  fig.align = "center",
+  cache = TRUE,
+  warning=FALSE
 )
 ```
 
@@ -133,7 +135,7 @@ TPMfullLength(countMat,gene.length = geneLengthGRCh38) |> chead() #Transcript pe
 
 Principal Component Analysis can be performed with `PCA` or approximated with `fastPCA` with parametrs optimezed by default for RNA-Seq. Result can be then plotted with `pca2d`.
 
-```{r}
+```{r out.width = "100%", fig.dim = c(14,14)}
 data("sampleAnnot") #colData of the count table
 
 PCAres<-PCA(bulkLogCounts)
@@ -192,7 +194,7 @@ reducedSpace<-t(fastPCA(bulkLogCounts[overdispersedGenes,],nPC = 30))
 
 For example, we can perform non linear dimension reductions. Several are provided with the package: `NMDS`, `UMAP` and `TRIMAP`. The result is plotted with `proj2d`.
 
-```{r}
+```{r out.width = "100%", fig.dim = c(14,14)}
 reducedSpace<-t(fastPCA(bulkLogCounts[overdispersedGenes,],nPC = 30)$x)
 chead(reducedSpace)
 coordNMDS<-NMDS(reducedSpace)
@@ -238,7 +240,7 @@ plotExpr(normCount[topGenePerCluster,],group = sampleAnnot$leidenClusters, legen
 
 We then used those marker for plotting an heatmap.
 
-```{r}
+```{r out.width = "100%", fig.dim = c(14,14)}
 #convert the list to a factor
 top20MarkerFactor<-VectorListToFactor(top20MarkerPerCluster)
 
@@ -334,7 +336,7 @@ We can also perform an enrichment based on  gene set differential activation wit
 GSDA was developed independently from [GSVA](https://bioconductor.org/packages/release/bioc/html/GSVA.html) but is has the exact same idea of working on a matrix of gene set scores.
 
 
-```{r}
+```{r out.width = "100%", fig.dim = c(14,10)}
 geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = geneSetDB["kegg"])
 resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms = geneSetDB["kegg"])
 bestPathay<-whichTop(resGSDA$padj,top = 30,decreasing = FALSE)
