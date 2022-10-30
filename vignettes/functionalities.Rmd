@@ -1,8 +1,10 @@
 ---
 title: "Functionalities of oob"
-output: rmarkdown::html_vignette
+output:
+  md_document:
+    variant: markdown_github
 vignette: >
-  %\VignetteIndexEntry{functionalities}
+  %\VignetteIndexEntry{Functionalities of oob}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -266,9 +268,9 @@ computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColo
 
 *oob* features other functions for colors:
 
-- `ggplotColours`: generate the default colors of *ggplot2*
+-   `ggplotColours`: generate the default colors of *ggplot2*
 
-- `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
+-   `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
 
 `customUpsetPlot` is used to compare intersection between gene set with an additionnal value of ernrichment.
 
@@ -295,7 +297,7 @@ corGeneToOthers best.cutree adjMat2Pygraph hierarchicalClustering
 
 The other focus of *oob* is functionnal enrichment.
 
-First, we can download several gene set databases by using `getDBterms`. We will use here *kegg* and the 'Gene Ontology* (biological process)
+First, we can download several gene set databases by using `getDBterms`. We will use here *kegg* and the 'Gene Ontology\* (biological process)
 
 ```{r}
 #species specific package will be load/asked for installation
@@ -331,10 +333,10 @@ ggplot(resEnrich,aes(x=NES,y=-log10(padj),color=padj<0.05))+
 #export enrichment with the genes of each gene set
 exportEnrich(resEnrich,"test/resEnrich.tsv")
 ```
-We can also perform an enrichment based on  gene set differential activation with `GSDA`.
+
+We can also perform an enrichment based on gene set differential activation with `GSDA`.
 
 GSDA was developed independently from [GSVA](https://bioconductor.org/packages/release/bioc/html/GSVA.html) but is has the exact same idea of working on a matrix of gene set scores.
-
 
 ```{r out.width = "100%", fig.dim = c(14,10)}
 geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = geneSetDB["kegg"])
@@ -352,7 +354,6 @@ heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=F
 	row_names_max_width = unit(8, "inches"),autoFontSizeRow=FALSE,row_names_gp=gpar(fontsize=1/length(bestPathay)*300)
 )
 ```
-
 
 ## Other utilities functions:
 
