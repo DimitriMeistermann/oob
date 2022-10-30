@@ -12,7 +12,7 @@ For a quick installation:
 ```{r}
 reticulate::py_install(c("igraph","numpy","leidenalg","trimap"))
 ```
-#Functionalities of oob
+# Functionalities of oob
 
 ``` r
 library(oob)
