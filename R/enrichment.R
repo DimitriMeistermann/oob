@@ -26,7 +26,7 @@ getSpeciesData<-function(sample.species="Human",updateSpeciesPackage=FALSE){
 		BiocManager::install(species$package, update=FALSE)
 	}
 	require(species$package,character.only = TRUE)
-	suppressMessages(species$GeneIdTable<-AnnotationDbi::select(get(species$package),keys = AnnotationDbi::keys(get(species$package),"SYMBOL") , "ENTREZID","SYMBOL"))
+	species$GeneIdTable<-AnnotationDbi::select(get(species$package),keys = AnnotationDbi::keys(get(species$package),"ENTREZID") , columns = c("ENTREZID","SYMBOL","ENSEMBL")) |> suppressMessages()
 	species$species<-sample.species
 	return(species)
 }
@@ -375,11 +375,12 @@ getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL
 }
 
 
-#' Compute a "interest score" for a set of genes.
+#' Compute a "interest score" for a set of genes. Useful for GSEA.
 #'
 #' @param genes A vector of gene names
 #' @param pvalues A vector of numeric corresponding to p-values.
-#' @param logFoldChanges A vector of numeric corresponding to Log2(Fold-change).
+#' @param logFoldChanges A vector of numeric corresponding to Log2(Fold-change)
+#' @param logPval Logical. Compute the p-value score as `-log10(pval)` instead of `1-pval`.
 #'
 #' @return A vector of numeric corresponding to interest scores, named by genes.
 #' @export
@@ -387,9 +388,14 @@ getDBterms<-function(geneSym,geneEntrez=NULL, corrIdGenes=NULL, speciesData=NULL
 #' @examples
 #' data("DEgenesPrime_Naive")
 #' fcsScore<-fcsScoreDEgenes(rownames(DEgenesPrime_Naive),DEgenesPrime_Naive$pvalue,DEgenesPrime_Naive$log2FoldChange)
-fcsScoreDEgenes<-function(genes,pvalues,logFoldChanges){
-	InvPvalues <- 1-pvalues;
-	InvPvalues[logFoldChanges<0]<- -InvPvalues[logFoldChanges<0]
-	names(InvPvalues)<-genes
-	InvPvalues
+fcsScoreDEgenes<-function(genes,pvalues,logFoldChanges,logPval=FALSE){
+	if( sum(length(genes) == c(length(pvalues),length(logFoldChanges))) <2) stop("genes, pvalues and logPval should have the same length")
+	if(logPval){
+		pvalScore<- -log10(pvalues)
+	}else{
+		pvalScore <- 1-pvalues
+	}
+	pvalScore[logFoldChanges<0]<- -pvalScore[logFoldChanges<0]
+	names(pvalScore)<-genes
+	pvalScore
 }

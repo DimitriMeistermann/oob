@@ -320,3 +320,34 @@ factorAsStrings<-function(dt){
 	dt
 }
 
+#' Aggregate columns or rows of a matrix by a vector of factor
+#'
+#' @param x A matrix of numeric.
+#' @param by A vector of factor. Same size as number of row in `x` if  `byRow`, otherwise same size as number of columns.
+#' @param FUN a function to compute the summary statistics which can be applied to all data subsets.
+#' @param byRow Logical. Do the aggregation by row or by column. If NULL, determines automatically based on the size of `by`.
+#'
+#' @return A matrix of numeric. Aggregated dimension names are changed to match the levels of `by`.
+#' @export
+#'
+#' @examples
+#' data(iris)
+#' aggregMatPerVector(iris[,1:4],iris$Species)
+aggregMatPerVector<-function(x,by,FUN=mean,byRow=NULL){
+	if(is.null(byRow)){
+		if(length(by)==nrow(x)){
+			byRow<-TRUE
+		}else if(length(by)==ncol(x)){
+			byRow<-FALSE
+		}else{
+			stop("Number of element should be the same than number of columns or rows in x")
+		}
+	}
+	if(!byRow) x<-t(x)
+	res<-aggregate(x,by=list(by),FUN=FUN)
+	rownames(res)<-res$Group.1;res$Group.1<-NULL
+	if(!byRow) res<-t(res)
+	return(as.matrix(res))
+}
+
+

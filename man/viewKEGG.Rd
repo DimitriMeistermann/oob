@@ -10,7 +10,7 @@ viewKEGG(
   corrIdGenes = NULL,
   species = "Human",
   speciesData = NULL,
-  kegg.dir = getwd(),
+  directory = getwd(),
   ...
 )
 }
@@ -25,9 +25,9 @@ viewKEGG(
 
 \item{speciesData}{object returned by `getSpeciesData`. If not NULL `species` argument wont be used.}
 
-\item{kegg.dir}{character, the directory of KEGG pathway data file (.xml) and image file (.png). Users may supply their own data files in the same format and naming convention of KEGG's (species code + pathway id, e.g. hsa04110.xml, hsa04110.png etc) in this directory. Default kegg.dir="." (current working directory).}
-
 \item{...}{Other arguments passed to `pathview`.}
+
+\item{kegg.dir}{character, the directory of KEGG pathway data file (.xml) and image file (.png). Users may supply their own data files in the same format and naming convention of KEGG's (species code + pathway id, e.g. hsa04110.xml, hsa04110.png etc) in this directory. Default kegg.dir="." (current working directory).}
 }
 \value{
 File congaing pathway scheme and projection of x values on it.

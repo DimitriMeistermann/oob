@@ -26,14 +26,19 @@ This package provide function for analyzing OMIC data, with a focus on plots, fu
 
 ## Installation
 
-In a R console: `devtools::install("https://github.com/DimitriMeistermann/oob")`
+In a R console: 
+
+```{r eval=FALSE}
+install.packages("devtools")
+devtools::install_github("https://github.com/DimitriMeistermann/oob")
+```
 
 *oob* needs also several python dependencies accessible in the environment used by *reticulate*, the R package for calling python functions. See <https://rstudio.github.io/reticulate/articles/python_packages.html> for more information on installation of python package via reticulate.
 
 For a quick installation:
 
 ```{r eval=FALSE}
-reticulate::py_install(c("igraph","numpy","leidenalg","trimap"))
+reticulate::py_install(c("numpy","leidenalg","trimap"))
 ```
 
 #Functionalities of oob
@@ -131,6 +136,17 @@ multiplot(p1,p2,p3,cols = 2) #multiplot for quick display of several plot at onc
 
 `uncenter` is similar to `reScale` but just shift the values of each feature so the new minimum is 0. `rowScale` scales a matrix in the same way than `scale`, but with rows as features, the common format for RNA-Seq.
 
+`aggregMatPerVector` is 
+
+```{r}
+data("sampleAnnot")
+aggregMatPerVector(bulkLogCounts[c(
+	'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
+),], sampleAnnot$culture_media)
+
+```
+
+
 ## Normalization of RNA-Seq
 
 The package can perform several quick normalization methods. Let's simulate a fake count table and attribute real gene symbols as row names.
@@ -140,9 +156,14 @@ data("geneLengthGRCh38") # vector of gene length for GRCh38 Human reference, nam
 library(MASS)
 countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
+}))
+colnames(countMat)<-letters[1:ncol(countMat)];rownames(countMat)<-names(geneLengthGRCh38)
 chead(countMat)
 
+#Quality control
+computeQCmetricSamples(countMat)
+
+#Different kind of normalization
 CPM(countMat) |> chead() #Count Per Million normalization
 normDeseq(countMat) |> chead() #DESeq2 normalization
 quickSCnorm(countMat) |> chead() #Single-cell (scran) normalization (return log counts by default)
@@ -308,6 +329,7 @@ volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn 
 ```
 
 ## Clustering & correlation
+
 
 corGeneToOthers best.cutree adjMat2Pygraph hierarchicalClustering
 

@@ -2,22 +2,24 @@
 % Please edit documentation in R/enrichment.R
 \name{fcsScoreDEgenes}
 \alias{fcsScoreDEgenes}
-\title{Compute a "interest score" for a set of genes.}
+\title{Compute a "interest score" for a set of genes. Useful for GSEA.}
 \usage{
-fcsScoreDEgenes(genes, pvalues, logFoldChanges)
+fcsScoreDEgenes(genes, pvalues, logFoldChanges, logPval = FALSE)
 }
 \arguments{
 \item{genes}{A vector of gene names}
 
 \item{pvalues}{A vector of numeric corresponding to p-values.}
 
-\item{logFoldChanges}{A vector of numeric corresponding to Log2(Fold-change).}
+\item{logFoldChanges}{A vector of numeric corresponding to Log2(Fold-change)}
+
+\item{logPval}{Logical. Compute the p-value score as `-log10(pval)` instead of `1-pval`.}
 }
 \value{
 A vector of numeric corresponding to interest scores, named by genes.
 }
 \description{
-Compute a "interest score" for a set of genes.
+Compute a "interest score" for a set of genes. Useful for GSEA.
 }
 \examples{
 data("DEgenesPrime_Naive")

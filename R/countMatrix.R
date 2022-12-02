@@ -1,3 +1,40 @@
+#' Give QC metrics per sample
+#'
+#' @param x A matrix of numeric with samples as columns.
+#' @param uncenter uncenter the matrix first so the minimum is 0.
+#'
+#' @return A data frame with each row as a sample and the following columns:
+#' * `mean`: average expression in the sample
+#' * `sd`: standard deviation
+#' * `TotalGenEx`: number of expressed gene (count>0) in the sample
+#' * `TotalCount`: sum of counts for the sample
+#' @export
+#'
+#' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+#' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' colnames(countMat)<-letters[1:ncol(countMat)]
+#' computeQCmetricSamples(countMat)
+computeQCmetricSamples<-function(x, uncenter= FALSE){
+	if(uncenter){
+		x<-x-min(x)
+		zero<-0
+	}else{
+		zero<-min(x)
+	}
+	mean<-apply(x,2,mean)
+	sd<-apply(x,2,sd)
+	count<-colSums(x)
+	CV<-apply(x,2,cv)
+	noGenEx<-rep(0,ncol(x))
+	for(i in 1:ncol(x)) noGenEx[i]<-length(which(x[,i]>zero))
+
+	return(data.frame(mean=mean, sd=sd,CV=CV,TotalGenEx=noGenEx,TotalCount=count))
+}
+
 
 #' Principal Component Analysis
 #'

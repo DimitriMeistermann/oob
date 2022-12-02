@@ -1226,13 +1226,12 @@ GSDA.HeatmapAnnot<-function(contributions,maxGeneContribAtOneSide=3,width=unit(3
 #'
 #' @return File congaing pathway scheme and projection of x values on it.
 #' @export
-viewKEGG<-function(x,pathway,corrIdGenes=NULL,species="Human",speciesData=NULL,kegg.dir=getwd(),...){
+viewKEGG<-function(x,pathway,corrIdGenes=NULL,species="Human",speciesData=NULL,directory=getwd(),...){
 	blacklist<-c("hsa04215 Apoptosis - multiple species")
 	if(pathway%in%blacklist){
 		warning(pathway," is blacklisted as it contains issues in vizualisation, it will not be rendered.")
 		return(NULL)
 	}
-
 	if(is.data.frame(x) | is.matrix(x)){
 		tempx<-x
 		x<-tempx[,1]
@@ -1246,10 +1245,9 @@ viewKEGG<-function(x,pathway,corrIdGenes=NULL,species="Human",speciesData=NULL,k
 		dat<-x[notNA];
 		names(dat)<-entrezId[notNA]
 		dat<-dat[takefirst(names(dat),returnIndex = T)]
-
-
+		pathway<-strsplit(pathway," ")[[1]][1]
 		pathview::pathview(gene.data = dat, pathway.id = pathway, species = speciesData$kegg,kegg.native=TRUE,
-						 low="#4B9AD5",mid="white",high="#FAB517",na.col="grey75",kegg.dir=kegg.dir,...)
+						 low="#4B9AD5",mid="white",high="#FAB517",na.col="grey75",kegg.dir=directory,...)
 	}else{
 		warning("no entrez id were found")
 	}
