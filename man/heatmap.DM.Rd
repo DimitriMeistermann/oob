@@ -2,13 +2,13 @@
 % Please edit documentation in R/plot.R
 \name{heatmap.DM}
 \alias{heatmap.DM}
-\title{Just a heatmap, but my way...}
+\title{Complex Heatmap wrapper optimized for RNA-Seq analyses...}
 \usage{
 heatmap.DM(
   matrix,
   preSet = "expr",
   clustering_distance_rows = NULL,
-  clustering_distance_columns = "euclidean",
+  clustering_distance_columns = NULL,
   clustering_method_columns = "ward.D2",
   clustering_method_rows = "ward.D2",
   autoFontSizeRow = TRUE,
@@ -38,6 +38,8 @@ heatmap.DM(
   column_dend_reorder = FALSE,
   row_dend_reorder = FALSE,
   squareHt = NULL,
+  row_split = NULL,
+  column_split = NULL,
   ...
 )
 }
@@ -120,14 +122,15 @@ In the case of factors, the colors are named to their corresponding level or in 
 A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
 }
 \description{
-Just a heatmap, but my way...
+Complex Heatmap wrapper optimized for RNA-Seq analyses...
 }
 \details{
 A preSet attributes a list of default values for each argument. However, even if a preSet is selected, arguments precised by the user precede the preSet.
 # Default arguments
 ## preSet is `NULL`
 ```
-clustering_distance_rows = corrDistBicor
+clustering_distance_rows = covDist
+clustering_distance_columns = covDist
 name="matrix"
 colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=TRUE
@@ -135,7 +138,8 @@ scale=FALSE
 ```
 ## preSet is `"expr"` (expression)
 ```
-clustering_distance_rows = corrDistBicor
+clustering_distance_rows = covDist
+clustering_distance_columns = covDist
 name="centered log expression"
 colorScale=	c("darkblue","white","red2")
 additionnalRowNamesGpar=list(fontface="italic")
@@ -151,11 +155,19 @@ colorScale=c("darkblue","white","#FFAA00")
 center=FALSE
 scale=FALSE
 ```
-## preSet is `"dist" (distance)
+## preSet is `"dist"` (distance)
 ```
 clustering_distance_rows ="euclidean"
 name="Euclidean distance"
 colorScale=c("white","yellow","red","purple")
+center=FALSE
+scale=FALSE
+
+## preSet is `"vanilla"` (don't transform value, same as default ComplexHeatmap)
+```
+clustering_distance_rows ="euclidean"
+name="matrix"
+colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=FALSE
 scale=FALSE
 ```

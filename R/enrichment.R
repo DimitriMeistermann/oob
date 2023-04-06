@@ -1,4 +1,41 @@
-#' Return gene id correspondance, GO species code and KEGG species code
+#' Compute p-value and other metric for enrichment of set intersection.
+#'
+#' @param intersectionSize Numeric. Number of common element between sets.
+#' @param setSizes Vector of numeric. Number of element in each set.
+#' @param universeSize Total number of element in the universe.
+#'
+#' @details
+#' If two sets, perform an hypergeometric test, if more the p-value is computed from binomial distribution.
+#'
+#' @return A list of values:
+#' - observed: observed number of elements in intersection (same value as `intersectionSize`)
+#' - expected: expected number of elements in intersection.
+#' - log2OE: log2 of observed/expected ratio
+#' - pval: pvalue (upper tail) where NULL hypotheses is that observed intersection is from the distribution of intersection size with p = nExpected / nUniverse.
+#'
+#' @export
+#'
+#' @examples
+#' setSizes<-c(150,200,250)
+#' universeSize<-10000
+#' intersectionSize<-5
+#' enrichSetIntersection(intersectionSize, setSizes, universeSize)
+enrichSetIntersection<-function(intersectionSize, setSizes, universeSize){
+	nSet<-length(setSizes)
+	expected<-prod(setSizes) / (universeSize^(nSet-1))
+	if(nSet==2){
+		pval<-phyper(q = intersectionSize-0.5, m = setSizes[1],n = universeSize-setSizes[1], k = setSizes[2], lower.tail=FALSE)
+	}else if(nSet>2){
+		pval<-pbinom(intersectionSize-1,universeSize, expected/universeSize,  lower.tail = FALSE)
+	}else{
+		stop("Number of set should be superior to 1")
+	}
+	OE<-intersectionSize/expected
+	return(list("observed"=intersectionSize,"expected"=expected,"log2OE"=log2(OE),"pval"=pval))
+}
+
+
+#' Return gene id correspondence, GO species code and KEGG species code
 #'
 #' @param sample.species Character. Shortname of the species as described in `data("bods")`.
 #' @param updateSpeciesPackage Logical. Download or update automatically the annotation org.db package corresponding to the species.
@@ -89,7 +126,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	}
 	res<-do.call("rbind", res)
 	res$padj<-p.adjust(res$pval,method = "BH")
-	return(res)
+	return(data.frame(res))
 }
 
 
@@ -116,6 +153,7 @@ enrich.fcs<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 #' A dataframe with the following columns:
 #' - term: name of the term
 #' - pval: an enrichment p-value
+#' - OD: Odds Ratio of the enrichment
 #' - padj: a BH-adjusted p-value
 #' - nGeneOfInterest: number of gene of interest in the term.
 #' - nGene: number of gene in the term after removing genes not present.
@@ -146,7 +184,7 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 	if(is.null(db_terms)) db_terms<-getDBterms(geneSym=names(x), corrIdGenes=corrIdGenes,database=database,customAnnot=customAnnot,keggDisease=keggDisease,species=species)
 
 	nInterest<-length(which(x))
-	nNotInterest<-length(which(!x))
+	nuniverse<-length(x)
 
 	results<-list()
 	for(db in names(db_terms)){
@@ -157,12 +195,32 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 		nGeneOfInterestByterm<-sapply( db_terms[[db]],function(term){
 			return(length(which(x[term])))
 		})
+
 		results[[db]]<-data.frame(row.names = names(db_terms[[db]]))
 		results[[db]]$term <- names(db_terms[[db]])
-		results[[db]]$pval<-phyper(q = nGeneOfInterestByterm-0.5, m = nInterest,n = nNotInterest, k = nGeneByterm, lower.tail=FALSE)
-		results[[db]]$nGeneOfInterest<-nGeneOfInterestByterm
-		results[[db]]$nGene<-nGeneByterm
 		results[[db]]$database<-db
+
+		parameterList4Enrich<-vector(mode="list", length = length(term))
+		for(i in seq_along(term)){
+			parameterList4Enrich[[i]]<-list(intersectionSize=nGeneOfInterestByterm[i], setSizes=c(nInterest,nGeneByterm[i]), universeSize=nuniverse)
+		}
+
+		resEnrich<-lapply(parameterList4Enrich,function(params) do.call("enrichSetIntersection",params))
+
+		#' - observed: observed number of elements in intersection (same value as `intersectionSize`)
+		#' - expected: expected number of elements in intersection.
+		#' - log2OE: log2 of observed/expected ratio
+		#' - pval: pvalue (upper tail) where NULL hypotheses is that observed intersection is from the distribution of intersection size with p = nExpected / nUniverse.
+		#'
+
+		results[[db]]$nGene<-nGeneByterm
+
+		results[[db]]$obsOverlap<-nGeneOfInterestByterm
+		results[[db]]$expectOverlap<- sapply(resEnrich, function(x) x$expected)
+		results[[db]]$log2OE<- sapply(resEnrich, function(x) x$log2OE)
+		results[[db]]$pval<- sapply(resEnrich, function(x) x$pval)
+		results[[db]]$padj<-0
+
 		if(returnGenes){
 			results[[db]]$genes<- db_terms[[db]]
 		}
@@ -191,7 +249,7 @@ enrich.ora<-function(x, corrIdGenes=NULL,database=c("kegg","reactom","goBP","goC
 #' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
 #'
 #' @return A list where each element is a database of gene set given as input.
-#' For each database, contain a list of activation score (eigen), with gene sets as rows and samples as columns ;
+#' For each database, contain a list of activation score, with gene sets as rows and samples as columns ;
 #' and the list of contribution (or weight) to activation score of each gene per gene set.
 #'
 #' @export
@@ -220,13 +278,8 @@ computeActivationScore<-function(expressionMatrix,corrIdGenes=NULL,scaleScores=F
 		database<-lapply(database,function(genesOfTerm) intersect(genesOfTerm,rownames(expressionMatrix)))
 		nGenePerTerm<-sapply(database,length)
 		database<-database[nGenePerTerm>minSize & nGenePerTerm<maxSize]
-		resPerPathway<-lapply(database,function(genesOfTerm){
-			eigengenes(exprMatrix = expressionMatrix,genes = genesOfTerm,returnContribution = TRUE,scale = scaleScores,center = centerScores)
-		})
-		list(
-			eigen=t(sapply(resPerPathway,function(term) term$eigen)),
-			contribution = lapply(resPerPathway,function(term) term$contribution)
-		)
+
+		return(activeScorePCAlist(exprMatrix, database, scale = scaleScores))
 	})
 }
 
@@ -292,14 +345,14 @@ GSDA<-function(geneSetActivScore=NULL,expressionMatrix=NULL,colData,contrast, co
 
 	for(db in names(db_terms)){
 		if(is.list(geneSetActivScore[[db]])){
-			eigenPerPathway<-geneSetActivScore[[db]]$eigen
+			activScorePerPathway<-geneSetActivScore[[db]]$eigen
 		}else{
-			eigenPerPathway<-geneSetActivScore[[db]]
+			activScorePerPathway<-geneSetActivScore[[db]]
 		}
 
-		db_terms[[db]]<-db_terms[[db]][rownames(eigenPerPathway)]
-		res[[db]]<-dfres<-data.frame(term=names(db_terms[[db]]),multiLinearModel(eigenPerPathway,colData,contrast),database=db,
-																 size=sapply(db_terms[[db]],length),sd=apply(eigenPerPathway,1,sd),row.names = NULL)
+		db_terms[[db]]<-db_terms[[db]][rownames(activScorePerPathway)]
+		res[[db]]<-dfres<-data.frame(term=names(db_terms[[db]]),multiLinearModel(activScorePerPathway,colData,contrast),database=db,
+																 size=sapply(db_terms[[db]],length),sd=apply(activScorePerPathway,1,sd),row.names = NULL)
 	}
 	do.call("rbind", res)
 
@@ -399,3 +452,52 @@ fcsScoreDEgenes<-function(genes,pvalues,logFoldChanges,logPval=FALSE){
 	names(pvalScore)<-genes
 	pvalScore
 }
+
+
+#' Very simple over abundance analysis via logistic regression
+#'
+#' @param qualVar A vector or factor or character.
+#' @param df A DataFrame, same number of rows as length of qualVar.
+#' @param cols Vector of character. Column names of df to be used in the regression model.
+#' @param removeIntercepts Should the intercept be removed from the model? Useful if odds ratio / pvalue of all levels of a factor imncluded in cols are wanted.
+#'
+#' @return A dataframe containing 2 column per level of qualVar (Odds Ratio and pvalues).
+#' @export
+#'
+#' @examples
+#' data(sampleAnnot)
+#' simpleAbundanceAnalysis(sampleAnnot$culture_media, sampleAnnot,  c("line","run"))
+#'
+simpleAbundanceAnalysis<-function(varToExplain,df,cols, removeIntercepts=TRUE){
+	varToExplain<-as.factor(varToExplain)
+	levels(varToExplain)<-make.names(levels(varToExplain))
+	lvls<-levels(varToExplain)
+	dfReg<-df[,cols]
+	# numericVar<-factorVar<-c()
+	formula<-""
+	for(col in cols){
+		if(is.numeric(dfReg[,col])){
+			# numericVar<-c(numericVar,col)
+			formula<-paste0(formula,"+",col)
+		}else{
+			# factorVar<-c(factorVar,col)
+			dfReg[,col]<-as.factor(dfReg[,col])
+			if(removeIntercepts){
+				formula<-paste0(formula,"+",col,"-1")
+			}else{
+				formula<-paste0(formula,"+",col)
+			}
+		}
+	}
+	formula<-substr(formula,2,nchar(formula))
+	res<-lapply(lvls,function(lvl){
+		dfReg[,lvl]<-varToExplain==lvl
+		m<-glm(formula = formula(paste0(lvl,"~",formula)),data = dfReg, family=binomial,)
+		resLm<-coef(summary(m))[,c(1,4)]
+		colnames(resLm)<-paste0(lvl,"_",c("OD","pvalue"))
+		resLm
+	});names(res)<-lvls
+
+	do.call("cbind",res)
+}
+

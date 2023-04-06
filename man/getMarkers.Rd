@@ -2,25 +2,42 @@
 % Please edit documentation in R/countMatrix.R
 \name{getMarkers}
 \alias{getMarkers}
-\title{Compute a matrix of AUROC describing best gene marker per group of samples.}
+\title{Compute a dataframe with marker metrics describing best gene marker per group of samples.}
 \usage{
-getMarkers(expressionMatrix, group, BPPARAM = NULL)
+getMarkers(
+  exprData,
+  groups,
+  multiThread = FALSE,
+  BPPARAM = NULL,
+  returnAsList = FALSE
+)
 }
 \arguments{
+\item{BPPARAM}{A BPPARAM object as return by `BiocParallel::bpparam()`. Use for multi-threading.}
+
+\item{returnAsList}{Return a list where each element is dataframe containing the marker metrics of a group.}
+
 \item{expressionMatrix}{A matrix of numeric with rows as features (in the RNA-Seq context, log counts).}
 
 \item{group}{A feature of factor/character, same length as number of sample. Describe group of each sample.}
 
-\item{BPPARAM}{A BPPARAM object as return by `BiocParallel::bpparam()`. Use for multi-threading.}
+\item{useBiocParallel}{A logical describing if the function should be launched in multi-threading mode.}
 }
 \value{
-A matrix of AUROC where each row is a gene and each column a level of `group`.
+A dataframe containing four column per group: Log2(Fold-Change), AUROC, marker score (see details), p-value and BH adjusted p-value.
 }
 \description{
-Compute a matrix of AUROC describing best gene marker per group of samples.
+Compute a dataframe with marker metrics describing best gene marker per group of samples.
+}
+\details{
+LogFC and pvalues are computed from a linear modelling of the data.
+
+Score is consisting of the geometrical mean of absolute LogFC, absolute(auroc - 0.5), and -log10(pval), then signed by the logFC:
+score = sign(logFC) × gmean( abs(logFC), abs(aurocRes-0.5), -log10(pval) )
 }
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
-res <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+
 }

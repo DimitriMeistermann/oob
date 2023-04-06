@@ -4,12 +4,12 @@
 \alias{multiLinearModel}
 \title{Test a linear model on each gene following an experimental design.}
 \usage{
-multiLinearModel(exprData, sampleData, contrast)
+multiLinearModel(exprData, colData, designFormula, contrast)
 }
 \arguments{
 \item{exprData}{A matrix of numeric with rows as features (in the RNA-Seq context, log counts).}
 
-\item{sampleData}{A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData}
+\item{colData}{A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData}
 
 \item{contrast}{A vector of 3 character.
 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
@@ -29,5 +29,5 @@ Test a linear model on each gene following an experimental design.
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
-res<-multiLinearModel(bulkLogCounts,sampleData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"))
+res<-multiLinearModel(bulkLogCounts,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"))
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/enrichment.R
 \name{getSpeciesData}
 \alias{getSpeciesData}
-\title{Return gene id correspondance, GO species code and KEGG species code}
+\title{Return gene id correspondence, GO species code and KEGG species code}
 \usage{
 getSpeciesData(sample.species = "Human", updateSpeciesPackage = FALSE)
 }
@@ -15,7 +15,7 @@ getSpeciesData(sample.species = "Human", updateSpeciesPackage = FALSE)
 A list describing specific data for the species (gene IDs, annotation package...).
 }
 \description{
-Return gene id correspondance, GO species code and KEGG species code
+Return gene id correspondence, GO species code and KEGG species code
 }
 \examples{
 library(gage)

@@ -49,6 +49,7 @@ In this case, GATA2, SOX17, KLF4, POU5F1 are the universe of gene and GATA2 and 
 A dataframe with the following columns:
 - term: name of the term
 - pval: an enrichment p-value
+- OD: Odds Ratio of the enrichment
 - padj: a BH-adjusted p-value
 - nGeneOfInterest: number of gene of interest in the term.
 - nGene: number of gene in the term after removing genes not present.
@@ -62,4 +63,9 @@ data("DEgenesPrime_Naive")
 vectorIsDE<-DEgenesPrime_Naive$isDE!="NONE";names(vectorIsDE)<-rownames(DEgenesPrime_Naive)
 resEnrich<-enrich.ora(vectorIsDE,database = "kegg",species = "Human")
 View(resEnrich)
+- observed: observed number of elements in intersection (same value as `intersectionSize`)
+- expected: expected number of elements in intersection.
+- log2OE: log2 of observed/expected ratio
+- pval: pvalue (upper tail) where NULL hypotheses is that observed intersection is from the distribution of intersection size with p = nExpected / nUniverse.
+
 }

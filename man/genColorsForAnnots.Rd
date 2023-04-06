@@ -7,7 +7,7 @@
 genColorsForAnnots(
   annots,
   colorScales = NULL,
-  discreteFuns = list(mostDistantColor),
+  discreteFuns = list(oobColors, mostDistantColor, mostDistantColor),
   returnContinuousFun = FALSE,
   continuousPalettes = list(c("#440154", "#6BA75B", "#FDE725"), c("#2EB538", "#1D1D1B",
     "#DC0900"), c("#FFFFC6", "#FF821B", "#950961")),

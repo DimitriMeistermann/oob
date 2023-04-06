@@ -23,8 +23,8 @@ proj2d(
   plotFactorsCentroids = FALSE,
   pointStroke = 1/8,
   strokeColor = "black",
-  funAutoColorScale = ggplotColours,
-  fixedCoord = FALSE,
+  funAutoColorScale = oobColors,
+  fixedCoord = TRUE,
   plotLabelRepel = FALSE,
   labelSize = 3,
   sizeProp2Dens = FALSE,
@@ -117,7 +117,7 @@ proj2d(iris,colorBy = iris$Species,returnGraph = TRUE)+
 
 proj2d(iris,colorBy = iris$Species,colorScale = c("blue","white","red"))
 proj2d(iris,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
-proj2d(iris,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",fixedCoord = TRUE)
+proj2d(iris,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",fixedCoord = FALSE)
 proj2d(iris,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",colorScale = c("blue","white","red"))
 
 proj2d(iris,plotLabelRepel = TRUE)
@@ -127,6 +127,6 @@ proj2d(iris,sizeProp2Dens = TRUE,densEps = 2)
 umap<-UMAP(scale(iris[,c(1:4)]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
 
 proj2d(umap)
-proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,1:3],fixedCoord = TRUE)
-proj2d(umap,colorBy = iris$Species,useScatterMore = T,fixedCoord = T,pointSize = 5)
+proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,1:3])
+proj2d(umap,colorBy = iris$Species,useScatterMore = T,pointSize = 5)
 }

@@ -2,14 +2,14 @@
 % Please edit documentation in R/countMatrix.R
 \name{auroc}
 \alias{auroc}
-\title{Quick approximation of area under ROC curve}
+\title{Approximation of area under ROC curve}
 \usage{
-auroc(score, bool)
+auroc(score, boolVect)
 }
 \arguments{
 \item{score}{a vector of numeric representing the measure of a feature in a set of samples.}
 
-\item{bool}{a vector of logical, same size as score. Is the sample in the target group?}
+\item{boolVect}{a vector of logical, same size as score. Is the sample in the target group?}
 }
 \value{
 A numeric value. Close to 1 = perfect marker, around 0.5 = as good as random values, close to 0 = perfect anti-marker.

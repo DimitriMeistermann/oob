@@ -8,9 +8,10 @@ Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Imports:
     AnnotationDbi,
+    batchelor,
     BiocGenerics,
     BiocManager,
     BiocParallel,
@@ -18,19 +19,25 @@ Imports:
     ComplexHeatmap,
     data.table,
     dbscan,
+    doParallel,
     fgsea,
+    foreach,
     gage,
     ggbeeswarm,
     ggplot2,
     ggrepel,
+    glmnet,
+    grDevices,
     grid,
+    impute,
     irlba,
+    lsa,
     MASS,
     Matrix,
     pathview,
+    preprocessCore,
     pvclust,
     qualpalr,
-    reactome.db,
     reshape2,
     reticulate,
     rgl,
@@ -40,9 +47,14 @@ Imports:
     scran,
     SingleCellExperiment,
     stringr,
+    SummarizedExperiment,
     uwot,
     WGCNA
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    reactome.db
 VignetteBuilder: knitr
+LinkingTo:
+    Rcpp,
+    RcppArmadillo

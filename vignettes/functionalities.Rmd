@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# oob: a toolbox for analyzing OMIC data, Out Of Bounds of black boxes.
+# oob: a toolbox for analyzing OMIC data Out Of Bounds
 
 This package provide function for analyzing OMIC data, with a focus on plots, functional enrichment and bulk/single-cell RNA-Seq.
 
@@ -30,7 +30,7 @@ In a R console:
 
 ```{r eval=FALSE}
 install.packages("devtools")
-devtools::install_github("https://github.com/DimitriMeistermann/oob")
+devtools::install_github("https://github.com/DimitriMeistermann/oob", build_vignettes = FALSE)
 ```
 
 *oob* needs also several python dependencies accessible in the environment used by *reticulate*, the R package for calling python functions. See <https://rstudio.github.io/reticulate/articles/python_packages.html> for more information on installation of python package via reticulate.
@@ -154,7 +154,7 @@ The package can perform several quick normalization methods. Let's simulate a fa
 ```{r}
 data("geneLengthGRCh38") # vector of gene length for GRCh38 Human reference, named by gene symbols
 library(MASS)
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){ #generate a fake RNA-Seq dataset
 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 }))
 colnames(countMat)<-letters[1:ncol(countMat)];rownames(countMat)<-names(geneLengthGRCh38)
@@ -176,7 +176,7 @@ TPMfullLength(countMat,gene.length = geneLengthGRCh38) |> chead() #Transcript pe
 
 Principal Component Analysis can be performed with `PCA` or approximated with `fastPCA` with parametrs optimezed by default for RNA-Seq. Result can be then plotted with `pca2d`.
 
-```{r out.width = "100%", fig.dim = c(14,14)}
+```{r out.width = "100%", fig.dim = c(16,16)}
 data("sampleAnnot") #colData of the count table
 
 PCAres<-PCA(bulkLogCounts)
@@ -203,7 +203,7 @@ ggBorderedFactors(
 	ggplot(resPCR,aes(x=PC,y=Rsquared,fill=Annotation))+
 		geom_beeswarm(pch=21,size=4,cex = 3)+
 		xlab("Principal component")+ylab("R²")+
-		scale_fill_manual(values = mostDistantColor(nlevels(resPCR$Annotation)))+
+		scale_fill_manual(values = oobColors(nlevels(resPCR$Annotation)))+
 		theme(
 			panel.grid.major.y = element_line(colour = "grey75"),
 			panel.grid.minor.y = element_line(colour = "grey75"),
@@ -235,7 +235,7 @@ reducedSpace<-t(fastPCA(bulkLogCounts[overdispersedGenes,],nPC = 30))
 
 For example, we can perform non linear dimension reductions. Several are provided with the package: `NMDS`, `UMAP` and `TRIMAP`. The result is plotted with `proj2d`.
 
-```{r out.width = "100%", fig.dim = c(14,14)}
+```{r out.width = "100%", fig.dim = c(16,16)}
 reducedSpace<-t(fastPCA(bulkLogCounts[overdispersedGenes,],nPC = 30)$x)
 chead(reducedSpace)
 coordNMDS<-NMDS(reducedSpace)
@@ -243,12 +243,19 @@ coordUMAP<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace))
 coordTRIMAP<-TRIMAP(reducedSpace)
 
 multiplot(cols = 2,
+	pca2d(PCAres,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "PCA",ratioPerPercentVar = TRUE),
 	proj2d(coordNMDS,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "NMDS",fixedCoord = TRUE),
 	proj2d(coordUMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "UMAP",fixedCoord = TRUE),
 	proj2d(coordTRIMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "TRIMAP",fixedCoord = TRUE)
 )
 
 ```
+With `neighborFeatureGrid` we can identify wich gene is marking which area of a projection (here the UMAP).
+
+```{r out.width = "100%", fig.dim = c(20,20)}
+neighborFeatureGrid(coordUMAP,featureMat = bulkLogCounts)
+```
+
 
 The knn graph used can also be saved when computing the UMAP, and used for a community detection (Leiden) clustering.
 
@@ -261,17 +268,21 @@ proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,funAutoColorSca
 
 ```
 
-We can then get the best marker per cluster with `getMarkers`, which use the `auroc` function for computing AUROCs marker scores.
+We now pick the best marker per cluster with `getMarkers`, which use the `auroc` function for computing marker scores, along with logFC and p-value.
 
 ```{r}
 markerPerCluster<-getMarkers(bulkLogCounts[overdispersedGenes,],group = sampleAnnot$leidenClusters)
 chead(markerPerCluster)
 ```
 
-Now we pick up the best markers per cluster, and plot some of them. Note the log10(n+1) scale accessible as a scale for any ggplot with `log10plus1`.
+Now we pick up the best marker per cluster, and plot them. Note the log10(n+1) scale accessible as a scale for any ggplot with `log10plus1`.
+`extractFeatureMarkerData` is used to extract one value per cluster per gene (by default the marker score).
 
 ```{r}
-top20MarkerPerCluster<-apply(markerPerCluster, 2, function(x) rownames(markerPerCluster)[whichTop(x, top = 20)] ) |> data.frame() |> as.list()
+markerScorePerCluster<-extractFeatureMarkerData(markerPerCluster)
+head(markerScorePerCluster) #matrix of marker scores
+
+top20MarkerPerCluster<-apply(markerScorePerCluster, 2, function(x) rownames(markerPerCluster)[whichTop(x, top = 20)] ) |> data.frame() |> as.list()
 
 topGenePerCluster<-sapply(top20MarkerPerCluster,function(x) x[1])
 
@@ -279,7 +290,12 @@ plotExpr(normCount[topGenePerCluster,],group = sampleAnnot$leidenClusters, legen
 
 ```
 
-We then used those marker for plotting an heatmap.
+We then used those marker for plotting an heatmap with the dedicated function. 
+
+```{r out.width = "100%", fig.dim = c(14,14)}
+htMarker(bulkLogCounts,markerData = markerScorePerCluster,topn = 20 ,group = sampleAnnot$leidenClusters, colData = sampleAnnot[c("culture_media","line")])
+```
+Note that we can obtain the same result with more struggles using the more general function `heatmap.DM`:
 
 ```{r out.width = "100%", fig.dim = c(14,14)}
 #convert the list to a factor
@@ -289,9 +305,11 @@ top20MarkerFactor<-VectorListToFactor(top20MarkerPerCluster)
 markEXpressionSubSampled<-subSampleColumnPerGroup(bulkLogCounts[names(top20MarkerFactor),],groupVector = sampleAnnot$leidenClusters)
 
 heatmap.DM(markEXpressionSubSampled, colData = sampleAnnot[cn(markEXpressionSubSampled),c("culture_media","line")],
-	column_split=sampleAnnot[cn(markEXpressionSubSampled),"leidenClusters"],row_split=top20MarkerFactor,
-	cluster_row_slices = FALSE, cluster_column_slices =FALSE)
+    column_split=sampleAnnot[cn(markEXpressionSubSampled),"leidenClusters"],row_split=top20MarkerFactor,
+    cluster_row_slices = FALSE, cluster_column_slices =FALSE)
+#> 
 ```
+
 
 `autoGparFontSizeMatrix` is used by `heatmap.DM` to adjust row and column size to the number of samples / features. `heatmap.DM` is a wrapper for `ComplexHeatmap`. It uses `genColorsForAnnots` and `genTopAnnot` are for generating top annotations. The proper heatmap color scale is generated using `computeColorScaleFun` which is able to map colors to percentiles.
 
@@ -306,12 +324,15 @@ computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColo
 `computeColorScaleFun` can also return a ggplot scale if `returnGGscale`.
 
 *oob* features other functions for colors:
+-   `oobColors`: Generate pretty and distinct values for a qualitative scale.
 
--   `ggplotColours`: generate the default colors of *ggplot2*
+-   `mostDistantColor `: Most distant theoretical color palette for a qualitative scale (wrapper for *qualpal*).
+
+-   `ggplotColours`: generate the default colors of *ggplot2*  for a qualitative scale.
 
 -   `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
 
-`customUpsetPlot` is used to compare intersection between gene set with an additionnal value of ernrichment.
+Finally, `customUpsetPlot` is used to compare intersection between gene set with an additional value of enrichment.
 
 ```{r}
 lt = list(set1 = sample(letters, 5),
@@ -412,3 +433,10 @@ heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=F
 -   `matrixCoord1D_2D`: Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
 
 -   `matrixFromDimnames`: Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
+
+## Session info
+
+```{r}
+sessionInfo()
+```
+

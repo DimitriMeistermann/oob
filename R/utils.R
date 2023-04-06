@@ -9,7 +9,7 @@
 #' gmean(c(1,2,3))
 #' gmean(c(0,2,3),keepZero = TRUE)
 #' gmean(c(0,2,3),keepZero = FALSE)
-gmean<-function(x, keepZero=FALSE){ #geometrical mean
+gmean<-function(x, keepZero=TRUE){ #geometrical mean
 	if(sum(x)==0) return(0)
 	if(!keepZero){
 		x<-x[x!=0]

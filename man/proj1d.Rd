@@ -22,7 +22,7 @@ proj1d(
   plotFactorsCentroids = FALSE,
   pointStroke = 1/8,
   strokeColor = "black",
-  funAutoColorScale = ggplotColours,
+  funAutoColorScale = oobColors,
   plotLabelRepel = FALSE,
   labelSize = 3,
   sizeProp2Dens = FALSE,

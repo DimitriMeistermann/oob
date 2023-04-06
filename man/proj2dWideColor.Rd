@@ -19,7 +19,7 @@ proj2dWideColor(
   axis.names = NULL,
   na.color = "grey50",
   na.bg = TRUE,
-  funAutoColorScale = ggplotColours,
+  funAutoColorScale = oobColors,
   ...
 )
 }

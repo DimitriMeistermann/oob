@@ -6,7 +6,7 @@
 \usage{
 mostDistantColor(
   n,
-  colorspace = "rainbow",
+  colorspace = NULL,
   cvd = c("protan", "deutan", "tritan"),
   cvd_severity = 0,
   n_threads = NULL
@@ -15,7 +15,7 @@ mostDistantColor(
 \arguments{
 \item{n}{The number of colors to generate.}
 
-\item{colorspace}{A color space to generate colors from. See qualpalr::qualpal}
+\item{colorspace}{A color space to generate colors from. See ?qualpalr::qualpal. If NULL computed regarding the number of asked color.}
 
 \item{cvd}{Color vision deficiency adaptation. Use cvd_severity to set the severity of color vision deficiency to adapt to. Permissible values are "protan", "deutan", and "tritan".}
 

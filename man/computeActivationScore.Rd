@@ -46,7 +46,7 @@ computeActivationScore(
 }
 \value{
 A list where each element is a database of gene set given as input.
-For each database, contain a list of activation score (eigen), with gene sets as rows and samples as columns ;
+For each database, contain a list of activation score, with gene sets as rows and samples as columns ;
 and the list of contribution (or weight) to activation score of each gene per gene set.
 }
 \description{

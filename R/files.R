@@ -10,15 +10,23 @@
 #' @return A dataframe or a matrix.
 #' @export
 #' @seealso fastWrite
-fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsAsFactors=FALSE,...){
-	dat <- as.data.frame(data.table::fread(fileName,stringsAsFactors=stringsAsFactors, sep = sep,...))
-	if(!is.null(row.names)){
-	  rownames(dat) <- dat[,row.names]
-	  dat <- dat[,-row.names,drop=FALSE]
+fastRead <-
+	function(fileName,
+					 sep = '\t',
+					 row.names = 1,
+					 as.matrix = FALSE,
+					 stringsAsFactors = FALSE,
+					 ...) {
+		dat <-
+			as.data.frame(data.table::fread(fileName, stringsAsFactors = stringsAsFactors, sep = sep, ...))
+		if (!is.null(row.names)) {
+			rownames(dat) <- dat[, row.names]
+			dat <- dat[, -row.names, drop = FALSE]
+		}
+		if (as.matrix)
+			dat <- as.matrix(dat)
+		return(dat)
 	}
-	if(as.matrix) dat<-as.matrix(dat)
-	return(dat)
-}
 
 #' Write quickly a text file from dataframe/matrix
 #'
@@ -32,16 +40,35 @@ fastRead <- function(fileName, sep = '\t',row.names = 1,as.matrix=FALSE,stringsA
 #' @param ... Other parameters passed to data.table::fwrite.
 #' @export
 #' @seealso fastRead
-fastWrite <- function(x, fileName = "default.tsv", headRow="Name",row.names=TRUE,col.names=TRUE, dec=".",sep="\t", ...) {
-	if(is.null(rownames(x))) row.names<-FALSE
-	if(is.null(colnames(x))) col.names<-FALSE
+fastWrite <-
+	function(x,
+					 fileName = "default.tsv",
+					 headRow = "Name",
+					 row.names = TRUE,
+					 col.names = TRUE,
+					 dec = ".",
+					 sep = "\t",
+					 ...) {
+		if (is.null(rownames(x)))
+			row.names <- FALSE
+		if (is.null(colnames(x)))
+			col.names <- FALSE
 
-	if(row.names){
-		x=cbind(rownames(x),x)
-		colnames(x)[1]<-headRow
+		if (row.names) {
+			x = cbind(rownames(x), x)
+			colnames(x)[1] <- headRow
+		}
+		data.table::fwrite(
+			x = data.frame(x),
+			file = fileName,
+			sep = sep,
+			row.names = FALSE,
+			col.names = col.names,
+			quote = FALSE,
+			dec = dec,
+			...
+		)
 	}
-	data.table::fwrite(x=data.frame(x),file=fileName,sep=sep, row.names = FALSE, col.names = col.names, quote = FALSE, dec=dec, ...)
-}
 
 #' Write a list in a text file.
 #'
@@ -56,18 +83,30 @@ fastWrite <- function(x, fileName = "default.tsv", headRow="Name",row.names=TRUE
 #' @param vector.names Save value name vector in the row before the values.
 #' @export
 #' @seealso read.vectorList
-write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.names=FALSE) {
-	if( (!is.list(list))) stop("list must be a list")
-	sink(filename)
-	for(i in seq_along(list)){
-		if(! (is.null(names(list)) | (!list.names))) cat(names(list[i]),"\n",sep = "")
-		element<-list[[i]]
-		if(! (is.vector(element) | is.factor(element))) stop("each element of the list should be a vector")
-		if(! (is.null(names(element)) | (!vector.names))) cat(paste0(names(element),collapse = sep),"\n",sep = "")
-		cat(paste0(as.character(element),collapse = sep),"\n",sep = "")
+write.vectorList <-
+	function(list,
+					 filename,
+					 sep = "\t",
+					 list.names = TRUE,
+					 vector.names = FALSE) {
+		if ((!is.list(list)))
+			stop("list must be a list")
+		sink(filename)
+		for (i in seq_along(list)) {
+			if (!(is.null(names(list)) |
+						(!list.names)))
+				cat(names(list[i]), "\n", sep = "")
+			element <- list[[i]]
+			if (!(is.vector(element) |
+						is.factor(element)))
+				stop("each element of the list should be a vector")
+			if (!(is.null(names(element)) |
+						(!vector.names)))
+				cat(paste0(names(element), collapse = sep), "\n", sep = "")
+			cat(paste0(as.character(element), collapse = sep), "\n", sep = "")
+		}
+		sink()
 	}
-	sink()
-}
 
 #' Load a list from a text file.
 #'
@@ -80,12 +119,12 @@ write.vectorList <- function(list, filename,sep="\t",list.names=TRUE,vector.name
 #' @return A list.
 #' @export
 #' @seealso write.vectorList
-read.vectorList<-function(fileName,sep="\t"){
-	con<-file(fileName)
-	txt<-readLines(con)
-	elNames<-str_remove_all(txt[seq(1,length(txt),2)],sep)
-	res<-strsplit(txt[seq(2,length(txt),2)],sep)
-	names(res)<-elNames
+read.vectorList <- function(fileName, sep = "\t") {
+	con <- file(fileName)
+	txt <- readLines(con)
+	elNames <- str_remove_all(txt[seq(1, length(txt), 2)], sep)
+	res <- strsplit(txt[seq(2, length(txt), 2)], sep)
+	names(res) <- elNames
 	close(con)
 	res
 }
@@ -105,8 +144,27 @@ read.vectorList<-function(fileName,sep="\t"){
 #' @return Write a text file.
 #' @export
 #'
-exportEnrich<-function(enrichResults,file,quote = FALSE,sep = "\t",col.names = TRUE,row.names = FALSE,geneCol="genes",...){
-	enrichResults$Gene<-sapply(enrichResults[[geneCol]],function(x){ return(paste0(x,collapse=sep))})
-	enrichResults[[geneCol]]<-NULL
-	write.table(enrichResults,file,quote = quote,sep = sep,col.names = col.names,row.names = row.names,...)
-}
+exportEnrich <-
+	function(enrichResults,
+					 file,
+					 quote = FALSE,
+					 sep = "\t",
+					 col.names = TRUE,
+					 row.names = FALSE,
+					 geneCol = "genes",
+					 ...) {
+		enrichResults$Gene <-
+			sapply(enrichResults[[geneCol]], function(x) {
+				return(paste0(x, collapse = sep))
+			})
+		enrichResults[[geneCol]] <- NULL
+		write.table(
+			enrichResults,
+			file,
+			quote = quote,
+			sep = sep,
+			col.names = col.names,
+			row.names = row.names,
+			...
+		)
+	}

@@ -18,21 +18,28 @@
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' colnames(countMat)<-letters[1:ncol(countMat)]
 #' computeQCmetricSamples(countMat)
-computeQCmetricSamples<-function(x, uncenter= FALSE){
-	if(uncenter){
-		x<-x-min(x)
-		zero<-0
-	}else{
-		zero<-min(x)
+computeQCmetricSamples <- function(x, uncenter = FALSE) {
+	if (uncenter) {
+		x <- x - min(x)
+		zero <- 0
+	} else{
+		zero <- min(x)
 	}
-	mean<-apply(x,2,mean)
-	sd<-apply(x,2,sd)
-	count<-colSums(x)
-	CV<-apply(x,2,cv)
-	noGenEx<-rep(0,ncol(x))
-	for(i in 1:ncol(x)) noGenEx[i]<-length(which(x[,i]>zero))
+	mean <- apply(x, 2, mean)
+	sd <- apply(x, 2, sd)
+	count <- colSums(x)
+	CV <- apply(x, 2, cv)
+	noGenEx <- rep(0, ncol(x))
+	for (i in 1:ncol(x))
+		noGenEx[i] <- length(which(x[, i] > zero))
 
-	return(data.frame(mean=mean, sd=sd,CV=CV,TotalGenEx=noGenEx,TotalCount=count))
+	return(data.frame(
+		mean = mean,
+		sd = sd,
+		CV = CV,
+		TotalGenEx = noGenEx,
+		TotalCount = count
+	))
 }
 
 
@@ -57,24 +64,39 @@ computeQCmetricSamples<-function(x, uncenter= FALSE){
 #' @examples
 #' data(iris)
 #' pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
-PCA<-function(d,transpose=T,scale=F,center=T) {
-	if(transpose) d<-t(d);
-	means<-0;sdeviations<-1
-	if(center){
-		means<-apply(d,2,mean)
-		d<-sweep(d,2,means,"-")
+PCA <- function(d,
+								transpose = T,
+								scale = F,
+								center = T) {
+	if (transpose)
+		d <- t(d)
+
+	means <- 0
+	sdeviations <- 1
+	if (center) {
+		means <- apply(d, 2, mean)
+		d <- sweep(d, 2, means, "-")
 	}
-	if(scale){
-		sdeviations<-apply(d,2,sd)
-		d<-sweep(d,2,sdeviations,"/")
+	if (scale) {
+		sdeviations <- apply(d, 2, sd)
+		d <- sweep(d, 2, sdeviations, "/")
 	}
-	resacp <-prcomp(x = d,retx = T,center = FALSE,scale = FALSE);
-	resacp$n.obs<-dim(d)[1];
-	resacp$propExplVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
-	resacp$scale<-scale
-	resacp$center<-center
-	resacp$transform<-list(sdeviations=sdeviations,means=means)
-	return(resacp);
+	resacp <- prcomp(
+		x = d,
+		retx = T,
+		center = FALSE,
+		scale = FALSE
+	)
+
+	resacp$n.obs <- dim(d)[1]
+
+	resacp$propExplVar <- resacp$sdev ^ 2 / sum(resacp$sdev ^ 2)
+	resacp$scale <- scale
+	resacp$center <- center
+	resacp$transform <- list(sdeviations = sdeviations, means = means)
+	resacp$isFastPCA<-FALSE
+	return(resacp)
+
 }
 
 
@@ -104,38 +126,56 @@ PCA<-function(d,transpose=T,scale=F,center=T) {
 #' data("bulkLogCounts")
 #' pca<-fastPCA(bulkLogCounts,nPC=10)
 #' pca2d(pca)
-fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=min(ncol(d) - 1, nrow(d) -1, 30),
-										weight.by.var = TRUE, ...) {
-	if(transpose) d<-t(d);
-	d<-as.matrix(d)
-	means<-0;sdeviations<-1
-	if(center | scale) d<-scale(d,scale = scale,center = center)
-	if(center) means<-attr(d,"scaled:center")
-	if(scale) sdeviations<-attr(d,"scaled:scale")
+fastPCA <-
+	function(d,
+					 transpose = TRUE,
+					 scale = FALSE,
+					 center = TRUE,
+					 nPC = min(ncol(d) - 1, nrow(d) - 1, 30),
+					 weight.by.var = TRUE,
+					 ...) {
+		if (transpose)
+			d <- t(d)
 
-	resacp<-list()
-	resacp$n.obs<-dim(d)[1];
-	resacp$scale<-scale
-	resacp$center<-center
-	resacp$transform<-list(sdeviations=sdeviations,means=means)
+		d <- as.matrix(d)
+		means <- 0
+		sdeviations <- 1
+		if (center | scale)
+			d <- scale(d, scale = scale, center = center)
+		if (center)
+			means <- attr(d, "scaled:center")
+		if (scale)
+			sdeviations <- attr(d, "scaled:scale")
 
-	irlbaResults <- irlba::irlba(A = d, nv = nPC, ...)
-	rotation <- irlbaResults$v
-	resacp$sdev <- irlbaResults$d/sqrt(max(1, nrow(d) - 1))
-	if (weight.by.var) {
-		reducedSpace <- irlbaResults$u %*% diag(irlbaResults$d)
-	} else {
-		reducedSpace <- irlbaResults$u
+		resacp <- list()
+		resacp$n.obs <- dim(d)[1]
+
+		resacp$scale <- scale
+		resacp$center <- center
+		resacp$transform <- list(sdeviations = sdeviations, means = means)
+
+		irlbaResults <- irlba::irlba(A = d, nv = nPC, ...)
+		rotation <- irlbaResults$v
+		resacp$sdev <- irlbaResults$d / sqrt(max(1, nrow(d) - 1))
+		if (weight.by.var) {
+			if (nPC > 1) {
+				reducedSpace <- irlbaResults$u %*% diag(irlbaResults$d)
+			} else {
+				reducedSpace <- irlbaResults$u %*% irlbaResults$d
+			}
+		} else {
+			reducedSpace <- irlbaResults$u
+		}
+		rownames(rotation) <- colnames(d)
+		colnames(rotation) <- paste0("PC", 1:nPC)
+		rownames(reducedSpace) <- rownames(d)
+		colnames(reducedSpace) <- colnames(rotation)
+		resacp$x <- reducedSpace
+		resacp$rotation <- rotation
+		resacp$propExplVar <- resacp$sdev ^ 2 / sum(resacp$sdev ^ 2)
+		resacp$isFastPCA<-TRUE
+		resacp
 	}
-	rownames(rotation) <- colnames(d)
-	colnames(rotation) <- paste0("PC", 1:nPC)
-	rownames(reducedSpace) <- rownames(d)
-	colnames(reducedSpace) <- colnames(rotation)
-	resacp$x<-reducedSpace
-	resacp$rotation<-rotation
-	resacp$propExplVar<- resacp$sdev^2 / sum( resacp$sdev^2 )
-	resacp
-}
 
 #' Add new samples to an existing PCA.
 #'
@@ -156,23 +196,32 @@ fastPCA <- function(d,transpose=TRUE,scale=FALSE,center=TRUE,nPC=min(ncol(d) - 1
 #' pcaUpdated<-pcaAddSamples(pca,iris2[,1:4],transpose = FALSE)
 #' pca2d(pcaUpdated,colorBy = iris$Species)
 
-pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,returnPCA=TRUE){
-	if(transpose) newSamplesMatrix<-t(newSamplesMatrix)
-	newSamplesMatrix<-newSamplesMatrix[,rownames(pca$rotation),drop=FALSE]
+pcaAddSamples <-
+	function(pca,
+					 newSamplesMatrix,
+					 transpose = TRUE,
+					 returnPCA = TRUE) {
+		if (transpose)
+			newSamplesMatrix <- t(newSamplesMatrix)
+		newSamplesMatrix <-
+			newSamplesMatrix[, rownames(pca$rotation), drop = FALSE]
 
-	if(pca$center) newSamplesMatrix<-sweep(newSamplesMatrix,2,pca$transform$means,"-")
-	if(pca$scale) newSamplesMatrix<-sweep(newSamplesMatrix,2,pca$transform$sdeviations,"/")
+		if (pca$center)
+			newSamplesMatrix <- sweep(newSamplesMatrix, 2, pca$transform$means, "-")
+		if (pca$scale)
+			newSamplesMatrix <-
+			sweep(newSamplesMatrix, 2, pca$transform$sdeviations, "/")
 
-	newSamplesCoord<-t(apply(newSamplesMatrix,1,function(x){
-		colSums(x*pca$rotation)
-	}))
-	if(returnPCA){
-		pca$x<-rbind(pca$x,newSamplesCoord)
-		return(pca)
-	}else{
-		return(newSamplesCoord)
+		newSamplesCoord <- t(apply(newSamplesMatrix, 1, function(x) {
+			colSums(x * pca$rotation)
+		}))
+		if (returnPCA) {
+			pca$x <- rbind(pca$x, newSamplesCoord)
+			return(pca)
+		} else{
+			return(newSamplesCoord)
+		}
 	}
-}
 
 
 #' Principal Component Regression
@@ -192,47 +241,60 @@ pcaAddSamples<-function(pca,newSamplesMatrix,transpose=TRUE,returnPCA=TRUE){
 #'
 #' pca<-fastPCA(bulkLogCounts,nPC=10)
 #' PCR(pca,annotationDF=sampleAnnot[,c("culture_media","line","passage")])
-PCR<-function(pca,annotationDF,nComponent=10){
-	annots<-colnames(annotationDF)
-	rSquaredMat<-matrixFromDimnames(cn(pca$x),annots,value = NA)
-	for(x in cn(pca$x)){
-		for(annot in annots){
-			rSquaredMat[x,annot]<-summary(lm(formula(paste0(x,"~",annot)),data = data.frame(annotationDF[,annot,drop=F],pca$x[,x,drop=F])))$r.squared
+PCR <- function(pca, annotationDF, nComponent = 10) {
+	annots <- colnames(annotationDF)
+	rSquaredMat <- matrixFromDimnames(cn(pca$x), annots, value = NA)
+	for (x in cn(pca$x)) {
+		for (annot in annots) {
+			rSquaredMat[x, annot] <-
+				summary(lm(formula(paste0(x, "~", annot)), data = data.frame(annotationDF[, annot, drop =
+																																										F], pca$x[, x, drop = F])))$r.squared
 		}
 	}
-	if(ncol(annotationDF)<2){
-		retDt<-data.frame(Rsquared=rSquaredMat[,1],PC=rownames(rSquaredMat),Annotation=colnames(annotationDF))
-	}else{
-		retDt<-reshape2::melt(rSquaredMat[1:nComponent,], value.name = "Rsquared",varnames=c("PC","Annotation"))
+	if (ncol(annotationDF) < 2) {
+		retDt <-
+			data.frame(
+				Rsquared = rSquaredMat[, 1],
+				PC = rownames(rSquaredMat),
+				Annotation = colnames(annotationDF)
+			)
+	} else{
+		retDt <-
+			reshape2::melt(rSquaredMat[1:nComponent, ],
+										 value.name = "Rsquared",
+										 varnames = c("PC", "Annotation"))
 	}
 
-	retDt$PC<-factor(retDt$PC,levels=cn(pca$x)[1:nComponent]) #so the levels of PCs are well ordered
+	retDt$PC <-
+		factor(retDt$PC, levels = cn(pca$x)[1:nComponent]) #so the levels of PCs are well ordered
 	retDt
 }
 
-merge0dist<-function(disMat){
-	mat<-as.matrix(disMat)
-	merged<-list()
-	found<-TRUE
-	while(found==TRUE){
-		found<-FALSE
-		for(i in 2:nrow(mat)){
-			for(j in 1:(i-1)){
-				if(mat[i,j]==0){
-					newNames<-rownames(mat)
-					newNames<-newNames[-i]
-					newMat<-mat[-i,-i]
-					colnames(newMat)<-rownames(newMat)<-newNames
-					merged[[rownames(mat)[j]]]<-c(merged[[rownames(mat)[j]]],rownames(mat)[i])
-					mat<-newMat
-					found<-TRUE
+merge0dist <- function(disMat) {
+	mat <- as.matrix(disMat)
+	merged <- list()
+	found <- TRUE
+	while (found == TRUE) {
+		found <- FALSE
+		for (i in 2:nrow(mat)) {
+			for (j in 1:(i - 1)) {
+				if (mat[i, j] == 0) {
+					newNames <- rownames(mat)
+					newNames <- newNames[-i]
+					newMat <- mat[-i, -i]
+					colnames(newMat) <- rownames(newMat) <- newNames
+					merged[[rownames(mat)[j]]] <-
+						c(merged[[rownames(mat)[j]]], rownames(mat)[i])
+					mat <- newMat
+					found <- TRUE
 					break
 				}
 			}
-			if(found) break
+			if (found)
+				break
 		}
 	}
-	return(list(distMat=as.dist(mat),merged=merged))
+	return(list(distMat = as.dist(mat), merged = merged))
 }
 
 #' Non-metric Multidimensional Scaling (dimension reduction)
@@ -252,28 +314,40 @@ merge0dist<-function(disMat){
 #' data("bulkLogCounts")
 #' NMDSproj<-NMDS(bulkLogCounts)
 #' proj2d(NMDSproj)
-NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,maxit=100){
-	merged<-FALSE
-	if(transpose) data <- t(data)
-	d <- metric(data)  # euclidean distances between the rows
-	if(min(d,na.rm=TRUE)==0){
-		merged<-TRUE
-		md<-merge0dist(d)
-		d<-md$distMat
-		mergedSample<-md$merged
-	}
-	fit <- MASS::isoMDS(d, k=ndim, maxit=maxit) # k is the number of dim
-	fit$coord<-fit$points
-	fit$points<-NULL
-	if(merged){
-		for(sple in names(mergedSample)){
-			values<-matrix(rep(fit$coord[sple,],length(mergedSample[[sple]])),nrow=length(mergedSample[[sple]]),byrow = TRUE)
-			rownames(values)<-mergedSample[[sple]]
-			fit$coord<-rbind(fit$coord,values)
+NMDS <-
+	function(data,
+					 transpose = TRUE,
+					 scale = FALSE,
+					 center = FALSE,
+					 metric = dist,
+					 ndim = 2,
+					 maxit = 100) {
+		merged <- FALSE
+		if (transpose)
+			data <- t(data)
+		d <- metric(data)  # euclidean distances between the rows
+		if (min(d, na.rm = TRUE) == 0) {
+			merged <- TRUE
+			md <- merge0dist(d)
+			d <- md$distMat
+			mergedSample <- md$merged
 		}
+		fit <-
+			MASS::isoMDS(d, k = ndim, maxit = maxit) # k is the number of dim
+		fit$coord <- fit$points
+		fit$points <- NULL
+		if (merged) {
+			for (sple in names(mergedSample)) {
+				values <-
+					matrix(rep(fit$coord[sple, ], length(mergedSample[[sple]])),
+								 nrow = length(mergedSample[[sple]]),
+								 byrow = TRUE)
+				rownames(values) <- mergedSample[[sple]]
+				fit$coord <- rbind(fit$coord, values)
+			}
+		}
+		return(fit$coord)
 	}
-	return(fit$coord)
-}
 
 #' Count Per Million normalization
 #'
@@ -289,9 +363,10 @@ NMDS<-function(data,transpose=TRUE,scale=FALSE,center=FALSE,metric=dist,ndim=2,m
 #' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' CPM(countMat)
-CPM<-function(data){ #Normalisation CPM
-	data.CPM <- sweep(data, 2, colSums(data),`/`)
-	data.CPM <-data.CPM * 1000000
+CPM <- function(data) {
+	#Normalisation CPM
+	data.CPM <- sweep(data, 2, colSums(data), `/`)
+	data.CPM <- data.CPM * 1000000
 	return(data.CPM)
 }
 
@@ -311,9 +386,9 @@ CPM<-function(data){ #Normalisation CPM
 #' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' TPMfullLength(countMat,geneLengthGRCh38)
-TPMfullLength<-function(data, gene.length){
-	gene.length.kb <- gene.length[rownames(data)]/1000
-	data<-sweep(data, 1, gene.length.kb,`/`)
+TPMfullLength <- function(data, gene.length) {
+	gene.length.kb <- gene.length[rownames(data)] / 1000
+	data <- sweep(data, 1, gene.length.kb, `/`)
 	return(CPM(data))
 }
 
@@ -332,10 +407,10 @@ TPMfullLength<-function(data, gene.length){
 #' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' RPKM(countMat,geneLengthGRCh38)
-RPKM<-function(data, gene.length){
-	gene.length.kb <- gene.length[rn(data)]/1000
-	data<-CPM(data)
-	sweep(data, 1, gene.length.kb,`/`)
+RPKM <- function(data, gene.length) {
+	gene.length.kb <- gene.length[rn(data)] / 1000
+	data <- CPM(data)
+	sweep(data, 1, gene.length.kb, `/`)
 }
 
 
@@ -353,15 +428,20 @@ RPKM<-function(data, gene.length){
 #' 	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' normDeseq(countMat)
-normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are columns
-	# PS = pseudo reference sample
-	PS<-apply(countMatrix,1,gmean,keepZero=TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
-	keptRow<-PS>0 #get rid of genes containing one zero ore more
-	PS<-PS[keptRow]
-	ratioMat<-sweep(countMatrix[keptRow,],1,PS,"/") #get the ratio matrix (expression/expression from PS)
-	normFactors<-apply(ratioMat,2,median) #get the median of the ratios for each sample to get the normalization factors
-	sweep(countMatrix,2,normFactors,"/") #divide each sample by the corresponding normalization factor
-}
+normDeseq <-
+	function(countMatrix) {
+		#matrix where genes are rows and samples are columns
+		# PS = pseudo reference sample
+		PS <-
+			apply(countMatrix, 1, gmean, keepZero = TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
+		keptRow <- PS > 0 #get rid of genes containing one zero ore more
+		PS <- PS[keptRow]
+		ratioMat <-
+			sweep(countMatrix[keptRow, ], 1, PS, "/") #get the ratio matrix (expression/expression from PS)
+		normFactors <-
+			apply(ratioMat, 2, median) #get the median of the ratios for each sample to get the normalization factors
+		sweep(countMatrix, 2, normFactors, "/") #divide each sample by the corresponding normalization factor
+	}
 
 
 #' Quick single cell normalization (scran method).
@@ -382,19 +462,34 @@ normDeseq<-function(countMatrix){ #matrix where genes are rows and samples are c
 #' }));rownames(countMat)<-names(geneLengthGRCh38)
 #' quickSCnorm(countMat, returnLog=FALSE)
 #' quickSCnorm(countMat, returnLog=TRUE)
-quickSCnorm<-function(rawCounts,returnLog=TRUE,sizeFactors=NULL,...){
-	sce <- SingleCellExperiment::SingleCellExperiment(assays=list(counts=rawCounts))
-	if(!is.null(sizeFactors)){
-		sizeFactors(sce)<-sizeFactors
-	}else{
-		sce <- scran::computeSumFactors(sce,...)
+quickSCnorm <-
+	function(rawCounts,
+					 returnLog = TRUE,
+					 sizeFactors = NULL,
+					 ...) {
+		sce <-
+			SingleCellExperiment::SingleCellExperiment(assays = list(counts = rawCounts))
+		if (!is.null(sizeFactors)) {
+			sizeFactors(sce) <- sizeFactors
+		} else{
+			sce <- scran::computeSumFactors(sce, ...)
+		}
+		if (returnLog) {
+			scater::normalizeCounts(
+				sce,
+				transform = "log",
+				pseudo_count = 1,
+				size_factors = sizeFactors(sce)
+			)
+		} else{
+			scater::normalizeCounts(
+				sce,
+				transform = "none",
+				pseudo_count = 0,
+				size_factors = sizeFactors(sce)
+			)
+		}
 	}
-	if(returnLog){
-		scater::normalizeCounts(sce,transform = "log",pseudo_count = 1,size_factors = sizeFactors(sce))
-	}else{
-		scater::normalizeCounts(sce,transform = "none",pseudo_count = 0,size_factors = sizeFactors(sce))
-	}
-}
 
 
 #' Determine the best partition in a hierarchichal clustering
@@ -415,19 +510,28 @@ quickSCnorm<-function(rawCounts,returnLog=TRUE,sizeFactors=NULL,...){
 #' best.cutree(resClust)
 #' best.cutree(resClust, loss=TRUE)
 #' cutree(resClust,k = best.cutree(resClust))
-best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE){
-	if (class(hc)!="hclust") hc <- as.hclust(hc)
-	max <- min(max, length(hc$height)-1)
+best.cutree <- function(hc,
+												min = 2,
+												max = 20,
+												loss = FALSE,
+												graph = FALSE) {
+	if (class(hc) != "hclust")
+		hc <- as.hclust(hc)
+	max <- min(max, length(hc$height) - 1)
 	inert.gain <- rev(hc$height)
 	intra <- rev(cumsum(rev(inert.gain)))
-	relative.loss = intra[min:(max+1)]/intra[(min - 1):(max)]
-	derivative.loss = relative.loss[2:length(relative.loss)]-relative.loss[1:(length(relative.loss)-1)]
+	relative.loss = intra[min:(max + 1)] / intra[(min - 1):(max)]
+	derivative.loss = relative.loss[2:length(relative.loss)] - relative.loss[1:(length(relative.loss) -
+																																								1)]
 	names(derivative.loss) <- min:max
 	if (graph) {
 		print(
-			ggplot(data.frame(partition=min:max,derivative.loss=derivative.loss),aes(x=partition,y=derivative.loss))+
-				geom_point()+
-				scale_x_continuous(breaks=min:max,minor_breaks = NULL)
+			ggplot(
+				data.frame(partition = min:max, derivative.loss = derivative.loss),
+				aes(x = partition, y = derivative.loss)
+			) +
+				geom_point() +
+				scale_x_continuous(breaks = min:max, minor_breaks = NULL)
 		)
 	} else {
 		if (loss)
@@ -458,34 +562,52 @@ best.cutree <- function(hc, min=2, max=20, loss=FALSE, graph=FALSE){
 #' plot(resClust,hang=-1)
 #' resClust<-hierarchicalClustering(iris[,1:3],transpose = TRUE,bootstrap = TRUE,nboot = 20)
 #' plot(resClust,hang=-1)
-hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method.hclust="ward.D2",
-																 bootstrap=FALSE,nboot=10,PCAfirst=FALSE,nDimPCA=NULL){
-	if(transpose) x<-t(x)
-	if(PCAfirst){
-		x<-PCA(x,transpose = FALSE,scale = FALSE)$x
-		if(!is.null(nDimPCA)){
-			x<-x[,1:nDimPCA]
+hierarchicalClustering <-
+	function(x,
+					 transpose = TRUE,
+					 method.dist = "euclidean",
+					 method.hclust = "ward.D2",
+					 bootstrap = FALSE,
+					 nboot = 10,
+					 PCAfirst = FALSE,
+					 nDimPCA = NULL) {
+		if (transpose)
+			x <- t(x)
+		if (PCAfirst) {
+			x <- PCA(x, transpose = FALSE, scale = FALSE)$x
+			if (!is.null(nDimPCA)) {
+				x <- x[, 1:nDimPCA]
+			}
 		}
-	}
-	if(bootstrap){
-		resClust<-pvclust::pvclust(t(x),nboot=nboot,method.hclust = method.hclust,parallel = TRUE,method.dist = method.dist)$hclust
-	}else{
-		if(method.dist=="pearson"){
-			resDist<-corrDist(x)
-		}else if(method.dist=="bicor"){
-			resDist<-as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(x))))/2)
-		}else{
-			resDist<-dist(x, method = method.dist)
+		if (bootstrap) {
+			resClust <-
+				pvclust::pvclust(
+					t(x),
+					nboot = nboot,
+					method.hclust = method.hclust,
+					parallel = TRUE,
+					method.dist = method.dist
+				)$hclust
+		} else{
+			if (method.dist == "pearson") {
+				resDist <- corrDist(x)
+			} else if (method.dist == "bicor") {
+				resDist <-
+					as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(
+						x
+					)))) / 2)
+			} else{
+				resDist <- dist(x, method = method.dist)
+			}
+			resClust <- stats::hclust(resDist, method = method.hclust)
 		}
-		resClust<-stats::hclust(resDist,method = method.hclust)
+		return(resClust)
 	}
-	return(resClust)
-}
 
 #' Test a linear model on each gene following an experimental design.
 #'
 #' @param exprData A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
-#' @param sampleData A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData
+#' @param colData A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData
 #' @param contrast A vector of 3 character.
 #' 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
 #' 2. Condition considered as the reference.
@@ -503,11 +625,11 @@ hierarchicalClustering<-function(x,transpose=TRUE,method.dist="euclidean",method
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
-#' res<-multiLinearModel(bulkLogCounts,sampleData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"))
-multiLinearModel<-function(exprData,sampleData,contrast){
-	samples<-rownames(sampleData)[sampleData[,contrast[1]]%in%contrast[2:3]]
+#' res<-multiLinearModel(bulkLogCounts,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"))
+multiLinearModel <- function(exprData, colData, designFormula ,contrast) {
+	samples<-rownames(colData)[colData[,contrast[1]]%in%contrast[2:3]]
 	data<-exprData[,samples]
-	groups<-droplevels(as.factor(sampleData[samples,contrast[1]]))
+	groups<-droplevels(as.factor(colData[samples,contrast[1]]))
 	logicGroup<-rep(F,len(groups))
 	logicGroup[groups==contrast[2]]<-T
 	regTabList<-apply(data,1,function(x){
@@ -543,31 +665,49 @@ multiLinearModel<-function(exprData,sampleData,contrast){
 #' data("bulkLogCounts")
 #' normCount<-2^(bulkLogCounts-1)
 #' dispData<-getMostVariableGenes(normCount,minCount=1)
-getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
-	counts<-counts[rowMeans(counts)>minCount,]
-	dispTable<-data.frame(mu=rowMeans(counts),var=apply(counts,1,var),row.names =rownames(counts))
-	dispTable$cv2<- dispTable$var / dispTable$mu^2
-	sumNullvariance<-sum(dispTable$cv2 <= 0)
-	if(sumNullvariance>0){
-		warning(paste0(sumNullvariance, " have null variance and will be removed"))
-		dispTable<-dispTable[dispTable$cv2 > 0,]
-	}
-	fit<-loess(cv2~mu,data = log10(dispTable[,c("mu","cv2")]))
-	dispTable$residuals<-fit$residuals
-	dispTable$residuals2<-dispTable$residuals^2
-	dispTable$fitted<-10^fit$fitted
-	if(plot){
-		g<-ggplot(dispTable,aes(x=mu,y=cv2,label=rownames(dispTable),fill=residuals))+
-			geom_point(stroke=1/8,colour = "black",shape=21)+geom_line(aes(y=fitted),color="red",size=1.5)+
-			scale_x_log10()+scale_y_log10()
-		if(returnPlot){
-			return(g)
-		}else{
-			print(g)
+getMostVariableGenes <-
+	function(counts,
+					 minCount = 0.01,
+					 plot = TRUE,
+					 returnPlot = FALSE) {
+		counts <- counts[rowMeans(counts) > minCount, ]
+		dispTable <-
+			data.frame(
+				mu = rowMeans(counts),
+				var = apply(counts, 1, var),
+				row.names = rownames(counts)
+			)
+		dispTable$cv2 <- dispTable$var / dispTable$mu ^ 2
+		sumNullvariance <- sum(dispTable$cv2 <= 0)
+		if (sumNullvariance > 0) {
+			warning(paste0(sumNullvariance, " have null variance and will be removed"))
+			dispTable <- dispTable[dispTable$cv2 > 0, ]
 		}
+		fit <- loess(cv2 ~ mu, data = log10(dispTable[, c("mu", "cv2")]))
+		dispTable$residuals <- fit$residuals
+		dispTable$residuals2 <- dispTable$residuals ^ 2
+		dispTable$fitted <- 10 ^ fit$fitted
+		if (plot) {
+			g <-
+				ggplot(dispTable,
+							 aes(
+							 	x = mu,
+							 	y = cv2,
+							 	label = rownames(dispTable),
+							 	fill = residuals
+							 )) +
+				geom_point(stroke = 1 / 8,
+									 colour = "black",
+									 shape = 21) + geom_line(aes(y = fitted), color = "red", size = 1.5) +
+				scale_x_log10() + scale_y_log10()
+			if (returnPlot) {
+				return(g)
+			} else{
+				print(g)
+			}
+		}
+		dispTable
 	}
-	dispTable
-}
 
 #' Compute over dispersion values for each gene from log counts. Do not used, need to be fixed
 #'
@@ -588,37 +728,57 @@ getMostVariableGenes<-function(counts,minCount=0.01,plot=TRUE,returnPlot=FALSE){
 #' @examples
 #' data("bulkLogCounts")
 #' dispDataLog<-getMostVariableGenes(bulkLogCounts,minCount=1)
-getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot=FALSE){
-	if(minCount>0) logCounts<-logCounts[rowMeans(logCounts)>minCount,]
-	dispTable<-data.frame(mu=rowMeans(logCounts),var=apply(logCounts,1,var),row.names =rownames(logCounts))
+getMostVariableGenesLogCount <-
+	function(logCounts,
+					 minCount = 0,
+					 plot = TRUE,
+					 returnPlot = FALSE) {
+		if (minCount > 0)
+			logCounts <- logCounts[rowMeans(logCounts) > minCount, ]
+		dispTable <-
+			data.frame(
+				mu = rowMeans(logCounts),
+				var = apply(logCounts, 1, var),
+				row.names = rownames(logCounts)
+			)
 
-	fit<-loess(var~mu,data = dispTable)
-	if(length(rownames(fit$x)) < nrow(dispTable)){
-		warning(nrow(dispTable)-length(rownames(fit$x))," genes have null variance and will be removed")
-	}
-	dispTable<-dispTable[rownames(fit$x),]
-	dispTable$residuals<-fit$residuals
-	dispTable$fitted<-fit$fitted
-
-	if(plot){
-		g<-ggplot(dispTable,aes(x=mu,y=var,label=rownames(dispTable),fill=residuals))+
-			geom_point(stroke=1/8,colour = "black",shape=21)+geom_line(aes(y=fitted),color="red",size=1.5)
-		if(returnPlot){
-			return(g)
-		}else{
-			print(g)
+		fit <- loess(var ~ mu, data = dispTable)
+		if (length(rownames(fit$x)) < nrow(dispTable)) {
+			warning(nrow(dispTable) - length(rownames(fit$x)),
+							" genes have null variance and will be removed")
 		}
+		dispTable <- dispTable[rownames(fit$x), ]
+		dispTable$residuals <- fit$residuals
+		dispTable$fitted <- fit$fitted
+
+		if (plot) {
+			g <-
+				ggplot(dispTable,
+							 aes(
+							 	x = mu,
+							 	y = var,
+							 	label = rownames(dispTable),
+							 	fill = residuals
+							 )) +
+				geom_point(stroke = 1 / 8,
+									 colour = "black",
+									 shape = 21) + geom_line(aes(y = fitted), color = "red", size = 1.5)
+			if (returnPlot) {
+				return(g)
+			} else{
+				print(g)
+			}
+		}
+		dispTable
 	}
-	dispTable
-}
 
 
-#' Quick approximation of area under ROC curve
+#' Approximation of area under ROC curve
 #'
 #' @description By Miron Kursa https://mbq.me
 #'
 #' @param score a vector of numeric representing the measure of a feature in a set of samples.
-#' @param bool a vector of logical, same size as score. Is the sample in the target group?
+#' @param boolVect a vector of logical, same size as score. Is the sample in the target group?
 #'
 #' @return A numeric value. Close to 1 = perfect marker, around 0.5 = as good as random values, close to 0 = perfect anti-marker.
 #' @export
@@ -626,49 +786,167 @@ getMostVariableGenesLogCount<-function(logCounts,minCount=0,plot=TRUE,returnPlot
 #' @examples
 #' data(iris)
 #' auroc(iris$Sepal.Length,iris$Species=="virginica")
-auroc <- function(score, bool) {
-	n1 <- sum(!bool)
-	n2 <- sum(bool)
-	U	<- sum(rank(score)[!bool]) - n1 * (n1 + 1) / 2
+auroc <- function(score, boolVect) {
+	n1 <- sum(!boolVect)
+	n2 <- sum(boolVect)
+	U	<- sum(rank(score)[!boolVect]) - n1 * (n1 + 1) / 2
 	return(1 - U / n1 / n2)
 }
 
+#' Quick approximation of area under ROC curve
+#'
+#' @description By Miron Kursa https://mbq.me
+#'
+#' @param score a vector of numeric representing the measure of a feature in a set of samples.
+#' @param boolVect a vector of logical, same size as score. Is the sample in the target group?
+#' @param n1 a single integer, number of observation not in the target group.
+#' @param n2 a single integer, number of observation in the target group.
+#'
+#' @return A numeric value. Close to 1 = perfect marker, around 0.5 = as good as random values, close to 0 = perfect anti-marker.
+#' @export
+#'
+#' @examples
+#' data(iris)
+#' qauroc(iris$Sepal.Length,iris$Species=="virginica", sum(!iris$Species=="virginica"),sum(iris$Species=="virginica"))
+qauroc <- function(score, boolVect) {
+	n1 <- sum(!boolVect)
+	n2 <- sum(boolVect)
+	aurocCPP(as.numeric(score),
+					 as.logical(boolVect),
+					 as.integer(n1),
+					 as.integer(n2))
+}
 
-#' Compute a matrix of AUROC describing best gene marker per group of samples.
+#bug, if group contain only 2 col
+
+#' Compute a dataframe with marker metrics describing best gene marker per group of samples.
 #'
 #' @param expressionMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
 #' @param group A feature of factor/character, same length as number of sample. Describe group of each sample.
+#' @param useBiocParallel A logical describing if the function should be launched in multi-threading mode.
 #' @param BPPARAM A BPPARAM object as return by `BiocParallel::bpparam()`. Use for multi-threading.
+#' @param returnAsList Return a list where each element is dataframe containing the marker metrics of a group.
 #'
-#' @return A matrix of AUROC where each row is a gene and each column a level of `group`.
+#' @return A dataframe containing four column per group: Log2(Fold-Change), AUROC, marker score (see details), p-value and BH adjusted p-value.
+#'
+#' @details
+#' LogFC and pvalues are computed from a linear modelling of the data.
+#'
+#' Score is consisting of the geometrical mean of absolute LogFC, absolute(auroc - 0.5), and -log10(pval), then signed by the logFC:
+#' score = sign(logFC) × gmean( abs(logFC), abs(aurocRes-0.5), -log10(pval) )
+#'
 #' @export
 #'
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
-#' res <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
-getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
-	if(is.null(BPPARAM )) BPPARAM=BiocParallel::bpparam()
-	if(!is.matrix(expressionMatrix)) expressionMatrix<-as.matrix(expressionMatrix)
-	if(length(group)!=ncol(expressionMatrix)) stop("group should be a vector with same length as number of column in expressionMatrix")
+#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+#'
+getMarkers <-
+	function (exprData,
+						groups,
+						multiThread = FALSE,
+						BPPARAM = NULL,
+						returnAsList = FALSE) {
 
-	group<-as.factor(group)
-	group<-droplevels(group)
-	binaryGroup<-lapply(levels(group),function(x){
-		x==group & !is.na(group)
-	});names(binaryGroup)<-levels(group)
+		if (is.null(BPPARAM))
+			BPPARAM = BiocParallel::bpparam()
+		BiocParallel::register(BPPARAM)
+		if (multiThread) {
+			doParallel::registerDoParallel(cores = BPPARAM$workers)
+		}else{
+			doParallel::registerDoParallel(cores = 1)
+		}
 
-	suppressWarnings(
-		res<-as.matrix(data.frame(lapply(binaryGroup,function(labels){
-			unlist(BiocParallel::bplapply(seq_len(nrow(expressionMatrix)),function(i,expressionMatrix,labels,auroc){
-				auroc(expressionMatrix[i,],labels)
-			},labels=labels,expressionMatrix=expressionMatrix,auroc=auroc,BPPARAM=BPPARAM),recursive = FALSE)
-		})))
-	)
-	rownames(res)<-rownames(expressionMatrix)
-	res
+		groups <- as.factor(make.names(groups))
+		grpLvl <- levels(groups)
+
+		resDF <- foreach(group = grpLvl) %dopar% {
+			logicGroup <- groups == group
+			designMat <- cbind(1, logicGroup)
+			n1 = as.integer(sum(!logicGroup))
+			n2 = as.integer(sum(logicGroup))
+			resDFgroup <- apply(exprData, 1, function(gene) {
+				aurocRes <- aurocCPP(
+					score = gene,
+					boolVect = designMat[,
+															 2],
+					n1 = n1,
+					n2 = n2
+				)
+				lmOut <- .lm.fit(designMat, gene)
+				pval <- pvalLmFit(lmOut$residuals,
+													lmOut$coefficients,
+													p = lmOut$rank,
+													qr = lmOut$qr)[2]
+				coef <- lmOut$coefficients[2]
+				score <- sign(coef)*prod(c(abs(coef),abs(aurocRes-0.5), min(-log10(pval),324)))^(1/3) #min(-log10(pval),324): avoid Inf
+				return(c(coef, aurocRes, score, pval))
+			}) |> t() |> data.frame()
+			colnames(resDFgroup) <- c("lfc", "auroc", "score", "pval")
+			resDFgroup$padj <- p.adjust(resDFgroup$pval, method = "BH")
+			resDFgroup
+		}
+		names(resDF) <- grpLvl
+
+		if (returnAsList) {
+			return(resDF)
+		} else{
+			return(do.call("cbind", resDF))
+		}
+
+	}
+
+#' Extract a specific feature/metric (pval, logFC...) from a marker result dataframe
+#'
+#' @param markerData A dataframe returned by `getMarkers`.
+#' @param feature The name of the feature that has to be extracted.
+#'
+#' @return
+#' A matrix containing only the wanted feature where each column is a group.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+#' markerData <- extractFeatureMarkerData(markerData)
+extractFeatureMarkerData<-function(markerData, feature="score"){
+	featureStrLen<-nchar(feature)+1
+	columns2Pick<-grep(paste0("^.*\\.",feature,"$"),colnames(markerData),value = TRUE)
+	markerData<-markerData[,columns2Pick] |> as.matrix()
+	grpName<-colnames(markerData)
+	colnames(markerData)<-substr(grpName,1,nchar(grpName)-featureStrLen)
+	return(markerData)
 }
 
+#' Compute a matrix of coef describing best gene marker per group of samples from a GLM net regression
+#'
+#' @param expressionMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param group A feature of factor/character, same length as number of sample. Describe group of each sample.
+#'
+#' @return A matrix containing each gene coefficient for each group.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#' res <- getMarkerGLMnet(bulkLogCounts,sampleAnnot$culture_media)
+getMarkerGLMnet <- function(expressionMatrix, group) {
+	geneMatrix <- as.matrix(expressionMatrix) |> t()
+	fit <- glmnet(
+		geneMatrix,
+		group,
+		family = "multinomial",
+		alpha = .5,
+		lambda = cv.glmnet(geneMatrix, group, family = "multinomial")$lambda.1se
+	)
+
+	cf <- sapply(coef(fit), function(x)
+		x[2:length(x)])
+	rownames(cf) <- colnames(geneMatrix)
+	cf
+}
 
 #' Correlation from one gene to all others.
 #'
@@ -683,9 +961,9 @@ getMarkers<-function(expressionMatrix,group,BPPARAM=NULL){
 #' @examples
 #' data("bulkLogCounts")
 #' corGeneToOthers("NANOG",bulkLogCounts)
-corGeneToOthers<-function(gene,expression,corFun=cor,...){
-	expression<-as.matrix(expression)
-	t(corFun(expression[gene,],t(expression),...))[,1]
+corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
+	expression <- as.matrix(expression)
+	t(corFun(expression[gene, ], t(expression), ...))[, 1]
 }
 
 
@@ -695,7 +973,7 @@ corGeneToOthers<-function(gene,expression,corFun=cor,...){
 #' @param genes A character vector. The gene set where the activation score has to be computed. Must be a subset of `exprMatrix` row names.
 #' @param scale  Logical. Divide features by their standard deviation.
 #' @param center Logical. Subtract features by their average.
-#' @param returnContribution Logical. Return list with activation score (eigengenes) and contribution of genes to the activation score.
+#' @param returnContribution Logical. Return list with activation score and contribution of genes to the activation score.
 #'
 #' @return A vector of numeric corresponding to activation scores, named by genes. If `returnContribution` return a list with activation scores and contributions of genes.
 #' @export
@@ -705,23 +983,69 @@ corGeneToOthers<-function(gene,expression,corFun=cor,...){
 #' keggData<-getDBterms(rownames(bulkLogCounts),database = "kegg")
 #' geneSet<-keggData$kegg$`hsa00190 Oxidative phosphorylation`
 #' geneSet<-intersect(geneSet,rownames(bulkLogCounts))
-#' eigengenes(bulkLogCounts,genes = geneSet)
-#' eigengenes(bulkLogCounts,genes = geneSet,returnContribution = TRUE)
-eigengenes<-function(exprMatrix,genes,scale=FALSE,center=TRUE,returnContribution=FALSE){
-	pca<-prcomp(x = t(exprMatrix[genes,]),retx = T,center = center,scale = scale)
-	eigen<-pca$x[,1]
-	contribution<-pca$rotation[,1]
-	if(cor(colMeans(exprMatrix[genes,]),eigen)<0){
-		eigen<- -eigen
-		contribution<- -contribution
+#' activScorePCA(bulkLogCounts,genes = geneSet)
+#' activScorePCA(bulkLogCounts,genes = geneSet,returnContribution = TRUE)
+activScorePCA <-
+	function(exprMatrix,
+					 genes,
+					 scale = FALSE,
+					 center = TRUE,
+					 returnContribution = FALSE) {
+		pca <-
+			fastPCA(exprMatrix[genes, ],
+							center = center,
+							scale = scale,
+							nPC = 1)
+		activScore <- pca$x[, 1]
+		contribution <- pca$rotation[, 1]
+		if (cor(colMeans(exprMatrix[genes, ]), activScore) < 0) {
+			activScore <- -activScore
+			contribution <- -contribution
+		}
+		if (returnContribution) {
+			list(activScore = activScore, contribution = contribution)
+		} else{
+			activScore
+		}
 	}
-	if(returnContribution){
-		list(eigengenes=eigen,contribution=contribution)
-	}else{
-		eigen
-	}
-}
 
+#' Compute PCA activation from a gene list.
+#'
+#' @param exprMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param geneList A named list containing character vectors of genes.
+#' @param scale A character vector. The gene set where the activation score has to be computed. Must be a subset of `exprMatrix` row names.
+#' @param center Logical. Subtract features by their average.
+#'
+#' @return A list of 2 element: `activScoreMat`: The activation score matrix. `contributionList`: A list of named numeric containing contributions of genes.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' keggData<-getDBterms(rownames(bulkLogCounts),database = "kegg")
+#' res<-activeScorePCAlist(bulkLogCounts,geneList = keggData$kegg[1:3])
+#' activeScoreMat<-res$activScoreMat
+#' contributionList<-res$contributionList
+activeScorePCAlist <-
+	function(exprMatrix,
+					 geneList,
+					 scale = FALSE,
+					 center = TRUE) {
+		res <-
+			lapply(listGenePerRegulon, function(genesOfReg)
+				activScorePCA(
+					exprMatrix,
+					genesOfReg,
+					returnContribution = TRUE,
+					scale = scale,
+					center = center
+				))
+		list(
+			activScoreMat = sapply(res, function(x)
+				x$activScore),
+			contributionList = lapply(res, function(x)
+				x$contribution)
+		)
+	}
 
 #' UMAP projection
 #'
@@ -750,22 +1074,52 @@ eigengenes<-function(exprMatrix,genes,scale=FALSE,center=TRUE,returnContribution
 #' proj2d(irisUMAP,colorBy = iris$Species)
 #' irisUMAP<-UMAP(rowScale(iris[,1:4],center = TRUE,scaled = TRUE),transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
 #' proj2d(irisUMAP$embedding,colorBy = iris$Species,nnMatrix = irisUMAP$nn$euclidean$idx[,1:3],fixedCoord = TRUE)
-UMAP<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=20, n_components = 2,min_dist=0.01,
-							 init = "laplacian", metric = "euclidean",ret_model=FALSE,ret_nn=FALSE,...){
-	if(transpose) data<-t(data)
-	if(nrow(data)<n_neighbors){
-		n_neighbors<-nrow(data)
-		warning("n_neighbors must not exceed number of samples, adjusting n_neighbors to number of samples (",n_neighbors,")")
+UMAP <-
+	function(data,
+					 nDimPCA = NULL,
+					 transpose = TRUE,
+					 n_neighbors = 20,
+					 n_components = 2,
+					 min_dist = 0.01,
+					 init = "laplacian",
+					 metric = "euclidean",
+					 ret_model = FALSE,
+					 ret_nn = FALSE,
+					 ...) {
+		if (transpose)
+			data <- t(data)
+		if (nrow(data) < n_neighbors) {
+			n_neighbors <- nrow(data)
+			warning(
+				"n_neighbors must not exceed number of samples, adjusting n_neighbors to number of samples (",
+				n_neighbors,
+				")"
+			)
+		}
+		if (is.null(n_neighbors))
+			n_neighbors = nrow(data)
+		if (!is.null(nDimPCA)) {
+			data <- fastPCA(data,
+											transpose = FALSE,
+											scale = FALSE,
+											nPC = nDimPCA)$x
+		}
+		res <-
+			uwot::umap(
+				as.matrix(data),
+				n_neighbors = n_neighbors,
+				n_components = n_components,
+				min_dist = min_dist,
+				init = init,
+				metric = metric,
+				ret_model = ret_model,
+				ret_nn = ret_nn,
+				...
+			)
+		if (!ret_model & !ret_nn)
+			rownames(res) <- rownames(data)
+		res
 	}
-	if(is.null(n_neighbors)) n_neighbors=nrow(data)
-	if(!is.null(nDimPCA)){
-		data<-fastPCA(data,transpose = FALSE,scale = FALSE,nPC = nDimPCA)$x
-	}
-	res<-uwot::umap(as.matrix(data),n_neighbors = n_neighbors, n_components = n_components,
-									min_dist=min_dist, init = init, metric = metric,ret_model=ret_model,ret_nn = ret_nn,...)
-	if(!ret_model & !ret_nn) rownames(res)<-rownames(data)
-	res
-}
 
 
 #' TriMap dimension reduction.
@@ -786,21 +1140,32 @@ UMAP<-function(data,nDimPCA=NULL,transpose=TRUE,n_neighbors=20, n_components = 2
 #' data(iris)
 #' irisTrimap<-TRIMAP(iris[,1:4],transpose=FALSE)
 #' proj2d(irisTrimap,colorBy = iris$Species)
-TRIMAP<-function(data,n_dims = 2,transpose=TRUE, n_inliers = 10,n_outliers = 5,
-								 apply_pca=TRUE,n_iters=400,knn_tuple=NULL){
-	if(transpose)  data<-t(data)
-	trimap_module <- reticulate::import( module = "trimap", delay_load = TRUE)
+TRIMAP <-
+	function(data,
+					 n_dims = 2,
+					 transpose = TRUE,
+					 n_inliers = 10,
+					 n_outliers = 5,
+					 apply_pca = TRUE,
+					 n_iters = 400,
+					 knn_tuple = NULL) {
+		if (transpose)
+			data <- t(data)
+		trimap_module <-
+			reticulate::import(module = "trimap", delay_load = TRUE)
 
-	trimap <- trimap_module$TRIMAP(
-		n_dims = as.integer(n_dims),
-		n_inliers = as.integer(n_inliers),
-		n_outliers = as.integer(n_outliers),
-		apply_pca=apply_pca,
-		n_iters = as.integer(n_iters),
-		knn_tuple=knn_tuple
-	)
-	trimap$fit_transform(as.matrix(data))
-}
+		trimap <- trimap_module$TRIMAP(
+			n_dims = as.integer(n_dims),
+			n_inliers = as.integer(n_inliers),
+			n_outliers = as.integer(n_outliers),
+			apply_pca = apply_pca,
+			n_iters = as.integer(n_iters),
+			knn_tuple = knn_tuple
+		)
+		res <- trimap$fit_transform(as.matrix(data))
+		rownames(res) <- rownames(data)
+		res
+	}
 
 #' Compute a Leiden clustering from a UMAP model.
 #'
@@ -824,24 +1189,52 @@ TRIMAP<-function(data,n_dims = 2,transpose=TRUE, n_inliers = 10,n_outliers = 5,
 #' data("bulkLogCounts")
 #' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
 #' proj2d(umapWithNN$embedding,colorBy = leidenFromUMAP(umapWithNN))
-leidenFromUMAP<-function(umapWithNN,n_neighbors=10,metric=NULL,
-												 partition_type=c("RBConfigurationVertexPartition", "ModularityVertexPartition","RBERVertexPartition", "CPMVertexPartition", "MutableVertexPartition",
-												 								 "SignificanceVertexPartition", "SurpriseVertexPartition","ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite"),
-												 returnAsFactor=FALSE,n_iterations=-1,resolution_parameter = .5,seed=666,laplacian_init = TRUE,
-												 initial_membership=NULL, max_comm_size = 0L,...){
-
-	if(is.null(metric)){
-		metric<-names(umapWithNN$nn)[1]
-	}else{
-		if(!metric %in% names(umapWithNN$nn)) stop(metric, " distance metric is not computed in the provided model")
+leidenFromUMAP <- function(umapWithNN,
+													 n_neighbors = 10,
+													 metric = NULL,
+													 partition_type = c(
+													 	"RBConfigurationVertexPartition",
+													 	"ModularityVertexPartition",
+													 	"RBERVertexPartition",
+													 	"CPMVertexPartition",
+													 	"MutableVertexPartition",
+													 	"SignificanceVertexPartition",
+													 	"SurpriseVertexPartition",
+													 	"ModularityVertexPartition.Bipartite",
+													 	"CPMVertexPartition.Bipartite"
+													 ),
+													 returnAsFactor = FALSE,
+													 n_iterations = -1,
+													 resolution_parameter = .5,
+													 seed = 666,
+													 laplacian_init = TRUE,
+													 initial_membership = NULL,
+													 max_comm_size = 0L,
+													 ...) {
+	if (is.null(metric)) {
+		metric <- names(umapWithNN$nn)[1]
+	} else{
+		if (!metric %in% names(umapWithNN$nn))
+			stop(metric, " distance metric is not computed in the provided model")
 	}
 
 	partition_type <- match.arg(partition_type)
-	pygraph<-adjMat2Pygraph(getAdjMatfromUMAPWithNN(umapWithNN,n_neighbors=n_neighbors,metric=metric))
+	pygraph <-
+		adjMat2Pygraph(getAdjMatfromUMAPWithNN(umapWithNN, n_neighbors = n_neighbors, metric =
+																					 	metric))
 
-	leidenFromPygraph(pygraph,returnAsFactor=returnAsFactor,n_iterations=n_iterations,
-										resolution_parameter = resolution_parameter,seed=seed,laplacian_init = laplacian_init,
-										initial_membership=initial_membership, max_comm_size = max_comm_size,partition_type = partition_type,...)
+	leidenFromPygraph(
+		pygraph,
+		returnAsFactor = returnAsFactor,
+		n_iterations = n_iterations,
+		resolution_parameter = resolution_parameter,
+		seed = seed,
+		laplacian_init = laplacian_init,
+		initial_membership = initial_membership,
+		max_comm_size = max_comm_size,
+		partition_type = partition_type,
+		...
+	)
 }
 
 
@@ -864,9 +1257,9 @@ leidenFromUMAP<-function(umapWithNN,n_neighbors=10,metric=NULL,
 #' @examples
 #' adjMat<-matrix(round(runif(25,min = 0,max = 1)),ncol = 5)
 #' res<-adjMat2Pygraph(adjMat)
-adjMat2Pygraph<-function(adjMat,mode = "directed",...){
-	ig<-reticulate::import("igraph")
-	graph<-ig$Graph$Weighted_Adjacency(matrix = adjMat,mode = mode,...)
+adjMat2Pygraph <- function(adjMat, mode = "directed", ...) {
+	ig <- reticulate::import("igraph")
+	graph <- ig$Graph$Weighted_Adjacency(matrix = adjMat, mode = mode, ...)
 }
 
 #' Compute a Leiden clustering from K Nearest Neighbors graph from python igraph.
@@ -891,87 +1284,163 @@ adjMat2Pygraph<-function(adjMat,mode = "directed",...){
 #' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
 #' pygraph<-adjMat2Pygraph(getAdjMatfromUMAPWithNN(umapWithNN))
 #' proj2d(umapWithNN$embedding,colorBy = leidenFromPygraph(pygraph))
-leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolution_parameter = .5,seed=666,laplacian_init = TRUE,
-														initial_membership=NULL, max_comm_size = 0L,node_sizes = NULL,weight_parameter=NULL,
-														partition_type = c("RBConfigurationVertexPartition", "ModularityVertexPartition",
-																							 "RBERVertexPartition", "CPMVertexPartition", "MutableVertexPartition",
-																							 "SignificanceVertexPartition", "SurpriseVertexPartition",
-																							 "ModularityVertexPartition.Bipartite", "CPMVertexPartition.Bipartite")){
-	ig<-import("igraph")
-	numpy <- import("numpy", delay_load = TRUE)
-	leidenalg <- import("leidenalg", delay_load = TRUE)
-	#
-	# if (laplacian_init && is.null(weight_parameter)) {
-	# 	pygraph <- ig$Graph$simplify(pygraph, multiple = TRUE, loops = TRUE)
-	# 	laplacian <- do.call("cbind",ig$Graph$laplacian(pygraph))
-	# 	pygraph$es$set_attribute_values("weight",value = -as.matrix(laplacian)[as.matrix(laplacian) < 	0])
-	# }
-	graphIsWeighted<-ig$Graph$is_weighted(pygraph)
+leidenFromPygraph <-
+	function(pygraph,
+					 returnAsFactor = FALSE,
+					 n_iterations = -1,
+					 resolution_parameter = .5,
+					 seed = 666,
+					 laplacian_init = TRUE,
+					 initial_membership = NULL,
+					 max_comm_size = 0L,
+					 node_sizes = NULL,
+					 weight_parameter = NULL,
+					 partition_type = c(
+					 	"RBConfigurationVertexPartition",
+					 	"ModularityVertexPartition",
+					 	"RBERVertexPartition",
+					 	"CPMVertexPartition",
+					 	"MutableVertexPartition",
+					 	"SignificanceVertexPartition",
+					 	"SurpriseVertexPartition",
+					 	"ModularityVertexPartition.Bipartite",
+					 	"CPMVertexPartition.Bipartite"
+					 )) {
+		ig <- import("igraph")
+		numpy <- import("numpy", delay_load = TRUE)
+		leidenalg <- import("leidenalg", delay_load = TRUE)
+		#
+		# if (laplacian_init && is.null(weight_parameter)) {
+		# 	pygraph <- ig$Graph$simplify(pygraph, multiple = TRUE, loops = TRUE)
+		# 	laplacian <- do.call("cbind",ig$Graph$laplacian(pygraph))
+		# 	pygraph$es$set_attribute_values("weight",value = -as.matrix(laplacian)[as.matrix(laplacian) < 	0])
+		# }
+		graphIsWeighted <- ig$Graph$is_weighted(pygraph)
 
-	w<-unlist(pygraph$es$get_attribute_values("weight"))
+		w <- unlist(pygraph$es$get_attribute_values("weight"))
 
-	partition_type <- match.arg(partition_type)
-	if (partition_type == "ModularityVertexPartition.Bipartite") degree_as_node_size <- TRUE
-	if (!is.null(seed))  seed <- as.integer(seed)
-	if (!is.integer(n_iterations)) n_iterations <- as.integer(n_iterations)
-	max_comm_size<-as.integer(max_comm_size)
+		partition_type <- match.arg(partition_type)
+		if (partition_type == "ModularityVertexPartition.Bipartite")
+			degree_as_node_size <- TRUE
+		if (!is.null(seed))
+			seed <- as.integer(seed)
+		if (!is.integer(n_iterations))
+			n_iterations <- as.integer(n_iterations)
+		max_comm_size <- as.integer(max_comm_size)
 
-	part <- switch(EXPR = partition_type,
-		RBConfigurationVertexPartition = leidenalg$find_partition(pygraph,
-						 		leidenalg$RBConfigurationVertexPartition, initial_membership = initial_membership,
-						 		weights = w, seed = seed, n_iterations = n_iterations,
-						 		max_comm_size = max_comm_size,
-						 		resolution_parameter = resolution_parameter),
+		part <- switch(
+			EXPR = partition_type,
+			RBConfigurationVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$RBConfigurationVertexPartition,
+				initial_membership = initial_membership,
+				weights = w,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size,
+				resolution_parameter = resolution_parameter
+			),
 
-		ModularityVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$ModularityVertexPartition, initial_membership = initial_membership,
-								weights = w, seed = seed, n_iterations = n_iterations,
-								max_comm_size = max_comm_size),
+			ModularityVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$ModularityVertexPartition,
+				initial_membership = initial_membership,
+				weights = w,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size
+			),
 
-		RBERVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$RBERVertexPartition, initial_membership = initial_membership,
-								weights = w, seed = seed, n_iterations = n_iterations,
-								max_comm_size = max_comm_size,
-								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+			RBERVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$RBERVertexPartition,
+				initial_membership = initial_membership,
+				weights = w,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size,
+				node_sizes = node_sizes,
+				resolution_parameter = resolution_parameter
+			),
 
-		CPMVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$CPMVertexPartition, initial_membership = initial_membership,
-								weights = w, seed = seed, n_iterations = n_iterations,
-								max_comm_size = max_comm_size,
-								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+			CPMVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$CPMVertexPartition,
+				initial_membership = initial_membership,
+				weights = w,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size,
+				node_sizes = node_sizes,
+				resolution_parameter = resolution_parameter
+			),
 
-		MutableVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$MutableVertexPartition, initial_membership = initial_membership,
-								seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size),
+			MutableVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$MutableVertexPartition,
+				initial_membership = initial_membership,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size
+			),
 
-		SignificanceVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$SignificanceVertexPartition, initial_membership = initial_membership,
-								seed = seed, n_iterations = n_iterations, max_comm_size = max_comm_size,
-								node_sizes = node_sizes, resolution_parameter = resolution_parameter),
+			SignificanceVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$SignificanceVertexPartition,
+				initial_membership = initial_membership,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size,
+				node_sizes = node_sizes,
+				resolution_parameter = resolution_parameter
+			),
 
-		SurpriseVertexPartition = leidenalg$find_partition(pygraph,
-								leidenalg$SurpriseVertexPartition, initial_membership = initial_membership,
-								weights = w, seed = seed, n_iterations = n_iterations,
-								max_comm_size = max_comm_size, node_sizes = node_sizes),
+			SurpriseVertexPartition = leidenalg$find_partition(
+				pygraph,
+				leidenalg$SurpriseVertexPartition,
+				initial_membership = initial_membership,
+				weights = w,
+				seed = seed,
+				n_iterations = n_iterations,
+				max_comm_size = max_comm_size,
+				node_sizes = node_sizes
+			),
 
-		ModularityVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
-								initial_membership = initial_membership, weights = w,
-								resolution_parameter_01 = resolution_parameter,
-								resolution_parameter_0 = 0, resolution_parameter_1 = 0,
-								degree_as_node_size = TRUE, types = "type", seed = seed,
-								n_iterations = n_iterations),
+			ModularityVertexPartition.Bipartite = run_bipartite_partitioning(
+				pygraph,
+				initial_membership = initial_membership,
+				weights = w,
+				resolution_parameter_01 = resolution_parameter,
+				resolution_parameter_0 = 0,
+				resolution_parameter_1 = 0,
+				degree_as_node_size = TRUE,
+				types = "type",
+				seed = seed,
+				n_iterations = n_iterations
+			),
 
-		CPMVertexPartition.Bipartite = run_bipartite_partitioning(pygraph,
-								initial_membership = initial_membership, weights = w,
-								resolution_parameter_01 = resolution_parameter,
-								resolution_parameter_0 = 0, resolution_parameter_1 = 0,
-								degree_as_node_size = degree_as_node_size, types = "type",
-								seed = seed, n_iterations = n_iterations), stop("please specify a partition type as a string out of those documented"))
+			CPMVertexPartition.Bipartite = run_bipartite_partitioning(
+				pygraph,
+				initial_membership = initial_membership,
+				weights = w,
+				resolution_parameter_01 = resolution_parameter,
+				resolution_parameter_0 = 0,
+				resolution_parameter_1 = 0,
+				degree_as_node_size = degree_as_node_size,
+				types = "type",
+				seed = seed,
+				n_iterations = n_iterations
+			),
+			stop(
+				"please specify a partition type as a string out of those documented"
+			)
+		)
 
-	res <- paste0("k",formatNumber2Character(part$membership + 1))
-	if(returnAsFactor) res<-as.factor(res)
-	res
-}
+		res <- paste0("k", formatNumber2Character(part$membership + 1))
+		if (returnAsFactor)
+			res <- as.factor(res)
+		res
+	}
 
 
 #' Compute an adjacency matrix from the nearest neighbor matrix of a UMAP model
@@ -987,25 +1456,66 @@ leidenFromPygraph<-function(pygraph,returnAsFactor=FALSE,n_iterations=-1,resolut
 #' data("bulkLogCounts")
 #' umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
 #' getAdjMatfromUMAPWithNN(umapWithNN)
-getAdjMatfromUMAPWithNN<-function(umapWithNN,n_neighbors=10,metric=NULL){
-	if(is.null(metric)){
-		metric<-names(umapWithNN$nn)[1]
-	}else{
-		if(!metric %in% names(umapWithNN$nn)) stop(metric, " distance metric is not computed in the provided model")
-	}
-	if(ncol(umapWithNN$nn[[metric]]$idx) < n_neighbors){
-		stop("The provided umap model contains the data for ",ncol(umapWithNN$nn[[metric]]$idx),
-				 " neighbors, please decrease the n_neighbors parameter or recompute the model on a higher number of neighbors")
-	}
-	#from 2 --> rm diagonals
-	knn_indices<-umapWithNN$nn[[metric]]$idx[,2:n_neighbors]
-	knn_dists<-umapWithNN$nn[[metric]]$dist[,2:n_neighbors]
+getAdjMatfromUMAPWithNN <-
+	function(umapWithNN,
+					 n_neighbors = 10,
+					 metric = NULL) {
+		if (is.null(metric)) {
+			metric <- names(umapWithNN$nn)[1]
+		} else{
+			if (!metric %in% names(umapWithNN$nn))
+				stop(metric, " distance metric is not computed in the provided model")
+		}
+		if (ncol(umapWithNN$nn[[metric]]$idx) < n_neighbors) {
+			stop(
+				"The provided umap model contains the data for ",
+				ncol(umapWithNN$nn[[metric]]$idx),
+				" neighbors, please decrease the n_neighbors parameter or recompute the model on a higher number of neighbors"
+			)
+		}
+		#from 2 --> rm diagonals
+		knn_indices <- umapWithNN$nn[[metric]]$idx[, 2:n_neighbors]
+		knn_dists <- umapWithNN$nn[[metric]]$dist[, 2:n_neighbors]
 
-	n<-nrow(knn_indices)
-	as(Matrix::sparseMatrix(
-		i = as.integer(rep(1:n,each=ncol(knn_indices))),
-		j = as.integer(as.vector(t(knn_indices))),
-		x = as.numeric(as.vector(t(knn_dists))),
-		dims = c(n,n)),"dgTMatrix")
+		n <- nrow(knn_indices)
+		as(
+			Matrix::sparseMatrix(
+				i = as.integer(rep(1:n, each = ncol(knn_indices))),
+				j = as.integer(as.vector(t(knn_indices))),
+				x = as.numeric(as.vector(t(knn_dists))),
+				dims = c(n, n)
+			),
+			"dgTMatrix"
+		)
+	}
+
+
+#' Execute a fastMNN and rescale the counts.
+#'
+#' @description
+#' Use fastMNN fron the package batchelor, but return a matrix. Rescale the counts so the range of each gene remains the same after the transformation.
+#' @param logCounts A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param batch A vector or factor specifying the batch of origin for all cells
+#' @param k An integer scalar specifying the number of nearest neighbors to consider when identifying MNNs.
+#' @param returnRescale Logical. Use reScale on the output so the dymaic range after bacth correction of genes is the same than before.
+#' @param ... Other parameters passed to fastMNN.
+#'
+#' @return A matrix of corrected count table.
+#' @export
+#'
+#' @examples
+#' data("geneLengthGRCh38")
+#' library(MASS)
+#' countMat<-sapply(vector("numeric",length = 100),function(x){
+#'  	c(rnegbin(10,mu = 50,theta = 5), rnegbin(10,mu = 10,theta = 5))
+#' }) |> t(); countMat<-log2(countMat+1)
+#' heatmap.DM(countMat)
+#' correctedMat<-oobFastMNN(countMat,batch = c(rep(1,10),rep(2,10)), k=5) #warning because of the small matrix
+#' heatmap.DM(correctedMat)
+oobFastMNN <- function(logCounts, batch, k, returnRescale = TRUE, ...) {
+	scObj <- batchelor::fastMNN(logCounts, batch = batch, k = k, ...)
+	res <- SummarizedExperiment::assay(scObj, "reconstructed") |> as.matrix()
+	if (returnRescale)
+		res <- reScale(res, logCounts)
+	res
 }
-
