@@ -20,7 +20,7 @@ proj3d(
 \arguments{
 \item{coord}{Matrix or dataframe containing at least three vectors of numeric corresponding to the x/y/z coordinates.}
 
-\item{axis}{A vector of 3 integer. The column index of `coord` containing respectively the x and y coordinates.}
+\item{axis}{A vector of 3 integer. The column index of \code{coord} containing respectively the x and y coordinates.}
 
 \item{colorBy}{A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.}
 
@@ -30,13 +30,13 @@ proj3d(
 
 \item{colorScale}{A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.}
 
-\item{na.color}{Character. Color of NA values if `ColorBy` is provided.}
+\item{na.color}{Character. Color of NA values if \code{ColorBy} is provided.}
 
 \item{na.bg}{Logical. Put the NA points behind the others in term of layers.}
 
 \item{alpha}{Single numeric (from 0 to 1). Opacity of the points.}
 
-\item{...}{Other arguments passed to `plot3d`.}
+\item{...}{Other arguments passed to \code{plot3d}.}
 }
 \value{
 Plot the projection in a new rgl window.

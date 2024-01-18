@@ -11,9 +11,9 @@ quickSCnorm(rawCounts, returnLog = TRUE, sizeFactors = NULL, ...)
 
 \item{returnLog}{Logical. Return log counts.}
 
-\item{sizeFactors}{NULL or a vector of numeric containing precomputed size factor, same size as number of cells in `rawCounts`.}
+\item{sizeFactors}{NULL or a vector of numeric containing precomputed size factor, same size as number of cells in \code{rawCounts}.}
 
-\item{...}{Other parameter passed to `computeSumFactors`.}
+\item{...}{Other parameter passed to \code{computeSumFactors}.}
 }
 \value{
 A normalized count table.

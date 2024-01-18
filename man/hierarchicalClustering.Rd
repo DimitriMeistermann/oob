@@ -18,7 +18,7 @@ hierarchicalClustering(
 \arguments{
 \item{x}{A matrix or dataframe of numeric.}
 
-\item{transpose}{Logical. If `transpose`, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
 
 \item{method.dist}{A method from the "dist" function. Can be also "pearson" or "bicor" for correlation distance.}
 
@@ -30,7 +30,7 @@ hierarchicalClustering(
 
 \item{PCAfirst}{Compute a PCA before computing teh clustering, if x contains a lot of features, it can reduce computation time.}
 
-\item{nDimPCA}{Integer. If `PCAfirst`, compute a PCA first and take n first principal components.}
+\item{nDimPCA}{Integer. If \code{PCAfirst}, compute a PCA first and take n first principal components.}
 }
 \value{
 A hclust object.

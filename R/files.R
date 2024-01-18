@@ -40,35 +40,22 @@ fastRead <-
 #' @param ... Other parameters passed to data.table::fwrite.
 #' @export
 #' @seealso fastRead
-fastWrite <-
-	function(x,
-					 fileName = "default.tsv",
-					 headRow = "Name",
-					 row.names = TRUE,
-					 col.names = TRUE,
-					 dec = ".",
-					 sep = "\t",
-					 ...) {
-		if (is.null(rownames(x)))
-			row.names <- FALSE
-		if (is.null(colnames(x)))
-			col.names <- FALSE
 
-		if (row.names) {
-			x = cbind(rownames(x), x)
-			colnames(x)[1] <- headRow
-		}
-		data.table::fwrite(
-			x = data.frame(x),
-			file = fileName,
-			sep = sep,
-			row.names = FALSE,
-			col.names = col.names,
-			quote = FALSE,
-			dec = dec,
-			...
-		)
+fastWrite<-function (x, fileName = "default.tsv", headRow = "Name", row.names = TRUE,
+										 col.names = TRUE, dec = ".", sep = "\t", ...)
+{
+	if (is.null(rownames(x)))
+		row.names <- FALSE
+	if (is.null(colnames(x)))
+		col.names <- FALSE
+	if (row.names) {
+		x = cbind(rownames(x), x)
+		if(col.names) colnames(x)[1] <- headRow
 	}
+	data.table::fwrite(x = data.frame(x), file = fileName, sep = sep,
+										 row.names = FALSE, col.names = col.names, quote = FALSE,
+										 dec = dec, ...)
+}
 
 #' Write a list in a text file.
 #'

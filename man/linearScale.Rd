@@ -11,13 +11,13 @@ linearScale(vals, newRange, returnFunction = TRUE)
 
 \item{newRange}{A vector of two numeric values: the new minimum and maximum.}
 
-\item{returnFunction}{Logical. Return the linear scale as a function instead of the transposed values in a new scale. If set to `TRUE`, `vals` argument can be also a vector of 2 numeric corresponding to the minimum and maximum of the old range.}
+\item{returnFunction}{Logical. Return the linear scale as a function instead of the transposed values in a new scale. If set to \code{TRUE}, \code{vals} argument can be also a vector of 2 numeric corresponding to the minimum and maximum of the old range.}
 }
 \value{
-A vector of value or a function if `returnFunction=TRUE`.
+A vector of value or a function if \code{returnFunction=TRUE}.
 }
 \description{
-Similar to the javascript function `d3.scaleLinear()`.
+Similar to the javascript function \code{d3.scaleLinear()}.
 }
 \examples{
 oldValues<-1:10

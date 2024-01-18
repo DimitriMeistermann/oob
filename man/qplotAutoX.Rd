@@ -13,10 +13,10 @@ qplotAutoX(x, returnGraph = FALSE, geom = "point", ...)
 
 \item{geom}{Geom to draw. Defaults to "point"}
 
-\item{...}{Parameters passed to `qplot`}
+\item{...}{Parameters passed to \code{qplot}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Quick plot of values with x values corresponding to index.

@@ -11,6 +11,7 @@ htMarker(
   colData = NULL,
   topn = 5,
   maxDrawSize = NULL,
+  minDrawSize = NULL,
   returnHeatmap = FALSE,
   show_column_names = FALSE,
   ...
@@ -33,10 +34,10 @@ htMarker(
 
 \item{show_column_names}{Whether show column names.}
 
-\item{...}{Arguments passed to `heatmap.DM`}
+\item{...}{Arguments passed to \code{heatmap.DM}}
 }
 \value{
-A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
+A Heatmap object if \code{returnHeatmap} or print the Heatmap in the current graphical device.
 }
 \description{
 Plot best marker per group on a tidy Heatmap

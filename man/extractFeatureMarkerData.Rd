@@ -7,7 +7,7 @@
 extractFeatureMarkerData(markerData, feature = "score")
 }
 \arguments{
-\item{markerData}{A dataframe returned by `getMarkers`.}
+\item{markerData}{A dataframe returned by \code{getMarkers}.}
 
 \item{feature}{The name of the feature that has to be extracted.}
 }

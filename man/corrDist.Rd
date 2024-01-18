@@ -7,9 +7,9 @@
 corrDist(x, method = "pearson")
 }
 \arguments{
-\item{x}{A matrix of numeric. The function will compute the distance between the rows (same as `dist`).}
+\item{x}{A matrix of numeric. The function will compute the distance between the rows (same as \code{dist}).}
 
-\item{method}{Character. Name of the method to compute correlation. See `method` argument from `cor`.}
+\item{method}{Character. Name of the method to compute correlation. See \code{method} argument from \code{cor}.}
 }
 \value{
 An object of class "dist".

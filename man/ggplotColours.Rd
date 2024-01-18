@@ -9,7 +9,7 @@ ggplotColours(n = 6, h = c(0, 360) + 15)
 \arguments{
 \item{n}{Single integer. Number of colors to be returned.}
 
-\item{h}{numeric vector of 2 value. Hue range (see `hcl`)}
+\item{h}{numeric vector of 2 value. Hue range (see \code{hcl})}
 }
 \value{
 A character vector of colors.

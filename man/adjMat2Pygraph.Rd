@@ -18,7 +18,7 @@ adjMat2Pygraph(adjMat, mode = "directed", ...)
 -"upper" - undirected graph with the upper right triangle of the matrix (including the diagonal)
 -"lower" - undirected graph with the lower left triangle of the matrix (including the diagonal)}
 
-\item{...}{Other parameters passed to the igraph python function `Weighted_Adjacency`.}
+\item{...}{Other parameters passed to the igraph python function \code{Weighted_Adjacency}.}
 }
 \value{
 A python igraph object.

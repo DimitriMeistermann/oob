@@ -27,7 +27,7 @@ computeColorScaleFun(
 
 \item{probs}{A numeric vector (between 0 and 1) same length as color or NULL. Quantile probability of the values that will be mapped to colors.}
 
-\item{minProb}{A numeric value (between 0 and 1). If `useProb=TRUE` and `probs=NULL` this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
+\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and \code{probs=NULL} this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
 
 \item{maxProb}{A numeric value (between 0 and 1).}
 
@@ -42,7 +42,7 @@ computeColorScaleFun(
 \item{geomArgument}{list of additional argument to pass to the ggplot2 gradiantn scale.}
 }
 \value{
-A vector of colors, or a function if `returnColorFun=TRUE` or a ggplot scale if `returnGGscale=TRUE`.
+A vector of colors, or a function if \code{returnColorFun=TRUE} or a ggplot scale if \code{returnGGscale=TRUE}.
 }
 \description{
 Compute a color scale function from numeric values by interpolation

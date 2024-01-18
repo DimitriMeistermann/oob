@@ -25,7 +25,7 @@ plotExpr(
 
 \item{group}{Factor vector, same length as number of column in expr. Experimental group attributed to each sample.}
 
-\item{log10Plus1yScale}{Logical or NULL. Use a `log10(x+1)` scale. By default `FALSE` if one gene and `TRUE` if several.}
+\item{log10Plus1yScale}{Logical or NULL. Use a \code{log10(x+1)} scale. By default \code{FALSE} if one gene and \code{TRUE} if several.}
 
 \item{violin}{Logical. Plot violin plots.}
 
@@ -33,11 +33,11 @@ plotExpr(
 
 \item{dotplot}{Logical. Plot dot plots.}
 
-\item{violinArgs}{List. Additional arguments given to `geom_violin`.}
+\item{violinArgs}{List. Additional arguments given to \code{geom_violin}.}
 
-\item{boxplotArgs}{List. Additional arguments given to `geom_boxplot`.}
+\item{boxplotArgs}{List. Additional arguments given to \code{geom_boxplot}.}
 
-\item{dotplotArgs}{List. Additional arguments given to `geom_beeswarm`.}
+\item{dotplotArgs}{List. Additional arguments given to \code{geom_beeswarm}.}
 
 \item{colorScale}{A list of color. Must be the same length as number of levels in group.}
 
@@ -48,7 +48,7 @@ plotExpr(
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Plot the expression of one or several genes

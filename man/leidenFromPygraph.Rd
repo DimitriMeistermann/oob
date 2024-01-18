@@ -22,7 +22,7 @@ leidenFromPygraph(
 )
 }
 \arguments{
-\item{pygraph}{A python igraph object as computed by `adjMat2Pygraph`.}
+\item{pygraph}{A python igraph object as computed by \code{adjMat2Pygraph}.}
 
 \item{returnAsFactor}{If TRUE return the clusters attributions as a factor vector and not as characters.}
 
@@ -45,7 +45,7 @@ leidenFromPygraph(
 \item{partition_type}{Type of partition to use. Defaults to RBConfigurationVertexPartition. Options include: ModularityVertexPartition, RBERVertexPartition, CPMVertexPartition, MutableVertexPartition, SignificanceVertexPartition, SurpriseVertexPartition, ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the Leiden python module documentation for more details).}
 }
 \value{
-A vector of character or factor if `returnAsFactor`, same length as number of nodes in the graph. Cluster attribution of samples.
+A vector of character or factor if \code{returnAsFactor}, same length as number of nodes in the graph. Cluster attribution of samples.
 }
 \description{
 Compute a Leiden clustering from K Nearest Neighbors graph from python igraph.

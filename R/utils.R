@@ -310,9 +310,12 @@ whichTop<-function(x, top=5, decreasing=TRUE){
 #' @export
 cn<-function(x, do.NULL = TRUE, prefix = "col") BiocGenerics::colnames(x, do.NULL = TRUE, prefix = "col")
 
+'cn<-'<-function(x,value){ colnames(x)<-value;x }
+
 #' rownames alias
 #' @export
 rn<-function(x, do.NULL = TRUE, prefix = "row") BiocGenerics::rownames(x, do.NULL = TRUE, prefix = "row")
+'rn<-'<-function(x,value){ rownames(x)<-value;x }
 
 #' length alias
 #' @export

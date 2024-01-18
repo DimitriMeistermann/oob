@@ -11,9 +11,9 @@ ConvertKey(keyList, tabKey, colOldKey = 1, colNewKey = 2)
 
 \item{tabKey}{A dataframe or a matrix of character. The database that contains correspondence between each key from each ID.}
 
-\item{colOldKey}{Integer. Column of `tabKey` that contains the old (same as keyList) IDs.}
+\item{colOldKey}{Integer. Column of \code{tabKey} that contains the old (same as keyList) IDs.}
 
-\item{colNewKey}{Integer. Column of `tabKey` that contains the new IDs.}
+\item{colNewKey}{Integer. Column of \code{tabKey} that contains the new IDs.}
 }
 \value{
 A vector of character.

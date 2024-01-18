@@ -13,10 +13,12 @@ computeQCmetricSamples(x, uncenter = FALSE)
 }
 \value{
 A data frame with each row as a sample and the following columns:
-* `mean`: average expression in the sample
-* `sd`: standard deviation
-* `TotalGenEx`: number of expressed gene (count>0) in the sample
-* `TotalCount`: sum of counts for the sample
+\itemize{
+\item \code{mean}: average expression in the sample
+\item \code{sd}: standard deviation
+\item \code{TotalGenEx}: number of expressed gene (count>0) in the sample
+\item \code{TotalCount}: sum of counts for the sample
+}
 }
 \description{
 Give QC metrics per sample

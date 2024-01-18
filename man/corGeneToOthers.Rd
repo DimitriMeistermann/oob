@@ -13,7 +13,7 @@ corGeneToOthers(gene, expression, corFun = cor, ...)
 
 \item{corFun}{A function to compute a correlation between two feature.}
 
-\item{...}{Parameters passed to `corFun`.}
+\item{...}{Parameters passed to \code{corFun}.}
 }
 \value{
 A vector of numeric. Correlations values named by their corresponding gene.

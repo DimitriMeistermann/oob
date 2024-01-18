@@ -8,4 +8,8 @@
 \description{
 A toolbox for analyzing OMIC data, Out Of Bounds from any black box.
 }
+\author{
+\strong{Maintainer}: Dimitri Meistermann \email{dimitri.meistermann@helsinki.fi} (\href{https://orcid.org/0000-0001-6614-2325}{ORCID})
+
+}
 \keyword{internal}

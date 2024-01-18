@@ -23,7 +23,7 @@ leidenFromUMAP(
 )
 }
 \arguments{
-\item{umapWithNN}{A list with the UMAP coordinates and the nearest neighbor data as returned by `UMAP` if `ret_nn = TRUE`.}
+\item{umapWithNN}{A list with the UMAP coordinates and the nearest neighbor data as returned by \code{UMAP} if \code{ret_nn = TRUE}.}
 
 \item{n_neighbors}{The size of local neighborhood (in terms of number of neighboring sample points) used for the Leiden clustering.}
 
@@ -45,10 +45,10 @@ leidenFromUMAP(
 
 \item{max_comm_size}{Maximal total size of nodes in a community. If zero (the default), then communities can be of any size.}
 
-\item{...}{Other parameters passed to `leidenFromPygraph`.}
+\item{...}{Other parameters passed to \code{leidenFromPygraph}.}
 }
 \value{
-A vector of character or factor if `returnAsFactor`, same length as number of samples in the UMAP. Cluster attribution of samples.
+A vector of character or factor if \code{returnAsFactor}, same length as number of samples in the UMAP. Cluster attribution of samples.
 }
 \description{
 Compute a Leiden clustering from a UMAP model.

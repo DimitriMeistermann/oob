@@ -18,7 +18,7 @@ volcanoPlot(
 )
 }
 \arguments{
-\item{d}{A dataframe containing the data needed for the volcano plot. Must have column names. Can be `NULL` if `effectSizeCol`, `adjPvalCol` and `labelCol` are vectors.}
+\item{d}{A dataframe containing the data needed for the volcano plot. Must have column names. Can be \code{NULL} if \code{effectSizeCol}, \code{adjPvalCol} and \code{labelCol} are vectors.}
 
 \item{effectSizeCol}{Column name containing the effect size column (Log2FoldChange for example). Can also be a vector of numeric containing the effect size values.}
 
@@ -39,7 +39,7 @@ volcanoPlot(
 \item{...}{Parameters passed to geom_repel}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 General volcano plot

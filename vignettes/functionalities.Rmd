@@ -28,10 +28,24 @@ This package provide function for analyzing OMIC data, with a focus on plots, fu
 
 In a R console: 
 
-```{r eval=FALSE}
+```{r, eval=FALSE}
 install.packages("devtools")
 devtools::install_github("https://github.com/DimitriMeistermann/oob", build_vignettes = FALSE)
 ```
+For a manual installation of dependencies:
+
+```{r, eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install(c('AnnotationDbi', 'batchelor', 'BiocGenerics', 'BiocManager', 
+	'BiocParallel', 'circlize', 'ComplexHeatmap', 'data.table', 'dbscan', 'doParallel', 
+	'fgsea', 'foreach', 'gage', 'ggbeeswarm', 'ggplot2', 'ggrepel', 'glmnet', 'impute', 'irlba', 'lsa', 
+	'preprocessCore', 'pvclust', 'qualpalr', 'reshape2', 'reticulate', 'rgl', 'scales', 
+	'scater', 'scattermore', 'scran', 'SingleCellExperiment', 'stringr', 'SummarizedExperiment', 
+	'uwot', 'WGCNA', 'Rcpp', 'RcppArmadillo','basilisk'
+))
+```{
+
+
 
 *oob* needs also several python dependencies accessible in the environment used by *reticulate*, the R package for calling python functions. See <https://rstudio.github.io/reticulate/articles/python_packages.html> for more information on installation of python package via reticulate.
 
@@ -189,21 +203,23 @@ multiplot(
 	cols = 2
 )
 
+
+
 ```
 
 In the gene contribution plot, `pointdensity.nrd` is used for estimating the 2 density of points. `pcaAddSamples` is another PCA function than can be used to add new samples to the PCA.
 
-For linking experimental variable to principal components we can perform a Principal Component Regression.
+For linking experimental variable to principal components we can perform a Principal Component analysis of variance.
 
 ```{r}
 library(ggbeeswarm)
-resPCR<-PCR(PCAres,annotationDF=sampleAnnot[,c("culture_media","line","passage")])
+resPC_aov<-PC_aov(PCAres,colData = sampleAnnot[,c("culture_media","line","passage")])
 
 ggBorderedFactors(
-	ggplot(resPCR,aes(x=PC,y=Rsquared,fill=Annotation))+
+	ggplot(resPC_aov,aes(x=PC,y=sumSqPercent,fill= feature))+
 		geom_beeswarm(pch=21,size=4,cex = 3)+
-		xlab("Principal component")+ylab("R²")+
-		scale_fill_manual(values = oobColors(nlevels(resPCR$Annotation)))+
+		xlab("Principal component")+ylab("% Sum of Squares")+
+		scale_fill_manual(values = oobColors(nlevels(resPC_aov$feature)))+
 		theme(
 			panel.grid.major.y = element_line(colour = "grey75"),
 			panel.grid.minor.y = element_line(colour = "grey75"),
@@ -250,12 +266,6 @@ multiplot(cols = 2,
 )
 
 ```
-With `neighborFeatureGrid` we can identify wich gene is marking which area of a projection (here the UMAP).
-
-```{r out.width = "100%", fig.dim = c(20,20)}
-neighborFeatureGrid(coordUMAP,featureMat = bulkLogCounts)
-```
-
 
 The knn graph used can also be saved when computing the UMAP, and used for a community detection (Leiden) clustering.
 
@@ -263,7 +273,7 @@ The knn graph used can also be saved when computing the UMAP, and used for a com
 UMAPwithNN<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace),ret_nn = TRUE)
 sampleAnnot$leidenClusters<-leidenFromUMAP(UMAPwithNN)
 
-proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,funAutoColorScale = mostDistantColor,
+proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,
 			 plotFactorsCentroids = TRUE,plotLabelRepel = TRUE,fixedCoord = TRUE, legendTitle = "Leiden cluster")
 
 ```
@@ -332,14 +342,16 @@ computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColo
 
 -   `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
 
-Finally, `customUpsetPlot` is used to compare intersection between gene set with an additional value of enrichment.
+Finally, `customUpsetPlot` is used to compare intersection between gene set with an additional value of enrichment. Here we compare the marker of unsupervised cluster and differential expression results between naive and primed pluripotency.
 
-```{r}
-lt = list(set1 = sample(letters, 5),
-					set2 = sample(letters, 10),
-					set3 = sample(letters, 15))
+```{r out.width = "100%", fig.dim = c(14,14)}
+sets = list(k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
+					k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
+					k3= rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
+					primeVSnaiveUP=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="UPREG"],
+					primeVSnaiveDOWN=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="DOWNREG"])
 
-customUpsetPlot(lt)
+richUpset(sets, universe = rn(markerPerCluster))
 ```
 
 `volcanoPlot.DESeq2` is designed to show the result of differential expression analysis in the most meaningful way.
@@ -349,74 +361,12 @@ data("DEgenesPrime_Naive")
 volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
 ```
 
-## Clustering & correlation
-
-
-corGeneToOthers best.cutree adjMat2Pygraph hierarchicalClustering
-
-## Functionnal enrichment
-
-The other focus of *oob* is functionnal enrichment.
-
-First, we can download several gene set databases by using `getDBterms`. We will use here *kegg* and the 'Gene Ontology\* (biological process)
-
-```{r}
-#species specific package will be load/asked for installation
-geneSetDB<-getDBterms(geneSym = rn(DEgenesPrime_Naive), species = "Human", database = c("kegg","goBP"))
-geneSetDB$kegg[1:2]
-
-```
-
-Then we can make a simple over representation analysis.
-
-```{r}
-vectorIsDE<-DEgenesPrime_Naive$isDE!="NONE";names(vectorIsDE)<-rownames(DEgenesPrime_Naive)
-resEnrich<-enrich.ora(vectorIsDE,db_terms = geneSetDB)
-head(resEnrich[whichTop(resEnrich$pval,decreasing = FALSE),])
-
-```
-
-Or a functional class scoring by building first a score for each gene based on p-value with the sign of the Log2(Fold-change).
-
-```{r}
-fcsScore<-fcsScoreDEgenes(rownames(DEgenesPrime_Naive),DEgenesPrime_Naive$pvalue,DEgenesPrime_Naive$log2FoldChange)
-resEnrich<-enrich.fcs(fcsScore,db_terms = geneSetDB,returnGenes = TRUE) #return genes of the gene set in the dataframe
-head(resEnrich[whichTop(resEnrich$pval,decreasing = FALSE),])
-
-# The result can be visualized as a volcano plot
-library(ggrepel)
-
-ggplot(resEnrich,aes(x=NES,y=-log10(padj),color=padj<0.05))+
-    geom_point()+theme_bw()+scale_color_manual(values=c("grey75","black"))+
-    geom_text_repel(data = resEnrich[whichTop(resEnrich$pval,top = 15,decreasing = FALSE),],
-    aes(x=NES,y=-log10(padj),label=pathway), inherit.aes = FALSE,color="grey50")
-
-#export enrichment with the genes of each gene set
-exportEnrich(resEnrich,"test/resEnrich.tsv")
-```
-
-We can also perform an enrichment based on gene set differential activation with `GSDA`.
-
-GSDA was developed independently from [GSVA](https://bioconductor.org/packages/release/bioc/html/GSVA.html) but is has the exact same idea of working on a matrix of gene set scores.
-
-```{r out.width = "100%", fig.dim = c(14,10)}
-geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = geneSetDB["kegg"])
-resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms = geneSetDB["kegg"])
-bestPathay<-whichTop(resGSDA$padj,top = 30,decreasing = FALSE)
-
-library(ComplexHeatmap)
-
-heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=FALSE,
-	name = "Activation score",preSet = NULL,colData = sampleAnnot["culture_media"],
-	right_annotation=rowAnnotation("gene contribution" =
-		GSDA.HeatmapAnnot(contributions = geneSetActivScore$kegg$contribution[bestPathay],width = unit(12,"cm"),fontsizeFactor = 300)
-	),
-	row_names_side ="left",row_dend_side ="left",
-	row_names_max_width = unit(8, "inches"),autoFontSizeRow=FALSE,row_names_gp=gpar(fontsize=1/length(bestPathay)*300)
-)
-```
-
 ## Other utilities functions:
+- 	`corGeneToOthers` : Compute the correlation of a gene to all other genes in a matrix.
+
+-		`best.cutree`: Find the best cutree for a hierarchical clustering.
+
+-		`hierarchicalClustering`: Hierarchical clustering from a matrix.
 
 -   `supprNAnames`: Delete row/column in a matrix/df with NA row/colnames
 

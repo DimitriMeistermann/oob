@@ -316,7 +316,7 @@ formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
 }
 
 
-#' Draw n samples from each population in a matrix where columns are samples.
+#' Drawn samples from each population in a matrix where columns are samples.
 #'
 #' @param mat A matrix where each column a samples with features as rows.
 #' @param groupVector A vector of character or factor, same length as number of column in `mat`. Describe the population of each sample.

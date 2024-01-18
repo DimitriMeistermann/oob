@@ -24,7 +24,7 @@ pca2d(
 )
 }
 \arguments{
-\item{pca}{PCA object created by `PCA` function.}
+\item{pca}{PCA object created by \code{PCA} function.}
 
 \item{comp}{A vector of 2 integer. Principal Component to be plotted.}
 
@@ -46,18 +46,18 @@ pca2d(
 
 \item{returnGraph}{Logical. Return the graph as a ggplot object instead of printing it.}
 
-\item{outlierLabel}{Logical. Add a `ggrepel` label for point in low-density area of the plot.}
+\item{outlierLabel}{Logical. Add a \code{ggrepel} label for point in low-density area of the plot.}
 
-\item{outlierLabelThres}{Numeric. Density value threshold below that the labelled is displayed if `outlierLabel=TRUE`.}
+\item{outlierLabelThres}{Numeric. Density value threshold below that the labelled is displayed if \code{outlierLabel=TRUE}.}
 
 \item{outlierLabelSize}{Numeric. Size of outlier labels.}
 
 \item{customRatio}{Single numeric. Custom ratio for the plot.}
 
-\item{...}{Arguments passed to `proj2d`}
+\item{...}{Arguments passed to \code{proj2d}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Plot a PCA in 2D

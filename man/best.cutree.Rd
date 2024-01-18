@@ -18,7 +18,7 @@ best.cutree(hc, min = 2, max = 20, loss = FALSE, graph = FALSE)
 \item{graph}{Logical. Plot a graph of computed partition with their derivative loss.}
 }
 \value{
-A single integer (best partition) or print a graph if `graph` or a vector of numeric if `loss`.
+A single integer (best partition) or print a graph if \code{graph} or a vector of numeric if \code{loss}.
 }
 \description{
 Determine the best partition in a hierarchichal clustering

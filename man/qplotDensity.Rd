@@ -11,10 +11,10 @@ qplotDensity(x, returnGraph = FALSE, ...)
 
 \item{returnGraph}{Logical. Logical. Return the graph as a ggplot object instead of printing it.}
 
-\item{...}{Parameters passed to `qplot`}
+\item{...}{Parameters passed to \code{qplot}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Plot a density-based distribution of a feature.

@@ -12,7 +12,7 @@ qplotBarplot(y, returnGraph = FALSE)
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Quick simple barplot with heights provided in ggplot format.

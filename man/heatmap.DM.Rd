@@ -46,40 +46,40 @@ heatmap.DM(
 \arguments{
 \item{matrix}{A matrix. Either numeric or character. If it is a simple vector, it will be converted to a one-column matrix.}
 
-\item{preSet}{A value from `"expr"`, `"cor"`, `"dist"` or `NULL`. Change other arguments given a specific preset (default preSet if NULL).}
+\item{preSet}{A value from \code{"expr"}, \code{"cor"}, \code{"dist"} or \code{NULL}. Change other arguments given a specific preset (default preSet if NULL).}
 
 \item{clustering_distance_rows}{It can be a pre-defined character which is in ("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski", "pearson", "spearman", "kendall").
 It can also be a function. If the function has one argument, the input argument should be a matrix and the returned value should be a dist object.
 If the function has two arguments, the input arguments are two vectors and the function calculates distance between these two vectors.
-In default and expression preset, default value is the `corrDistBicor` function.}
+In default and expression preset, default value is the \code{corrDistBicor} function.}
 
-\item{clustering_distance_columns}{Same setting as `clustering_distance_rows`.}
+\item{clustering_distance_columns}{Same setting as \code{clustering_distance_rows}.}
 
-\item{clustering_method_columns}{Method to perform hierarchical clustering, pass to `hclust`.}
+\item{clustering_method_columns}{Method to perform hierarchical clustering, pass to \code{hclust}.}
 
-\item{clustering_method_rows}{Method to perform hierarchical clustering, pass to `hclust`.}
+\item{clustering_method_rows}{Method to perform hierarchical clustering, pass to \code{hclust}.}
 
 \item{autoFontSizeRow}{Logical, should row names font size automatically adjusted to the number of row?}
 
 \item{autoFontSizeColumn}{Logical, should column names font size automatically adjusted to the number of columns?}
 
-\item{scale}{Logical. Divide rows of `matrix` by their standard deviation. If NULL determined by preSet.}
+\item{scale}{Logical. Divide rows of \code{matrix} by their standard deviation. If NULL determined by preSet.}
 
-\item{center}{Logical. Subtract rows of `matrix` by their average. If NULL determined by preSet.}
+\item{center}{Logical. Subtract rows of \code{matrix} by their average. If NULL determined by preSet.}
 
 \item{returnHeatmap}{Logical, return the plot as a Heatmap object or print it in the current graphical device.}
 
 \item{name}{Character, name of the legend for the main heatmap.}
 
-\item{additionnalRowNamesGpar}{List. Additional parameter passed to `gpar` for row names.}
+\item{additionnalRowNamesGpar}{List. Additional parameter passed to \code{gpar} for row names.}
 
-\item{additionnalColNamesGpar}{List. Additional parameter passed to `gpar` for column names.}
+\item{additionnalColNamesGpar}{List. Additional parameter passed to \code{gpar} for column names.}
 
 \item{border}{Logical. Whether draw border. The value can be logical or a string of color.}
 
 \item{colorScale}{A vector of colors that will be used for mapping colors to the main heatmap.}
 
-\item{colorScaleFun}{A function that map values to colors. Used for the main heatmap. If not NULL this will supersede the use of the `colorScale` argument.}
+\item{colorScaleFun}{A function that map values to colors. Used for the main heatmap. If not NULL this will supersede the use of the \code{colorScale} argument.}
 
 \item{midColorIs0}{Logical. Force that 0 is the midColor.  If NULL turned on if the matr.}
 
@@ -87,7 +87,7 @@ In default and expression preset, default value is the `corrDistBicor` function.
 
 \item{useProb}{Logical. Use quantile probability to map the colors. Else the min and max of values will be mapped to first and last color and interpolated continuously.}
 
-\item{minProb}{A numeric value (between 0 and 1). If `useProb=TRUE` and `probs=NULL` this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
+\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and \code{probs=NULL} this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
 
 \item{maxProb}{A numeric value (between 0 and 1).}
 
@@ -97,81 +97,92 @@ In default and expression preset, default value is the `corrDistBicor` function.
 
 \item{colData}{A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.}
 
-\item{colorAnnot}{List or NULL. Precomputed color scales for the `colData`. Color scales will be only generated for the features not described.
-Must be in the format of a list named by columns of `annots`.
+\item{colorAnnot}{List or NULL. Precomputed color scales for the \code{colData}. Color scales will be only generated for the features not described.
+Must be in the format of a list named by columns of \code{annots}.
 Each element contains the colors at breaks for continuous values.
 In the case of factors, the colors are named to their corresponding level or in the order of the levels.}
 
 \item{showGrid}{Logical. Draw a border of each individual square on the heatmap. If NULL automatically true if number of values < 500.}
 
-\item{gparGrid}{Gpar object of the heatmap grid if `showGrid`.}
+\item{gparGrid}{Gpar object of the heatmap grid if \code{showGrid}.}
 
 \item{showValues}{Logical. Show values from the matrix in the middle of each square of the heatmap.}
 
-\item{Nsignif}{Integer. Number of significant digits showed if `showValues`.}
+\item{Nsignif}{Integer. Number of significant digits showed if \code{showValues}.}
 
 \item{column_dend_reorder}{Apply reordering on column dendrograms. Same settings as row_dend_reorder.}
 
 \item{row_dend_reorder}{Apply reordering on row dendrograms. The value can be a logical value or a vector which contains weight which is used to reorder rows. The reordering is applied by reorder.dendrogram.}
 
-\item{squareHt}{Logical or NULL. Apply clustering columns on rows. If NULL automatically turned TRUE if `ncol==nrow`.}
+\item{squareHt}{Logical or NULL. Apply clustering columns on rows. If NULL automatically turned TRUE if \code{ncol==nrow}.}
 
-\item{...}{Other parameters passed to `Heatmap`.}
+\item{...}{Other parameters passed to \code{Heatmap}.}
 }
 \value{
-A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
+A Heatmap object if \code{returnHeatmap} or print the Heatmap in the current graphical device.
 }
 \description{
 Complex Heatmap wrapper optimized for RNA-Seq analyses...
 }
 \details{
 A preSet attributes a list of default values for each argument. However, even if a preSet is selected, arguments precised by the user precede the preSet.
-# Default arguments
-## preSet is `NULL`
-```
-clustering_distance_rows = covDist
+}
+\section{Default arguments}{
+\subsection{preSet is \code{NULL}}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows = covDist
 clustering_distance_columns = covDist
 name="matrix"
 colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=TRUE
 scale=FALSE
-```
-## preSet is `"expr"` (expression)
-```
-clustering_distance_rows = covDist
+}\if{html}{\out{</div>}}
+}
+
+\subsection{preSet is \code{"expr"} (expression)}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows = covDist
 clustering_distance_columns = covDist
 name="centered log expression"
 colorScale=	c("darkblue","white","red2")
 additionnalRowNamesGpar=list(fontface="italic")
 center=TRUE
 scale=FALSE
-```
-## preSet is `"cor"` (correlation)
-```
-clustering_distance_rows ="euclidean"
+}\if{html}{\out{</div>}}
+}
+
+\subsection{preSet is \code{"cor"} (correlation)}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows ="euclidean"
 clustering_distance_columns ="euclidean"
 name="Pearson correlation"
 colorScale=c("darkblue","white","#FFAA00")
 center=FALSE
 scale=FALSE
-```
-## preSet is `"dist"` (distance)
-```
-clustering_distance_rows ="euclidean"
+}\if{html}{\out{</div>}}
+}
+
+\subsection{preSet is \code{"dist"} (distance)}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows ="euclidean"
 name="Euclidean distance"
 colorScale=c("white","yellow","red","purple")
 center=FALSE
 scale=FALSE
 
 ## preSet is `"vanilla"` (don't transform value, same as default ComplexHeatmap)
-```
+}\if{html}{\out{</div>}}
+
 clustering_distance_rows ="euclidean"
 name="matrix"
 colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=FALSE
 scale=FALSE
-```
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{}\if{html}{\out{</div>}}
 }
+}
+
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")

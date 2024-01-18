@@ -14,7 +14,7 @@ matrixFromDimnames(row, col, value = 0)
 \item{value}{Default value for each element of the matrix.}
 }
 \value{
-A matrix. Size of the matrix will be `length(row)*length(col)`.
+A matrix. Size of the matrix will be \code{length(row)*length(col)}.
 }
 \description{
 Create empty matrix from a column and rownames

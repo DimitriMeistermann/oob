@@ -20,7 +20,7 @@ TRIMAP(
 
 \item{n_dims}{Integer. Dimensions of the embedded space.}
 
-\item{transpose}{Logical. If `transpose`, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
 
 \item{n_inliers}{Number of nearest neighbors for forming the nearest neighbor triplets.}
 

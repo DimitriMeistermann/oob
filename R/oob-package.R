@@ -14,6 +14,7 @@
 #' @import rgl
 #' @import scattermore
 #' @import stringr
+#' @import basilisk
 #' @importFrom batchelor fastMNN
 #' @importFrom BiocGenerics density
 #' @importFrom BiocGenerics residuals
@@ -28,7 +29,6 @@
 #' @importFrom lsa cosine
 #' @importFrom MASS bandwidth.nrd
 #' @importFrom Matrix image
-#' @importFrom pathview pathview
 #' @importFrom reticulate import
 #' @importFrom SingleCellExperiment colData
 #' @importFrom SingleCellExperiment sizeFactors

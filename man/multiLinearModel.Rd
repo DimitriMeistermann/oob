@@ -12,16 +12,20 @@ multiLinearModel(exprData, colData, designFormula, contrast)
 \item{colData}{A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData}
 
 \item{contrast}{A vector of 3 character.
-1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
-2. Condition considered as the reference.
-3. Condition considered as the target group.}
+\enumerate{
+\item Name of the experimental variable that have to be used for differential activation. Must be a column name of \code{colData}.
+\item Condition considered as the reference.
+\item Condition considered as the target group.
+}}
 }
 \value{
 A dataframe with the following columns:
-- baseMean: mean
-- log2FoldChange: Log(Log Fold Change)  between the two tested groups.
-- pval: an enrichment p-value
-- padj: a BH-adjusted p-value
+\itemize{
+\item baseMean: mean
+\item log2FoldChange: Log(Log Fold Change)  between the two tested groups.
+\item pval: an enrichment p-value
+\item padj: a BH-adjusted p-value
+}
 }
 \description{
 Test a linear model on each gene following an experimental design.

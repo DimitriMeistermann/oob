@@ -19,15 +19,15 @@ ConvertKeyMatrix(
 
 \item{tabKey}{A dataframe or a matrix of character. The database that contains correspondence between each key from each ID.}
 
-\item{colOldKey}{Integer. Column of `tabKey` that contains the old (same as keyList) IDs.}
+\item{colOldKey}{Integer. Column of \code{tabKey} that contains the old (same as keyList) IDs.}
 
-\item{colNewKey}{Integer. Column of `tabKey` that contains the new IDs.}
+\item{colNewKey}{Integer. Column of \code{tabKey} that contains the new IDs.}
 
 \item{first}{If for given the old ID has several correspondence, take the first one as the new ID.}
 
 \item{dim}{Interger, 1 or 2. If 1 convert rows, else columns.}
 
-\item{fun}{If `first=FALSE`, A function to compute the summary statistics which can be applied to all data that correspond to ther same ID.}
+\item{fun}{If \code{first=FALSE}, A function to compute the summary statistics which can be applied to all data that correspond to ther same ID.}
 }
 \value{
 A matrix or dataframe. Same format as tab.

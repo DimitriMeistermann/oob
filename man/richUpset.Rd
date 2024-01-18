@@ -4,18 +4,28 @@
 \alias{richUpset}
 \title{Upset plot with additional enrichment values.}
 \usage{
-richUpset(featurePerGroupList, universe = NULL)
+richUpset(
+  featurePerGroupList,
+  universe = NULL,
+  pvalThreshold = 0.01,
+  returnEnrichDat = FALSE
+)
 }
 \arguments{
-\item{featurePerGroupList}{A list of sets (vector of charachter)}
+\item{featurePerGroupList}{A list of sets (vector of character)}
 
 \item{universe}{NULL or vector of Character. The entire list of features (Universal set).}
+
+\item{pvalThreshold}{Numeric. The threshold for the pvalue, represented by a horizontal red bar. Default is 0.01.}
+
+\item{returnEnrichDat}{Logical. If TRUE, the function returns a data.frame with the enrichment values.}
 }
 \value{
-Plot in the current graphical device.
+Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2). Ω indicates the universe size (total number of elements).
 }
 \description{
-Upset plot with additional enrichment values.
+In addition to Upset plot, this method computes and represents additional values useful for understanding the relationship between sets.
+The main ones are a p-value for each overlap, and a log ratio between  observed and expected overlap size, the \emph{log2OE}.
 }
 \examples{
 lt = list(set1 = sample(letters, 5),

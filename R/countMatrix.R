@@ -270,6 +270,41 @@ PCR <- function(pca, annotationDF, nComponent = 10) {
 	retDt
 }
 
+
+#' Principal Component analysis of variance
+#'
+#' @param pca A PCA as an object returned by `PCA` or `fastPCA`.
+#' @param colData A dataframe of feature (numeric or factor) with rows as samples.
+#' @param nComponent Integer, number of PC used for the analysis.
+#'
+#' @return A dataframe with the PC, percentage of sum of square and the corresponding p-value.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' data("sampleAnnot")
+#' pca<-fastPCA(bulkLogCounts,nPC=10)
+#' PC_aov(pca, colData=sampleAnnot[,c("culture_media","line","passage")])
+PC_aov<-function(pca, colData, nComponent = 10){
+	aovFormula<-paste0(" ~ ",paste0(rev(colnames(colData)),collapse = " + "))
+	modelData<-data.frame(colData,pca$x)
+	nVar <- ncol(colData)
+
+	anovPerPCdt<-do.call("rbind",lapply(colnames(pca$x[,seq_len(nComponent)]),function(PC){
+		anova_model <- aov(formula(paste0(PC,aovFormula)),data=modelData)
+		pvals<-summary(anova_model)[[1]][["Pr(>F)"]][seq_len(nVar)]
+		sumsq<-summary(anova_model)[[1]][["Sum Sq"]]
+		sumSqPercent<-sumsq[seq_len(nVar)]/sum(sumsq)*100
+		data.frame(feature=rev(colnames(colData)),PC,sumSqPercent,pval=pvals)
+	}))
+
+	anovPerPCdt$feature <- as.factor(anovPerPCdt$feature)
+	anovPerPCdt$padj<-p.adjust(anovPerPCdt$pval)
+	return(anovPerPCdt)
+}
+
+
+
 merge0dist <- function(disMat) {
 	mat <- as.matrix(disMat)
 	merged <- list()
@@ -443,7 +478,7 @@ normDeseq <-
 		sweep(countMatrix, 2, normFactors, "/") #divide each sample by the corresponding normalization factor
 	}
 
-
+# look at clusters <- quickCluster(sce)
 #' Quick single cell normalization (scran method).
 #'
 #' @param rawCounts RNA-Seq raw counts with rows as genes.
@@ -562,47 +597,43 @@ best.cutree <- function(hc,
 #' plot(resClust,hang=-1)
 #' resClust<-hierarchicalClustering(iris[,1:3],transpose = TRUE,bootstrap = TRUE,nboot = 20)
 #' plot(resClust,hang=-1)
-hierarchicalClustering <-
-	function(x,
-					 transpose = TRUE,
-					 method.dist = "euclidean",
-					 method.hclust = "ward.D2",
-					 bootstrap = FALSE,
-					 nboot = 10,
-					 PCAfirst = FALSE,
-					 nDimPCA = NULL) {
-		if (transpose)
-			x <- t(x)
-		if (PCAfirst) {
-			x <- PCA(x, transpose = FALSE, scale = FALSE)$x
-			if (!is.null(nDimPCA)) {
-				x <- x[, 1:nDimPCA]
-			}
+
+hierarchicalClustering<-function (x, transpose = TRUE, method.dist = "euclidean", method.hclust = "ward.D2",
+																	bootstrap = FALSE, nboot = 10, PCAfirst = FALSE, nDimPCA = NULL)
+{
+	if (transpose)
+		x <- t(x)
+	if (PCAfirst) {
+		x <- PCA(x, transpose = FALSE, scale = FALSE)$x
+		if (!is.null(nDimPCA)) {
+			x <- x[, 1:nDimPCA]
 		}
-		if (bootstrap) {
-			resClust <-
-				pvclust::pvclust(
-					t(x),
-					nboot = nboot,
-					method.hclust = method.hclust,
-					parallel = TRUE,
-					method.dist = method.dist
-				)$hclust
-		} else{
-			if (method.dist == "pearson") {
-				resDist <- corrDist(x)
-			} else if (method.dist == "bicor") {
-				resDist <-
-					as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(
-						x
-					)))) / 2)
-			} else{
-				resDist <- dist(x, method = method.dist)
-			}
-			resClust <- stats::hclust(resDist, method = method.hclust)
-		}
-		return(resClust)
 	}
+	if (bootstrap) {
+		resClust <- pvclust::pvclust(t(x), nboot = nboot, method.hclust = method.hclust,
+																 parallel = TRUE, method.dist = method.dist)$hclust
+	}
+	else {
+		if(class(method.dist)=="function"){
+			resDist<-method.dist(x)
+		}
+		else if (method.dist == "pearson") {
+			resDist <- corrDist(x)
+		}
+		else if (method.dist == "bicor") {
+			resDist <- as.dist((1 - suppressWarnings(WGCNA::bicor(Matrix::t(x))))/2)
+		}
+		else {
+			resDist <- dist(x, method = method.dist)
+		}
+		resClust <- stats::hclust(resDist, method = method.hclust)
+	}
+	return(resClust)
+}
+
+
+
+
 
 #' Test a linear model on each gene following an experimental design.
 #'
@@ -966,86 +997,6 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 	t(corFun(expression[gene, ], t(expression), ...))[, 1]
 }
 
-
-#' Compute the activation score of a gene set from 1st component of its PCA
-#'
-#' @param exprMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
-#' @param genes A character vector. The gene set where the activation score has to be computed. Must be a subset of `exprMatrix` row names.
-#' @param scale  Logical. Divide features by their standard deviation.
-#' @param center Logical. Subtract features by their average.
-#' @param returnContribution Logical. Return list with activation score and contribution of genes to the activation score.
-#'
-#' @return A vector of numeric corresponding to activation scores, named by genes. If `returnContribution` return a list with activation scores and contributions of genes.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' keggData<-getDBterms(rownames(bulkLogCounts),database = "kegg")
-#' geneSet<-keggData$kegg$`hsa00190 Oxidative phosphorylation`
-#' geneSet<-intersect(geneSet,rownames(bulkLogCounts))
-#' activScorePCA(bulkLogCounts,genes = geneSet)
-#' activScorePCA(bulkLogCounts,genes = geneSet,returnContribution = TRUE)
-activScorePCA <-
-	function(exprMatrix,
-					 genes,
-					 scale = FALSE,
-					 center = TRUE,
-					 returnContribution = FALSE) {
-		pca <-
-			fastPCA(exprMatrix[genes, ],
-							center = center,
-							scale = scale,
-							nPC = 1)
-		activScore <- pca$x[, 1]
-		contribution <- pca$rotation[, 1]
-		if (cor(colMeans(exprMatrix[genes, ]), activScore) < 0) {
-			activScore <- -activScore
-			contribution <- -contribution
-		}
-		if (returnContribution) {
-			list(activScore = activScore, contribution = contribution)
-		} else{
-			activScore
-		}
-	}
-
-#' Compute PCA activation from a gene list.
-#'
-#' @param exprMatrix A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
-#' @param geneList A named list containing character vectors of genes.
-#' @param scale A character vector. The gene set where the activation score has to be computed. Must be a subset of `exprMatrix` row names.
-#' @param center Logical. Subtract features by their average.
-#'
-#' @return A list of 2 element: `activScoreMat`: The activation score matrix. `contributionList`: A list of named numeric containing contributions of genes.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' keggData<-getDBterms(rownames(bulkLogCounts),database = "kegg")
-#' res<-activeScorePCAlist(bulkLogCounts,geneList = keggData$kegg[1:3])
-#' activeScoreMat<-res$activScoreMat
-#' contributionList<-res$contributionList
-activeScorePCAlist <-
-	function(exprMatrix,
-					 geneList,
-					 scale = FALSE,
-					 center = TRUE) {
-		res <-
-			lapply(listGenePerRegulon, function(genesOfReg)
-				activScorePCA(
-					exprMatrix,
-					genesOfReg,
-					returnContribution = TRUE,
-					scale = scale,
-					center = center
-				))
-		list(
-			activScoreMat = sapply(res, function(x)
-				x$activScore),
-			contributionList = lapply(res, function(x)
-				x$contribution)
-		)
-	}
 
 #' UMAP projection
 #'

@@ -17,10 +17,12 @@ volcanoPlot.DESeq2(
 }
 \arguments{
 \item{DEresult}{Dataframe that contains at least those columns:
-- padj (adjusted p-value)
-- isDE (a character vector equal to "NONE" if the gene is not DE, "DOWNREG" or "UPREG" if DE).
-- log2FoldChange
-Row must be named by genes.}
+\itemize{
+\item padj (adjusted p-value)
+\item isDE (a character vector equal to "NONE" if the gene is not DE, "DOWNREG" or "UPREG" if DE).
+\item log2FoldChange
+Row must be named by genes.
+}}
 
 \item{formula}{Character. Design formula given to DESeq2.}
 

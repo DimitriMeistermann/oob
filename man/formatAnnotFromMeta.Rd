@@ -10,16 +10,16 @@ formatAnnotFromMeta(annotDataFrame, metaAnnot)
 \item{annotDataFrame}{A dataframe of features from any kind.}
 
 \item{metaAnnot}{A dataframe with at least a column "Type" containing the feature variable type and "colorScale" containing eventually the mapping of colors to values.
-Each row is named by a feature (column) from `annotDataFrame`.
-If type of `annotDataFrame` feature and column `Type` mismatch, the feature will be automatically converted.
-`colorScale` Contain a character vector describing the colors that has to be mapped to values, in the form "color1,color2,...,colorN".
+Each row is named by a feature (column) from \code{annotDataFrame}.
+If type of \code{annotDataFrame} feature and column \code{Type} mismatch, the feature will be automatically converted.
+\code{colorScale} Contain a character vector describing the colors that has to be mapped to values, in the form "color1,color2,...,colorN".
 Can be an empty string if no color scale has to be exported.
 If the feature is a factor, the colors must be named by the possible values: "level1=color1,level2=color2,...,levelN=colorN".
 In this case, the factor levels order will correspond to the level order of the color scale.}
 }
 \value{
-`annotDataFrame`, but Variable type are eventually converted following Type coloumn from `metaAnnot`.
-Has also an attribute "colorScales" which contains a list named by the features that had a described color scale in `metaAnnot`.
+\code{annotDataFrame}, but Variable type are eventually converted following Type coloumn from \code{metaAnnot}.
+Has also an attribute "colorScales" which contains a list named by the features that had a described color scale in \code{metaAnnot}.
 Each element contains the colors at breaks for continuous values.
 In the case of factors, the colors are named to their corresponding level.
 }

@@ -2,14 +2,14 @@
 % Please edit documentation in R/matrixDataframe.R
 \name{subSampleColumnPerGroup}
 \alias{subSampleColumnPerGroup}
-\title{Draw n samples from each population in a matrix where columns are samples.}
+\title{Drawn samples from each population in a matrix where columns are samples.}
 \usage{
 subSampleColumnPerGroup(mat, groupVector, n = NULL)
 }
 \arguments{
 \item{mat}{A matrix where each column a samples with features as rows.}
 
-\item{groupVector}{A vector of character or factor, same length as number of column in `mat`. Describe the population of each sample.}
+\item{groupVector}{A vector of character or factor, same length as number of column in \code{mat}. Describe the population of each sample.}
 
 \item{n}{Integer or NULL. The number of samples to be draw in each population. If NULL, equal to the smallest population.}
 }
@@ -17,7 +17,7 @@ subSampleColumnPerGroup(mat, groupVector, n = NULL)
 A matrix of drawn samples.
 }
 \description{
-Draw n samples from each population in a matrix where columns are samples.
+Drawn samples from each population in a matrix where columns are samples.
 }
 \examples{
 mat<-matrix(rnorm(100),ncol=10,dimnames = list(paste0("feature",1:10),paste0("sample",1:10)))

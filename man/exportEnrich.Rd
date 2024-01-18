@@ -16,7 +16,7 @@ exportEnrich(
 )
 }
 \arguments{
-\item{enrichResults}{Dataframe, usually from Enrich functions (for example `enrich.ora`) with `returnGenes=TRUE`.}
+\item{enrichResults}{Dataframe, usually from Enrich functions (for example \code{enrich.ora}) with \code{returnGenes=TRUE}.}
 
 \item{file}{Path to file to write.}
 

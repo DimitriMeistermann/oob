@@ -7,14 +7,14 @@
 barplotPercentVar(pca, nPC = length(pca$propExplVar), returnGraph = FALSE, ...)
 }
 \arguments{
-\item{pca}{PCA object created by `PCA` function.}
+\item{pca}{PCA object created by \code{PCA} function.}
 
 \item{nPC}{Integer. Number of principal component to be plotted.}
 
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Scree plot of explained variance per PC from a PCA

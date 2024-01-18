@@ -7,7 +7,7 @@
 PCR(pca, annotationDF, nComponent = 10)
 }
 \arguments{
-\item{pca}{A PCA as an object returned by `PCA` or `fastPCA`.}
+\item{pca}{A PCA as an object returned by \code{PCA} or \code{fastPCA}.}
 
 \item{annotationDF}{A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than the PCA.}
 

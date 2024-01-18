@@ -44,7 +44,7 @@ proj1d(
 
 \item{ellipse}{Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).}
 
-\item{emph}{Single character or `NULL`. Must be a level of `colorBy` if it is a factor. Emphasize a particular value on the plot.}
+\item{emph}{Single character or \code{NULL}. Must be a level of \code{colorBy} if it is a factor. Emphasize a particular value on the plot.}
 
 \item{colorScale}{A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.}
 
@@ -54,11 +54,11 @@ proj1d(
 
 \item{variable.name}{Single characters. Axis name showed on the plot.}
 
-\item{na.color}{Character. Color of NA values if `ColorBy` is provided.}
+\item{na.color}{Character. Color of NA values if \code{ColorBy} is provided.}
 
 \item{na.bg}{Logical. Put the NA points behind the others in term of layers.}
 
-\item{plotFactorsCentroids}{Logical. If `ColorBy` is a factor Display the name of the factor at the centroid of its points.}
+\item{plotFactorsCentroids}{Logical. If \code{ColorBy} is a factor Display the name of the factor at the centroid of its points.}
 
 \item{pointStroke}{Numeric. Width of points border.}
 
@@ -68,14 +68,14 @@ proj1d(
 
 \item{plotLabelRepel}{Logical. Plot the rownames of the coordinates as a ggrepel label of each point.}
 
-\item{labelSize}{Numeric. Size of the labels if `plotLabelRepel=TRUE`.}
+\item{labelSize}{Numeric. Size of the labels if \code{plotLabelRepel=TRUE}.}
 
 \item{sizeProp2Dens}{Logical. Size of point is inversely proportional to the density of its area.}
 
-\item{densEps}{Numeric. Radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel). Used if `sizeProp2Dens=TRUE`.}
+\item{densEps}{Numeric. Radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel). Used if \code{sizeProp2Dens=TRUE}.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
 }
 \description{
 Plot a 1D projection.

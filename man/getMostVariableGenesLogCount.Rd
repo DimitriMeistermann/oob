@@ -18,17 +18,19 @@ getMostVariableGenesLogCount(
 
 \item{plot}{Logical. Show the overdispersion plot.}
 
-\item{returnPlot}{Logical, if `plot` return it as a ggplot object instead of printing it.}
+\item{returnPlot}{Logical, if \code{plot} return it as a ggplot object instead of printing it.}
 }
 \value{
-A ggplot graph if `returnPlot`, otherwise a dataframe with the following columns:
-- mu: average expression
-- var: variance
-- cv2: squared coefficient of variation. Used as a dispersion value.
-- residuals: y-distance from the regression. Can be used as an overdispersion value.
-- residuals2: squared residuals
-- fitted: theoretical dispersion for the gene average (y value of the curve).
+A ggplot graph if \code{returnPlot}, otherwise a dataframe with the following columns:
+\itemize{
+\item mu: average expression
+\item var: variance
+\item cv2: squared coefficient of variation. Used as a dispersion value.
+\item residuals: y-distance from the regression. Can be used as an overdispersion value.
+\item residuals2: squared residuals
+\item fitted: theoretical dispersion for the gene average (y value of the curve).
 not export
+}
 }
 \description{
 Compute over dispersion values for each gene from log counts. Do not used, need to be fixed

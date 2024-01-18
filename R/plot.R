@@ -259,7 +259,7 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
 			axis(1, 1:length(colorScale), names(colorScale))
 	} else{
 		br = round(seq(1, continuousStep, length.out = length(colorScale)))
-		cols = colorRamp2(breaks = br, colors = colorScale)(1:continuousStep)
+		cols = circlize::colorRamp2(breaks = br, colors = colorScale)(1:continuousStep)
 		image(
 			1:continuousStep,
 			1,
@@ -321,6 +321,7 @@ computeColorScaleFun <-
 					 returnGGscale = FALSE,
 					 geomAes = "fill",
 					 geomArgument = list()) {
+		if(is.null(values)) stop("values cannot be NULL")
 		if (!useProb) {
 			breaks = seq(min(values), max(values), length.out = length(colors))
 		} else{
@@ -332,7 +333,7 @@ computeColorScaleFun <-
 		if (midColorIs0 & (length(colors) %% 2 == 1)) {
 			breaks[ceiling(length(breaks) / 2)] <- 0
 		}
-		colorFun <- colorRamp2(breaks = breaks, colors = colors)
+		colorFun <- circlize::colorRamp2(breaks = breaks, colors = colors)
 		if (returnGGscale) {
 			scaledBreaks <-
 				linearScale(values, c(0, 1), returnFunction = TRUE)(breaks)
@@ -1296,7 +1297,7 @@ proj3d <-
 				if (is.null(colorScale))
 					colorScale <- c("grey", "red")
 				funCol <-
-					colorRamp2(seq(min(colorBy), max(colorBy), length.out = length(colorScale)), colorScale)
+					circlize::colorRamp2(seq(min(colorBy), max(colorBy), length.out = length(colorScale)), colorScale)
 				colors <- funCol(colorBy)
 			}
 		}
@@ -1726,170 +1727,6 @@ plotExpr <-
 			return(g)
 		}
 	}
-
-
-#' Displaying most neg and pos gene contribution on a GSDA heatmap.
-#'
-#' @param contributions A list named by pathway. Contains vector of gene contribution to activation scores, named by genes.
-#' @param maxGeneContribAtOneSide Integer. Number of best pos/neg rank displayed on the annotation
-#' @param width Numeric. Width of the annotation heatmap.
-#' @param fontsizeFactor Numeric. Font-size of gene names.
-#'
-#' @return A HeatmapAnnotation object. Genes on the left side of the vertical line are contributing negatively to the activation score, and positively on the right side.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#'
-#' library(ComplexHeatmap)
-#'
-#' keggDB<-getDBterms(rownames(bulkLogCounts),database = "kegg")
-#' geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = keggDB)
-#' resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms =  keggDB)
-#' bestPathay<-whichTop(resGSDA$padj,top = 30,decreasing = FALSE)
-#'
-#' heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=FALSE,
-#' 	name = "Activation score",preSet = NULL,colData = sampleAnnot["culture_media"],
-#' 	right_annotation=rowAnnotation("gene contribution" =
-#' 		GSDA.HeatmapAnnot(contributions = geneSetActivScore$kegg$contribution[bestPathay],width = unit(12,"cm"),fontsizeFactor = 300)
-#' 	),
-#' 	row_names_side ="left",row_dend_side ="left",
-#' 	row_names_max_width = unit(8, "inches"),autoFontSizeRow=FALSE,row_names_gp=gpar(fontsize=1/length(bestPathay)*300)
-#' )
-
-GSDA.HeatmapAnnot <-
-	function(contributions,
-					 maxGeneContribAtOneSide = 3,
-					 width = unit(3, "cm"),
-					 fontsizeFactor = 400) {
-		AnnotationFunction(
-			fun = function(index, k, n) {
-				pushViewport(viewport(
-					xscale = c(0, 10),
-					yscale = c(0.5, length(index) + 0.5)
-				))
-				grid.lines(.5, c(0, 1))
-				i <- length(index)
-				for (sel in index) {
-					contrib <- sort(contribPerPathway[[sel]])
-
-					left <- names(contrib)[contrib < 0]
-					right <- names(contrib)[contrib > 0]
-					left <- left[1:min(maxGeneContribAtOneSide, length(left))]
-					right <-
-						right[max(1, (length(right) - maxGeneContribAtOneSide) + 1):length(right)]
-					if (!is.null(left[1])) {
-						grid.text(
-							paste0(left, collapse = "  "),
-							just = "right",
-							x = 4.5,
-							y = i,
-							default.units = "native",
-							gp = gpar(
-								fontsize = 1 / length(index) * fontsizeFactor,
-								fontface = "italic"
-							)
-						)
-					}
-					if (!is.null(right[1])) {
-						grid.text(
-							paste0(right, collapse = "  "),
-							just = "left",
-							x = 5.5,
-							y = i,
-							default.units = "native",
-							gp = gpar(
-								fontsize = 1 / length(index) * fontsizeFactor,
-								fontface = "italic"
-							)
-						)
-					}
-					i <- i - 1
-				}
-				popViewport()
-			},
-			var_import = list(
-				contribPerPathway = contributions,
-				maxGeneContribAtOneSide = maxGeneContribAtOneSide,
-				width = width,
-				fontsizeFactor = fontsizeFactor
-			),
-			subsettable = FALSE,
-			width = width,
-			which = "row"
-		)
-	}
-
-#' Wrapper for pathview, with gene symbols as input
-#'
-#' @param x either vector (single sample) or a matrix-like data (multiple sample). Vector should be numeric with gene IDs as names or it may also be character of gene IDs. Character vector is treated as discrete or count data. Matrix-like data structure has genes as rows and samples as columns. Row names should be gene IDs. Here gene ID is a generic concepts, including multiple types of gene, transcript and protein uniquely mappable to KEGG gene IDs. KEGG ortholog IDs are also treated as gene IDs as to handle metagenomic data. Check details for mappable ID types. Default gene.data=NULL.
-#' @param pathway character vector, the KEGG pathway ID(s), usually 5 digit, may also include the 3 letter KEGG species code.
-#' @param corrIdGenes Dataframe of gene ID correspondence where each column is a gene ID type. If not NULL `species` and `speciesData` arguments wont be used.
-#' @param speciesData object returned by `getSpeciesData`. If not NULL `species` argument wont be used.
-#' @param species Character. Shortname of the species as described in `data("bods")`.
-#' @param kegg.dir character, the directory of KEGG pathway data file (.xml) and image file (.png). Users may supply their own data files in the same format and naming convention of KEGG's (species code + pathway id, e.g. hsa04110.xml, hsa04110.png etc) in this directory. Default kegg.dir="." (current working directory).
-#' @param ... Other arguments passed to `pathview`.
-#'
-#' @return File congaing pathway scheme and projection of x values on it.
-#' @export
-viewKEGG <-
-	function(x,
-					 pathway,
-					 corrIdGenes = NULL,
-					 species = "Human",
-					 speciesData = NULL,
-					 directory = getwd(),
-					 ...) {
-		blacklist <- c("hsa04215 Apoptosis - multiple species")
-		if (pathway %in% blacklist) {
-			warning(
-				pathway,
-				" is blacklisted as it contains issues in vizualisation, it will not be rendered."
-			)
-			return(NULL)
-		}
-		if (is.data.frame(x) | is.matrix(x)) {
-			tempx <- x
-			x <- tempx[, 1]
-			names(x) <- rownames(tempx)
-		}
-		if (is.null(speciesData))
-			speciesData <- getSpeciesData(species)
-		if (is.null(corrIdGenes))
-			corrIdGenes <- speciesData$GeneIdTable
-		entrezId <-
-			ConvertKey(
-				keyList = names(x),
-				tabKey = corrIdGenes,
-				colOldKey = "SYMBOL",
-				colNewKey = "ENTREZID"
-			)
-
-		notNA <- which(!is.na(entrezId))
-		if (length(notNA) > 0) {
-			dat <- x[notNA]
-
-			names(dat) <- entrezId[notNA]
-			dat <- dat[takefirst(names(dat), returnIndex = T)]
-			pathway <- strsplit(pathway, " ")[[1]][1]
-			pathview::pathview(
-				gene.data = dat,
-				pathway.id = pathway,
-				species = speciesData$kegg,
-				kegg.native = TRUE,
-				low = "#4B9AD5",
-				mid = "white",
-				high = "#FAB517",
-				na.col = "grey75",
-				kegg.dir = directory,
-				...
-			)
-		} else{
-			warning("no entrez id were found")
-		}
-	}
-
 
 
 #' Generate a top annotation for ComplexHeatmap
@@ -2493,10 +2330,17 @@ volcanoPlot.DESeq2 <-
 
 #' Upset plot with additional enrichment values.
 #'
-#' @param featurePerGroupList A list of sets (vector of charachter)
+#' @param featurePerGroupList A list of sets (vector of character)
 #' @param universe NULL or vector of Character. The entire list of features (Universal set).
+#' @param returnEnrichDat Logical. If TRUE, the function returns a data.frame with the enrichment values.
+#' @param pvalThreshold Numeric. The threshold for the pvalue, represented by a horizontal red bar. Default is 0.01.
 #'
-#' @return Plot in the current graphical device.
+#' @description
+#' In addition to Upset plot, this method computes and represents additional values useful for understanding the relationship between sets.
+#' The main ones are a p-value for each overlap, and a log ratio between  observed and expected overlap size, the *log2OE*.
+#'
+#'
+#' @return Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2). Ω indicates the universe size (total number of elements).
 #' @export
 #'
 #' @examples
@@ -2507,76 +2351,79 @@ volcanoPlot.DESeq2 <-
 #' lt$set4 <- unique(c(lt$set1,lt$set2))
 #'
 #' richUpset(lt, universe = letters)
-richUpset<- function(featurePerGroupList, universe = NULL) {
+richUpset<- function(featurePerGroupList, universe = NULL,pvalThreshold=0.01 ,returnEnrichDat = FALSE) {
 	if (is.null(universe))
 		universe <- unique(unlist(featurePerGroupList))
 	isInGroupMatrix <-
-		list_to_matrix(featurePerGroupList, universal_set = universe)
-	upsetMatrix <- make_comb_mat(isInGroupMatrix, mode = "intersect")
+		ComplexHeatmap::list_to_matrix(featurePerGroupList, universal_set = universe)
+	upsetMatrix <- ComplexHeatmap::make_comb_mat(isInGroupMatrix, mode = "intersect")
 	upsetMatrix <-
-		upsetMatrix[comb_degree(upsetMatrix) > 1] # retain only intersections of sets
+		upsetMatrix[ComplexHeatmap::comb_degree(upsetMatrix) > 1] # retain only intersections of sets
 
-	combsize = comb_size(upsetMatrix)
-	setsize = set_size(upsetMatrix)
+	combsize = ComplexHeatmap::comb_size(upsetMatrix)
+	setsize = ComplexHeatmap::set_size(upsetMatrix)
 
 	#Are the intersections sets (or venn diagramm region) enriched or not ?
-	regionEnrich <- lapply(comb_name(upsetMatrix), function(region) {
+	regionEnrich <- lapply(ComplexHeatmap::comb_name(upsetMatrix), function(region) {
 		colOfcomp = which(strsplit(region, split = "")[[1]] == "1")
 		enrichSetIntersection(combsize[region],setsize[colOfcomp],length(universe))
 	})
-	regionEnrichRes<-data.frame(row.names = comb_name(upsetMatrix))
+	regionEnrichRes<-data.frame(row.names = ComplexHeatmap::comb_name(upsetMatrix))
 	for(el in names(regionEnrich[[1]])) regionEnrichRes[[el]]<-sapply(regionEnrich,function(x) x[[el]])
 	rm(regionEnrich)
 	regionEnrichRes$padj<-p.adjust(regionEnrichRes$pval,method = "BH")
 	regionEnrichRes$log10padj<- -log10(regionEnrichRes$padj)
 	regionEnrichRes$log10padj[regionEnrichRes$log10padj==Inf] <- 384
 
-	enrich_ha = HeatmapAnnotation(
-		"pval" = anno_barplot(
+	if(returnEnrichDat) return(regionEnrichRes)
+
+	enrich_ha = ComplexHeatmap::HeatmapAnnotation(
+		"pval" = ComplexHeatmap::anno_barplot(
 			regionEnrichRes$log10padj,
-			gp = gpar(fill = "black"),
+			gp = grid::gpar(fill = "black"),
 			height = unit(3, "cm"),
 			axis_param = list(side = "left"),
 			ylim = c(0, max(max(regionEnrichRes$log10padj) * 1.1, 2))
 		),
 		annotation_name_side = "left",
 		annotation_name_rot = 0,
-		annotation_name_gp = gpar(fontface = "bold"),
+		annotation_name_gp = grid::gpar(fontface = "bold"),
 		annotation_label = c("-log10\nadj.\np-val")
-
-
 	)
-	intersect_ha = HeatmapAnnotation(
-		"intersection_size" = anno_barplot(
+	intersect_ha = ComplexHeatmap::HeatmapAnnotation(
+		"intersection_size" = ComplexHeatmap::anno_barplot(
 			combsize,
-			gp = gpar(fill = "black"),
+			gp = grid::gpar(fill = "black"),
 			height = unit(3, "cm"),
 			axis_param = list(side = "left"),
 			ylim = c(0, max(combsize) * 1.1)
 		),
 		annotation_name_side = "left",
 		annotation_name_rot = 0,
-		annotation_name_gp = gpar(fontface = "bold"),
+		annotation_name_gp = grid::gpar(fontface = "bold"),
 		annotation_label = "Observed \nintersection\nsize\n(expected)"
 	)
-	set_size_ha = rowAnnotation(
-		"set_size" = anno_barplot(
+	set_size_ha = ComplexHeatmap::rowAnnotation(
+		"set_size" = ComplexHeatmap::anno_barplot(
 			setsize,
-			gp = gpar(fill = "black"),
+			gp = grid::gpar(fill = "black"),
 			width = unit(2, "cm"),
 			ylim = c(0, max(setsize) * 1.3)
 		),
 		annotation_name_side = "bottom",
 		annotation_name_rot = 0,
-		annotation_name_gp = gpar(fontface = "bold"),
+		annotation_name_gp = grid::gpar(fontface = "bold"),
 		annotation_label = paste0("Set\nsize\n(Ω=",length(universe),")")
 	)
 
-	combDegree<-comb_degree(upsetMatrix)
+	combDegree<-ComplexHeatmap::comb_degree(upsetMatrix)
 	combDegree<-paste0(combDegree,"°")
 
-	ht = draw(
-		UpSet(
+	OEdevMatrix<-regionEnrichRes[,"OEdeviation",drop=FALSE] |> t()
+	rownames(OEdevMatrix)<-"Observed /\nExpexted\ndeviation"
+
+	ht = ComplexHeatmap::draw(
+		ComplexHeatmap::UpSet(
 			upsetMatrix,
 			top_annotation = intersect_ha,
 			bottom_annotation = enrich_ha,
@@ -2587,15 +2434,15 @@ richUpset<- function(featurePerGroupList, universe = NULL) {
 				rownames(upsetMatrix)
 			)) * 260, 20))#automatic fontsize to avoid out of bound text
 		)
-		%v% Heatmap(regionEnrichRes[,"log2OE",drop=FALSE] |> t(), show_column_names = FALSE,
+		%v% ComplexHeatmap::Heatmap(OEdevMatrix, show_column_names = FALSE,
 					cell_fun = function(j, i, x, y, w, h, col) {
 						if (colSums(col2rgb(col)) < 382.5)
 							col = "white"
 						else col = "black"
-						grid.text(as.character(signif(regionEnrichRes[j, "log2OE"], 2)), x, y, gp = gpar(col = col, fontface=2))
+						grid::grid.text(as.character(signif(regionEnrichRes[j, "OEdeviation"], 2)), x, y, gp = gpar(col = col, fontface=2))
 					},
-					show_heatmap_legend = FALSE,col= computeColorScaleFun(c("darkblue", "white", "red2"), regionEnrichRes$log2OE, returnColorFun = TRUE, midColorIs0 = TRUE),
-					rect_gp=gpar(col = "black"), row_names_side = "left", row_names_gp = gpar(fontface=2)
+					show_heatmap_legend = FALSE,col= computeColorScaleFun(c("darkblue", "white", "red2"), regionEnrichRes$OEdeviation, returnColorFun = TRUE, midColorIs0 = TRUE),
+					rect_gp=gpar(col = "black"), row_names_side = "left", row_names_gp = grid::gpar(fontface=2)
 				)
 	)
 
@@ -2634,7 +2481,7 @@ richUpset<- function(featurePerGroupList, universe = NULL) {
 
 	bestPval<-min(regionEnrichRes$padj)
 
-	decorate_annotation("pval", addHbarUpset(-log10(0.01), offsetPerSplit, colPerSplit, gp = gpar(alpha=.5,col="red") ))
+	decorate_annotation("pval", addHbarUpset(-log10(pvalThreshold), offsetPerSplit, colPerSplit, gp = gpar(alpha=.5,col="red") ))
 
 	decorate_annotation("set_size", {
 		grid.text(
@@ -2796,46 +2643,39 @@ oobColors <- function(n=20) {
 #' data("sampleAnnot")
 #' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
 #' htMarker(bulkLogCounts,  group=sampleAnnot$culture_media, markerData=extractFeatureMarkerData(markerData), colData=sampleAnnot[c("line","passage")])
-htMarker <- function(countTable,
-										 group,
-										 markerData,
-										 colData=NULL,
-										 topn = 5,
-										 maxDrawSize=NULL,
-										 returnHeatmap = FALSE,
-										 show_column_names = FALSE,
-										 ...) {
-	if(length(group)!=ncol(countTable)) stop("Length of group should be the same as number of columns in countTable")
-	group <- make.names(group) |> as.factor()
-	if( sum(! sort(colnames(markerData)) == sort(levels(group))) > 0 ) stop("Colnames of markerData must correspond to the levels of group")
-	names(group)<-colnames(countTable)
-	drawSize <- table(group) |> min()
-	if(!is.null(maxDrawSize)) drawSize<-min(drawSize, maxDrawSize)
-	drawCells <-
-		unlist(lapply(unique(group), function(lvl) {
-			#draw "drawSize" cells per cluster
-			cells <- colnames(countTable)[group == lvl]
-			sample(cells, drawSize)
-		}))
-	topMarker <-
-		apply(markerData, 2, function(x) {
-			names(x)[order(x, decreasing = T)][1:topn]
-		})
-	topMarker <- as.list(data.frame(topMarker)) #convert matrix to list
 
-	heatmap.DM(
-		countTable[unlist(topMarker), drawCells],
-		colData = colData[drawCells,],
-		column_split = group[drawCells],
-		row_split = VectorListToFactor(topMarker),
-		cluster_row_slices = FALSE,
-		cluster_column_slices = FALSE,
-		returnHeatmap = returnHeatmap,
-		show_column_names = show_column_names,
-		...
-	)
+htMarker<-function (countTable, group, markerData, colData = NULL, topn = 5,
+										maxDrawSize = NULL, minDrawSize=NULL, returnHeatmap = FALSE, show_column_names = FALSE,
+										...)
+{
+	if (length(group) != ncol(countTable))
+		stop("Length of group should be the same as number of columns in countTable")
+	group <- as.factor(make.names(group))
+	if (sum(!sort(colnames(markerData)) == sort(levels(group))) >
+			0)
+		stop("Colnames of markerData must correspond to the levels of group")
+	names(group) <- colnames(countTable)
+	drawSize <- min(table(group))
+	if (!is.null(maxDrawSize))
+		drawSize <- min(drawSize, maxDrawSize)
+	if (!is.null(minDrawSize))
+		drawSize <- max(drawSize, minDrawSize)
+	drawCells <- unlist(lapply(unique(group), function(lvl) {
+		cells <- colnames(countTable)[group == lvl]
 
+		sample(cells, min(drawSize),length(cells))
+	}))
+	topMarker <- apply(markerData, 2, function(x) {
+		names(x)[order(x, decreasing = T)][1:topn]
+	})
+	topMarker <- as.list(data.frame(topMarker))
+	heatmap.DM(countTable[unlist(topMarker), drawCells], colData = colData[drawCells,
+	], column_split = group[drawCells], row_split = VectorListToFactor(topMarker),
+	cluster_row_slices = FALSE, cluster_column_slices = FALSE,
+	returnHeatmap = returnHeatmap, show_column_names = show_column_names,
+	...)
 }
+
 
 
 #' Create breaks for a custom ggplot scale
@@ -2969,172 +2809,6 @@ volcanoPlot <-
 				...
 			)
 
-		if (returnGraph) {
-			return(g)
-		} else{
-			print(g)
-		}
-	}
-
-
-#' Project features linked to a projection from each point on a grid
-#'
-#' @param proj Matrix or dataframe containing at least two vectors of numeric corresponding to the x/y coordinates.
-#' @param featureMat A matrix with row as features (if `transpose`).
-#' @param returnGraph  Logical. Return the graph as a ggplot object instead of printing it.
-#' @param method Method for computing the feature specificity score. Can be `"aurocFC"`,  (auric * fold-change), `"auroc"` or `"FC"` (Fold-change).
-#' @param grid A dataframe returned by this function if `returnGrid`. Contains data for plotting the grid (see `returnGrid` for more explanations)
-#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
-#' @param returnGrid Return a dataframe instead of plotting, corresponding to the coordinate of the grid,
-#' Contains the following columns: `X` and `Y` (coordinates), `nContrib` (number of contributing observation to the grid point, the grid point is not created if `nContrib==0`),
-#' `best` (best feature of the grid point), `score` (specificity score of the best feature), `sizeScore` (score weighted by number of observations, will determine the fontsize).
-#' @param returnPseudoSamples Return the pseudo sam
-#' @param fontSizeRange Vector of two numerics. Miniumum and maximum of the displayed features fontsize.
-#' @param fontface Font face of the displayed features.
-#' @param ... Arguments passed to proj2d.
-#' @details
-#' Project the dataset onto a 2D plane using a suitable algorithm (e.g., PCA or t-SNE).
-#' Create a grid of points with the specified grid_size.
-#' For each point on the grid, find its neighborhood by looking at the points in the dataset that are closest to it.
-#' For each feature in feature_names, calculate the specificity of that feature in the neighborhood of the grid point. This could be done using a metric such as the average distance between points that have that feature and points that do not have that feature.
-#' Display the feature name with the highest specificity for each grid point.
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#' qDataIris<-t(iris[,1:4])
-#' irisUMAP<-UMAP(qDataIris)
-#' neighborFeatureGrid(irisUMAP,qDataIris)
-#'
-#' grid<-neighborFeatureGrid(irisUMAP,qDataIris, returnGrid=TRUE)
-#'
-neighborFeatureGrid <-
-	function(proj,
-					 featureMat,
-					 method = c("aurocFC", "auroc", "FC"),
-					 grid = NULL ,
-					 transpose = TRUE,
-					 returnGraph = FALSE,
-					 returnGrid = FALSE,
-					 returnPseudoSamples = FALSE,
-					 fontSizeRange = c(2, 4),
-					 fontface = "bold.italic",
-					 geomTextFun = shadowtext::geom_shadowtext,
-					 ...) {
-		if (transpose)
-			featureMat <- t(featureMat)
-		if (is.null(colnames(featureMat)))
-			stop("features should be named")
-		method = method[1]
-		if (!method %in% c("aurocFC", "auroc", "FC"))
-			stop("method should have one of the following value: 'aurocFC', 'auroc' or 'FC'")
-		if (is.null(grid)) {
-			minX <- min(proj[, 1])
-			maxX <- max(proj[, 1])
-			minY <- min(proj[, 2])
-			maxY <- max(proj[, 2])
-
-			xrange <- maxX - minX
-			yrange <- maxY - minY
-
-			radius <- sqrt(xrange * yrange) / 15
-
-			gridX <- seq(minX - radius, maxX + radius, radius)
-			gridY <- seq(minY - radius, maxY + radius, radius)
-
-			grid <- data.frame(expand.grid(gridX, gridY))
-			colnames(grid) <- c("X", "Y")
-
-			grid$nContrib <- NULL
-			pseudoSamples <-
-				matrix(
-					data = 0,
-					nrow = nrow(grid),
-					ncol = ncol(featureMat)
-				)
-			colnames(pseudoSamples) <- colnames(featureMat)
-
-			hasVal <- foreach(i = 1:nrow(grid)) %do% {
-				centerX <- grid[i, 1]
-				centerY <- grid[i, 2]
-
-				isContrib2Grid <-
-					(proj[, 1] - centerX) ^ 2 + (proj[, 2] - centerY) ^ 2 < radius ^ 2
-				grid[i, "nContrib"] <- sum(isContrib2Grid)
-
-				if (sum(isContrib2Grid) == 0)
-					return(FALSE)
-
-				isContribX <- proj[isContrib2Grid, 1]
-				isContribY <- proj[isContrib2Grid, 2]
-
-				dist2center <-
-					sqrt((isContribX - centerX) ^ 2 + (isContribY - centerY) ^ 2)
-
-				w <-  1 - (dist2center / radius)
-				pseudoSamples[i, ] <-
-					apply(featureMat[isContrib2Grid, , drop = FALSE], 2, function(x)
-						weighted.mean(x, w))
-
-				return(TRUE)
-			}
-			hasVal <- unlist(hasVal)
-
-			if (returnPseudoSamples)
-				return(pseudoSamples)
-
-			grid <- grid[hasVal, ]
-			pseudoSamples <- pseudoSamples[hasVal, , drop = FALSE]
-
-			pseudoSamples <- scale(pseudoSamples, center = T, scale = F)
-			rowIndex <- 1:nrow(pseudoSamples)
-
-			if (method == "aurocFC" | method == "auroc")
-				aurocs <- apply(pseudoSamples, 2, function(f) {
-					scoreRank <- rank(f)
-					n1 <- length(f) - 1
-
-					res <- sapply(1:length(scoreRank), function(i)
-						sum(scoreRank[-i]))
-					1 - (res - n1 * (n1 + 1) / 2) / n1
-				})
-
-			if (method == "aurocFC") {
-				pseudoSamples <- pseudoSamples * aurocs
-			} else if (method == "auroc") {
-				pseudoSamples <- aurocs
-			}
-
-			maxValIndex <- apply(pseudoSamples, 1, which.max)
-
-			grid[, "best"] <- colnames(pseudoSamples)[maxValIndex]
-
-			grid$score <-
-				NULL
-			for (i in 1:nrow(pseudoSamples))
-				grid[i, "score"] <-  pseudoSamples[i, maxValIndex[i]]
-			grid$sizeScore <-  grid$score * grid$nContrib
-		}
-
-
-		if (returnGrid)
-			return(grid)
-
-		g <- proj2d(proj, returnGraph = TRUE, ...) +
-			geomTextFun(
-				data = grid,
-				inherit.aes = FALSE,
-				mapping = aes(
-					x = X,
-					y = Y,
-					label = best,
-					size = sizeScore
-				),
-				fontface = fontface
-			) +
-			scale_size_continuous(range = fontSizeRange)
 		if (returnGraph) {
 			return(g)
 		} else{

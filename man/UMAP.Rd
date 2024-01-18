@@ -23,7 +23,7 @@ UMAP(
 
 \item{nDimPCA}{Integer. If not NULL compute a PCA first and take n first princpal components.}
 
-\item{transpose}{Logical. If `transpose`, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
 
 \item{n_neighbors}{The size of local neighborhood (in terms of number of neighboring sample points) used for manifold approximation.
 Larger values result in more global views of the manifold, while smaller values result in more local data being preserved.
@@ -33,9 +33,9 @@ In general values should be in the range 2 to 100.}
 
 \item{min_dist}{The effective minimum distance between embedded points. Smaller values will result in a more clustered/clumped embedding where nearby points on the manifold are drawn closer together, while larger values will result on a more even dispersal of points. The value should be set relative to the spread value, which determines the scale at which embedded points will be spread out.}
 
-\item{init}{Type of initialization for the coordinates (see `uwot` for more details).}
+\item{init}{Type of initialization for the coordinates (see \code{uwot} for more details).}
 
-\item{metric}{Type of distance metric to use to find nearest neighbors (see `uwot` for more details).}
+\item{metric}{Type of distance metric to use to find nearest neighbors (see \code{uwot} for more details).}
 
 \item{ret_model}{If TRUE, then return extra data that can be used to add new data to an existing embedding via umap_transform. The embedded coordinates are returned as the list item embedding. If FALSE, just return the coordinates. This parameter can be used in conjunction with ret_nn and ret_extra. Note that some settings are incompatible with the production of a UMAP model: external neighbor data (passed via a list to nn_method), and factor columns that were included via the metric parameter. In the latter case, the model produced is based only on the numeric data. A transformation using new data is possible, but the factor columns in the new data are ignored}
 
@@ -45,8 +45,10 @@ In general values should be in the range 2 to 100.}
 }
 \value{
 A matrix of coordinates with samples as rows, or:
-- if ret_model = TRUE (or ret_extra contains "model"), returns a list containing extra information that can be used to add new data to an existing embedding via umap_transform. In this case, the coordinates are available in the list item embedding. NOTE: The contents of the model list should not be considered stable or part of the public API, and are purposely left undocumented.
-- if ret_nn = TRUE (or ret_extra contains "nn"), returns the nearest neighbor data as a list called nn. This contains one list for each metric calculated, itself containing a matrix idx with the integer ids of the neighbors; and a matrix dist with the distances. The nn list (or a sub-list) can be used as input to the nn_method parameter.
+\itemize{
+\item if ret_model = TRUE (or ret_extra contains "model"), returns a list containing extra information that can be used to add new data to an existing embedding via umap_transform. In this case, the coordinates are available in the list item embedding. NOTE: The contents of the model list should not be considered stable or part of the public API, and are purposely left undocumented.
+\item if ret_nn = TRUE (or ret_extra contains "nn"), returns the nearest neighbor data as a list called nn. This contains one list for each metric calculated, itself containing a matrix idx with the integer ids of the neighbors; and a matrix dist with the distances. The nn list (or a sub-list) can be used as input to the nn_method parameter.
+}
 }
 \description{
 UMAP projection

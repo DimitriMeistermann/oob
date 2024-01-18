@@ -13,7 +13,7 @@ getMarkers(
 )
 }
 \arguments{
-\item{BPPARAM}{A BPPARAM object as return by `BiocParallel::bpparam()`. Use for multi-threading.}
+\item{BPPARAM}{A BPPARAM object as return by \code{BiocParallel::bpparam()}. Use for multi-threading.}
 
 \item{returnAsList}{Return a list where each element is dataframe containing the marker metrics of a group.}
 
