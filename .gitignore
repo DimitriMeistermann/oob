@@ -9,4 +9,5 @@ vignettes/*.html
 vignettes/*.md
 vignettes/functionalities_cache
 vignettes/functionalities_files
-.Rproj.user
+*.Rproj.user
+buildReadme.sh

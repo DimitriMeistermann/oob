@@ -1,10 +1,10 @@
 ---
 title: "Functionalities of oob"
 output:
-  html_document:
-    theme: united
   md_document:
     variant: markdown_github
+  html_document:
+    theme: united
 vignette: >
   %\VignetteIndexEntry{Functionalities of oob}
   %\VignetteEncoding{UTF-8}
@@ -215,7 +215,7 @@ For linking experimental variable to principal components we can perform a Princ
 
 ```{r}
 library(ggbeeswarm)
-resPC_aov<-PC_aov(PCAres,colData = sampleAnnot[,c("culture_media","line","passage")])
+resPC_aov<-PCaov(PCAres,colData = sampleAnnot[,c("culture_media","line","passage")])
 
 ggBorderedFactors(
     ggplot(resPC_aov,aes(x=PC,y=sumSqPercent,fill= feature))+

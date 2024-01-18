@@ -1,23 +1,37 @@
-# oob: a toolbox for analyzing OMIC data, Out Of Bounds of black boxes.
+# oob: a toolbox for analyzing OMIC data Out Of Bounds
 
-This package provide function for analyzing OMIC data, with a focus on plots, functional enrichment and bulk/single-cell RNA-Seq.
+This package provide function for analyzing OMIC data, with a focus on
+plots, functional enrichment and bulk/single-cell RNA-Seq.
 
 ## Installation
 
-In a R console: 
+In a R console:
 
-```{r}
-install.packages("devtools")
-devtools::install_github("https://github.com/DimitriMeistermann/oob")
-```
+    install.packages("devtools")
+    devtools::install_github("https://github.com/DimitriMeistermann/oob", build_vignettes = FALSE)
 
-*oob* needs also several python dependencies accessible in the environment used by *reticulate*, the R package for calling python functions. See [https://rstudio.github.io/reticulate/articles/python_packages.html](https://rstudio.github.io/reticulate/articles/python_packages.html) for more information on installation of python package via reticulate.
+For a manual installation of dependencies:
+
+    install.packages("BiocManager")
+    BiocManager::install(c('AnnotationDbi', 'batchelor', 'BiocGenerics', 'BiocManager', 
+        'BiocParallel', 'circlize', 'ComplexHeatmap', 'data.table', 'dbscan', 'doParallel', 
+        'fgsea', 'foreach', 'gage', 'ggbeeswarm', 'ggplot2', 'ggrepel', 'glmnet', 'impute', 'irlba', 'lsa', 
+        'preprocessCore', 'pvclust', 'qualpalr', 'reshape2', 'reticulate', 'rgl', 'scales', 
+        'scater', 'scattermore', 'scran', 'SingleCellExperiment', 'stringr', 'SummarizedExperiment', 
+        'uwot', 'WGCNA', 'Rcpp', 'RcppArmadillo','basilisk'
+    ))
+
+*oob* needs also several python dependencies accessible in the
+environment used by *reticulate*, the R package for calling python
+functions. See
+<https://rstudio.github.io/reticulate/articles/python_packages.html> for
+more information on installation of python package via reticulate.
 
 For a quick installation:
-```{r}
-reticulate::py_install(c("igraph","numpy","leidenalg","trimap"))
-```
-# Functionalities of oob
+
+    reticulate::py_install(c("numpy","leidenalg","trimap"))
+
+#Functionalities of oob
 
 ``` r
 library(oob)
@@ -41,27 +55,27 @@ rm(bulkLogCounts)
 bulkLogCounts<-fastRead("test/bulkLogCounts.tsv")
 chead(bulkLogCounts, n = 10) #quick view of bulkLogCounts
 #>        P3E07LSP32 R3E08MIP01 A3E09MIP20 A3E10MIP25 E3E11LEJ07 R3E12BJP01
-#> A1BG   0.70311583  0.7981704 0.04417057 0.04417057  2.6914589  1.5738654
-#> A2M    0.02562723  0.9958221 0.00000000 0.00000000  0.2449729  1.2846948
-#> A2ML1  1.06447312  1.1009993 0.37192313 1.20469965  0.3760282  1.6004505
-#> A4GALT 1.12459906  1.5890387 2.89358588 2.37015338  1.2442451  1.7533427
-#> AAAS   3.32941510  3.0880143 2.68105177 3.02374272  2.3443027  2.8622733
-#> AACS   2.06213339  1.3823012 1.06388398 1.66206973  1.0524799  1.8673946
-#> AADAT  0.11663456  1.2819229 1.02133893 0.18945316  2.1091299  1.7015816
-#> AAED1  1.22581448  1.0842666 0.00000000 0.00000000  1.6438880  0.7908939
-#> AAGAB  4.04133847  3.7013091 3.58888083 3.69933522  3.8789788  4.0597583
-#> AAK1   1.12317907  1.4225134 1.52507125 0.06215377  1.6695527  1.5750070
+#> A1BG       0.7031     0.7982     0.0442     0.0442     2.6915     1.5739
+#> A2M        0.0256     0.9958     0.0000     0.0000     0.2450     1.2847
+#> A2ML1      1.0645     1.1010     0.3719     1.2047     0.3760     1.6005
+#> A4GALT     1.1246     1.5890     2.8936     2.3702     1.2442     1.7533
+#> AAAS       3.3294     3.0880     2.6811     3.0237     2.3443     2.8623
+#> AACS       2.0621     1.3823     1.0639     1.6621     1.0525     1.8674
+#> AADAT      0.1166     1.2819     1.0213     0.1895     2.1091     1.7016
+#> AAED1      1.2258     1.0843     0.0000     0.0000     1.6439     0.7909
+#> AAGAB      4.0413     3.7013     3.5889     3.6993     3.8790     4.0598
+#> AAK1       1.1232     1.4225     1.5251     0.0622     1.6696     1.5750
 #>        R3F01BJP03 R3F02MIP03 K3F03BJP03 K3F04MIP04
-#> A1BG    0.7295571 1.37725177  0.9448242  1.3464639
-#> A2M     0.1162744 0.01568472  0.9305501  0.8830065
-#> A2ML1   1.3253064 0.36633977  1.2232372  0.3833525
-#> A4GALT  1.6791853 1.52361805  0.4104114  0.4420948
-#> AAAS    3.0137648 3.11649992  3.6051249  3.6173718
-#> AACS    2.0116491 1.29943543  1.4468129  0.0000000
-#> AADAT   1.4464764 1.21417666  1.8129321  1.1494385
-#> AAED1   0.7430431 0.01811825  0.6643979  0.9483879
-#> AAGAB   3.7633327 3.31431662  3.8736721  3.9129138
-#> AAK1    1.6062997 0.08245676  0.8749705  0.8957867
+#> A1BG       0.7296     1.3773     0.9448     1.3465
+#> A2M        0.1163     0.0157     0.9306     0.8830
+#> A2ML1      1.3253     0.3663     1.2232     0.3834
+#> A4GALT     1.6792     1.5236     0.4104     0.4421
+#> AAAS       3.0138     3.1165     3.6051     3.6174
+#> AACS       2.0116     1.2994     1.4468     0.0000
+#> AADAT      1.4465     1.2142     1.8129     1.1494
+#> AAED1      0.7430     0.0181     0.6644     0.9484
+#> AAGAB      3.7633     3.3143     3.8737     3.9129
+#> AAK1       1.6063     0.0825     0.8750     0.8958
 
 rn(bulkLogCounts)[1:10]
 #>  [1] "A1BG"   "A2M"    "A2ML1"  "A4GALT" "AAAS"   "AACS"   "AADAT"  "AAED1" 
@@ -196,6 +210,22 @@ feature so the new minimum is 0. `rowScale` scales a matrix in the same
 way than `scale`, but with rows as features, the common format for
 RNA-Seq.
 
+`aggregMatPerVector` is
+
+``` r
+data("sampleAnnot")
+aggregMatPerVector(bulkLogCounts[c(
+    'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
+),], sampleAnnot$culture_media)
+#>               E7    Fibro   KSR+FGF2  mTeSR1     RSeT   T2iLGO
+#> KHDC1L 2.2209000 1.484425 1.49697778 1.60990 5.553344 8.647927
+#> DNMT3L 2.5441500 1.417825 1.86412222 1.64406 5.764344 8.024754
+#> NLRP7  1.6627375 0.956650 0.83468889 0.97890 4.465220 6.317400
+#> SPIC   0.2433500 0.044725 0.08795556 0.36446 1.471476 3.400135
+#> OLAH   1.3360875 0.248050 0.31224444 0.75298 2.090316 3.762662
+#> MAGEB2 0.5168875 0.165325 0.26643333 0.62160 2.083200 3.695100
+```
+
 ## Normalization of RNA-Seq
 
 The package can perform several quick normalization methods. Let’s
@@ -205,47 +235,63 @@ names.
 ``` r
 data("geneLengthGRCh38") # vector of gene length for GRCh38 Human reference, named by gene symbols
 library(MASS)
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
+countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){ #generate a fake RNA-Seq dataset
     rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
+}))
+colnames(countMat)<-letters[1:ncol(countMat)];rownames(countMat)<-names(geneLengthGRCh38)
 chead(countMat)
-#>          [,1] [,2] [,3] [,4] [,5]
-#> TSPAN6     20    9   23   22   10
-#> TNMD       13   57   11   27   13
-#> DPM1        0    0    0    0    3
-#> SCYL3      25   10    6   11   10
-#> C1orf112   14   30   15   11   15
+#>           a  b  c  d  e
+#> TSPAN6   20  9 23 22 10
+#> TNMD     13 57 11 27 13
+#> DPM1      0  0  0  0  3
+#> SCYL3    25 10  6 11 10
+#> C1orf112 14 30 15 11 15
 
+#Quality control
+computeQCmetricSamples(countMat)
+#>       mean       sd        CV TotalGenEx TotalCount
+#> a 17.84183 18.53505 1.0388539      23804     446349
+#> b 17.83439 17.89979 1.0036672      23775     446163
+#> c 17.82716 17.89028 1.0035406      23764     445982
+#> d 17.85502 17.54812 0.9828118      23800     446679
+#> e 17.88184 18.96104 1.0603517      23775     447350
+#> f 17.81964 20.50809 1.1508696      23773     445794
+#> g 17.74733 17.75208 1.0002677      23794     443985
+#> h 17.73734 16.95955 0.9561496      23776     443735
+#> i 17.78247 17.15649 0.9647978      23818     444864
+#> j 17.80625 16.79565 0.9432443      23806     445459
+
+#Different kind of normalization
 CPM(countMat) |> chead() #Count Per Million normalization
-#>              [,1]      [,2]     [,3]     [,4]      [,5]
+#>                 a         b        c        d         e
 #> TSPAN6   44.80799  20.17200 51.57159 49.25237 22.353862
 #> TNMD     29.12519 127.75600 24.66467 60.44609 29.060020
 #> DPM1      0.00000   0.00000  0.00000  0.00000  6.706158
 #> SCYL3    56.00998  22.41333 13.45346 24.62619 22.353862
 #> C1orf112 31.36559  67.24000 33.63364 24.62619 33.530792
 normDeseq(countMat) |> chead() #DESeq2 normalization
-#>              [,1]      [,2]      [,3]     [,4]      [,5]
+#>                 a         b         c        d         e
 #> TSPAN6   19.40455  8.739744 22.259615 21.26538  9.684225
 #> TNMD     12.61296 55.351712 10.645903 26.09842 12.589492
 #> DPM1      0.00000  0.000000  0.000000  0.00000  2.905267
 #> SCYL3    24.25569  9.710827  5.806856 10.63269  9.684225
 #> C1orf112 13.58319 29.132480 14.517140 10.63269 14.526337
 quickSCnorm(countMat) |> chead() #Single-cell (scran) normalization (return log counts by default)
-#>              [,1]     [,2]     [,3]     [,4]     [,5]
+#>                 a        b        c        d        e
 #> TSPAN6   4.390121 3.320394 4.583889 4.520336 3.454398
 #> TNMD     3.805213 5.856305 3.583936 4.804103 3.802213
 #> DPM1     0.000000 0.000000 0.000000 0.000000 1.995848
 #> SCYL3    4.698222 3.457882 2.806395 3.581871 3.454398
 #> C1orf112 3.904738 4.952546 3.998950 3.581871 3.994809
 RPKM(countMat,gene.length = geneLengthGRCh38) |> chead() #Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.
-#>               [,1]      [,2]      [,3]      [,4]      [,5]
+#>                  a         b         c         d         e
 #> TSPAN6    9.880482  4.448071 11.371905 10.860501  4.929187
 #> TNMD     18.090181 79.351552 15.319672 37.544157 18.049702
 #> DPM1      0.000000  0.000000  0.000000  0.000000  5.556055
 #> SCYL3     8.137438  3.256332  1.954592  3.577827  3.247692
 #> C1orf112  5.256509 11.268644  5.636609  4.127063  5.619372
 TPMfullLength(countMat,gene.length = geneLengthGRCh38) |> chead() #Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.
-#>               [,1]      [,2]      [,3]      [,4]      [,5]
+#>                  a         b         c         d         e
 #> TSPAN6    7.623907  3.391072  8.785572  8.196325  3.864663
 #> TNMD     13.958616 60.495183 11.835491 28.334246 14.151627
 #> DPM1      0.000000  0.000000  0.000000  0.000000  4.356151
@@ -273,24 +319,24 @@ multiplot(
 )
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-8-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-9-1.png" width="100%" style="display: block; margin: auto;" />
 
 In the gene contribution plot, `pointdensity.nrd` is used for estimating
 the 2 density of points. `pcaAddSamples` is another PCA function than
 can be used to add new samples to the PCA.
 
 For linking experimental variable to principal components we can perform
-a Principal Component Regression.
+a Principal Component analysis of variance.
 
 ``` r
 library(ggbeeswarm)
-resPCR<-PCR(PCAres,annotationDF=sampleAnnot[,c("culture_media","line","passage")])
+resPC_aov<-PCaov(PCAres,colData = sampleAnnot[,c("culture_media","line","passage")])
 
 ggBorderedFactors(
-    ggplot(resPCR,aes(x=PC,y=Rsquared,fill=Annotation))+
+    ggplot(resPC_aov,aes(x=PC,y=sumSqPercent,fill= feature))+
         geom_beeswarm(pch=21,size=4,cex = 3)+
-        xlab("Principal component")+ylab("R²")+
-        scale_fill_manual(values = mostDistantColor(nlevels(resPCR$Annotation)))+
+        xlab("Principal component")+ylab("% Sum of Squares")+
+        scale_fill_manual(values = oobColors(nlevels(resPC_aov$feature)))+
         theme(
             panel.grid.major.y = element_line(colour = "grey75"),
             panel.grid.minor.y = element_line(colour = "grey75"),
@@ -299,7 +345,7 @@ ggBorderedFactors(
 )
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 The culture media seems to be linked here with PC 1 & 2. Note in the
 code the use of `mostDistantColor` for generating a color scale with
@@ -318,7 +364,7 @@ normCount<-2^(bulkLogCounts-1)
 dispData<-getMostVariableGenes(normCount,minCount=1)
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -341,27 +387,39 @@ plotted with `proj2d`.
 ``` r
 reducedSpace<-t(fastPCA(bulkLogCounts[overdispersedGenes,],nPC = 30)$x)
 chead(reducedSpace)
-#>       P3E07LSP32 R3E08MIP01 A3E09MIP20  A3E10MIP25 E3E11LEJ07
-#> PC1  -0.08257971   8.905660 -18.272932  -6.0898455  89.202064
-#> PC2  42.50372903   2.073332 -16.236971  -8.3071683 -13.399428
-#> PC3   1.07671253 -15.241568 -14.630581 -13.8937103  -0.384576
-#> PC4  -6.53775859  -3.562606   3.176775  -0.4744378  -4.071667
-#> PC5 -15.38914283   1.870450  -3.234487  -1.6699043  -5.840212
+#>       P3E07LSP32 R3E08MIP01 A3E09MIP20  A3E10MIP25  E3E11LEJ07
+#> PC1   0.08257998  -8.905635  18.272929   6.0898056 -89.2020967
+#> PC2  42.50375008   2.073339 -16.236969  -8.3071475 -13.3994248
+#> PC3   1.07668171 -15.241565 -14.630569 -13.8937491  -0.3845952
+#> PC4  -6.53768721  -3.562575   3.176719  -0.4743893  -4.0716714
+#> PC5 -15.38921203   1.870331  -3.234557  -1.6699761  -5.8401730
 coordNMDS<-NMDS(reducedSpace)
-#> initial  value 14.274926 
-#> final  value 14.261429 
+#> initial  value 14.274929 
+#> final  value 14.261433 
 #> converged
 coordUMAP<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace))
 coordTRIMAP<-TRIMAP(reducedSpace)
+#> TRIMAP(n_inliers=10, n_outliers=5, n_random=5, distance=euclidean, lr=1000.0, n_iters=400, weight_adj=500.0, apply_pca=True, opt_method=dbd, verbose=True, return_seq=False)
+#> running TriMap on 77 points with dimension 30
+#> pre-processing
+#> found nearest neighbors
+#> sampled triplets
+#> running TriMap with dbd
+#> Iteration:  100, Loss: 2.945, Violated triplets: 0.0695
+#> Iteration:  200, Loss: 2.801, Violated triplets: 0.0661
+#> Iteration:  300, Loss: 2.703, Violated triplets: 0.0638
+#> Iteration:  400, Loss: 2.636, Violated triplets: 0.0622
+#> Elapsed time: 0:00:00.338011
 
 multiplot(cols = 2,
+    pca2d(PCAres,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "PCA",ratioPerPercentVar = TRUE),
     proj2d(coordNMDS,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "NMDS",fixedCoord = TRUE),
     proj2d(coordUMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "UMAP",fixedCoord = TRUE),
     proj2d(coordTRIMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "TRIMAP",fixedCoord = TRUE)
 )
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-12-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-13-1.png" width="100%" style="display: block; margin: auto;" />
 
 The knn graph used can also be saved when computing the UMAP, and used
 for a community detection (Leiden) clustering.
@@ -369,43 +427,66 @@ for a community detection (Leiden) clustering.
 ``` r
 UMAPwithNN<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace),ret_nn = TRUE)
 sampleAnnot$leidenClusters<-leidenFromUMAP(UMAPwithNN)
-#> as(<dgCMatrix>, "dgTMatrix") is deprecated since Matrix 1.5-0; do as(., "TsparseMatrix") instead
+#> 'as(<dgCMatrix>, "dgTMatrix")' est obsolète.
+#> Utilisez plutôt ‘as(., "TsparseMatrix")’.
+#> Voir help("Deprecated") et help("Matrix-deprecated").
 
-proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,funAutoColorScale = mostDistantColor,
+proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,
              plotFactorsCentroids = TRUE,plotLabelRepel = TRUE,fixedCoord = TRUE, legendTitle = "Leiden cluster")
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
-We can then get the best marker per cluster with `getMarkers`, which use
-the `auroc` function for computing AUROCs marker scores.
+We now pick the best marker per cluster with `getMarkers`, which use the
+`auroc` function for computing marker scores, along with logFC and
+p-value.
 
 ``` r
 markerPerCluster<-getMarkers(bulkLogCounts[overdispersedGenes,],group = sampleAnnot$leidenClusters)
 chead(markerPerCluster)
-#>               k1        k2         k3
-#> A1BG   0.1554422 0.5826241 1.00000000
-#> A4GALT 0.9578231 0.1439716 0.28076923
-#> AAK1   0.4027211 0.4290780 0.81153846
-#> AARS2  0.8782313 0.2744681 0.19487179
-#> AASS   0.2734694 0.9744681 0.06923077
+#>            k1.lfc  k1.auroc  k1.score      k1.pval      k1.padj
+#> A1BG   -1.0768310 0.1554422 -1.389625 5.855828e-08 2.227316e-07
+#> A4GALT  1.1012386 0.9578231  1.969951 6.869410e-16 9.013024e-15
+#> AAK1   -0.1796876 0.4027211 -0.233799 1.857275e-01 2.166552e-01
+#> AARS2   0.8521467 0.8782313  1.428687 8.959301e-10 4.516654e-09
+#> AASS   -0.8434000 0.2734694 -0.827172 1.090721e-03 1.883973e-03
 ```
 
-Now we pick up the best markers per cluster, and plot some of them. Note
-the log10(n+1) scale accessible as a scale for any ggplot with
-`log10plus1`.
+Now we pick up the best marker per cluster, and plot them. Note the
+log10(n+1) scale accessible as a scale for any ggplot with `log10plus1`.
+`extractFeatureMarkerData` is used to extract one value per cluster per
+gene (by default the marker score).
 
 ``` r
-top20MarkerPerCluster<-apply(markerPerCluster, 2, function(x) rownames(markerPerCluster)[whichTop(x, top = 20)] ) |> data.frame() |> as.list()
+markerScorePerCluster<-extractFeatureMarkerData(markerPerCluster)
+head(markerScorePerCluster) #matrix of marker scores
+#>                k1         k2         k3
+#> A1BG   -1.3896249  0.0000000  2.6999342
+#> A4GALT  1.9699515 -1.3579995 -0.5425076
+#> AAK1   -0.2337990 -0.1989542  0.9002681
+#> AARS2   1.4286870 -0.6045051 -1.0212258
+#> AASS   -0.8271720  2.3471458 -1.6273016
+#> ABCA1   0.7786247 -1.1834598  0.3623288
+
+top20MarkerPerCluster<-apply(markerScorePerCluster, 2, function(x) rownames(markerPerCluster)[whichTop(x, top = 20)] ) |> data.frame() |> as.list()
 
 topGenePerCluster<-sapply(top20MarkerPerCluster,function(x) x[1])
 
 plotExpr(normCount[topGenePerCluster,],group = sampleAnnot$leidenClusters, legendTitle = "Leiden cluster")
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
 
-We then used those marker for plotting an heatmap.
+We then used those marker for plotting an heatmap with the dedicated
+function.
+
+``` r
+htMarker(bulkLogCounts,markerData = markerScorePerCluster,topn = 20 ,group = sampleAnnot$leidenClusters, colData = sampleAnnot[c("culture_media","line")])
+```
+
+<img src="vignettes/figure-markdown_github/unnamed-chunk-17-1.png" width="100%" style="display: block; margin: auto;" />
+Note that we can obtain the same result with more struggles using the
+more general function `heatmap.DM`:
 
 ``` r
 #convert the list to a factor
@@ -417,10 +498,13 @@ markEXpressionSubSampled<-subSampleColumnPerGroup(bulkLogCounts[names(top20Marke
 heatmap.DM(markEXpressionSubSampled, colData = sampleAnnot[cn(markEXpressionSubSampled),c("culture_media","line")],
     column_split=sampleAnnot[cn(markEXpressionSubSampled),"leidenClusters"],row_split=top20MarkerFactor,
     cluster_row_slices = FALSE, cluster_column_slices =FALSE)
-#> 
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-16-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-18-1.png" width="100%" style="display: block; margin: auto;" />
+
+``` r
+#> 
+```
 
 `autoGparFontSizeMatrix` is used by `heatmap.DM` to adjust row and
 column size to the number of samples / features. `heatmap.DM` is a
@@ -437,30 +521,39 @@ computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColo
     plotPalette()
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
 
 `computeColorScaleFun` can also return a ggplot scale if
 `returnGGscale`.
 
-*oob* features other functions for colors:
+*oob* features other functions for colors: - `oobColors`: Generate
+pretty and distinct values for a qualitative scale.
 
--   `ggplotColours`: generate the default colors of *ggplot2*
+-   `mostDistantColor`: Most distant theoretical color palette for a
+    qualitative scale (wrapper for *qualpal*).
+
+-   `ggplotColours`: generate the default colors of *ggplot2* for a
+    qualitative scale.
 
 -   `convertColorAdd2Sub`: Convert color from additive to subtracting
     mixing.
 
-`customUpsetPlot` is used to compare intersection between gene set with
-an additionnal value of ernrichment.
+Finally, `customUpsetPlot` is used to compare intersection between gene
+set with an additional value of enrichment. Here we compare the marker
+of unsupervised cluster and differential expression results between
+naive and primed pluripotency.
 
 ``` r
-lt = list(set1 = sample(letters, 5),
-                    set2 = sample(letters, 10),
-                    set3 = sample(letters, 15))
+sets = list(k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
+                    k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
+                    k3= rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
+                    primeVSnaiveUP=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="UPREG"],
+                    primeVSnaiveDOWN=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="DOWNREG"])
 
-customUpsetPlot(lt)
+richUpset(sets, universe = rn(markerPerCluster))
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-18-1.png" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-20-1.png" width="100%" style="display: block; margin: auto;" />
 
 `volcanoPlot.DESeq2` is designed to show the result of differential
 expression analysis in the most meaningful way.
@@ -470,142 +563,15 @@ data("DEgenesPrime_Naive")
 volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
 ```
 
-<img src="vignettes/figure-markdown_github/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
-
-## Clustering & correlation
-
-corGeneToOthers best.cutree adjMat2Pygraph hierarchicalClustering
-
-## Functionnal enrichment
-
-The other focus of *oob* is functionnal enrichment.
-
-First, we can download several gene set databases by using `getDBterms`.
-We will use here *kegg* and the ’Gene Ontology\* (biological process)
-
-``` r
-#species specific package will be load/asked for installation
-geneSetDB<-getDBterms(geneSym = rn(DEgenesPrime_Naive), species = "Human", database = c("kegg","goBP"))
-#> Gene ID type for 'human' is: 'EG'
-geneSetDB$kegg[1:2]
-#> $`hsa00970 Aminoacyl-tRNA biosynthesis`
-#>  [1] "FARSB"   "WARS2"   "FARS2"   "PSTK"    "MTFMT"   "TARS3"   "EARS2"  
-#>  [8] "AARS1"   "DARS1"   "EPRS1"   "FARSA"   "LARS2"   "HARS2"   "PARS2"  
-#> [15] "GARS1"   "GATC"    "HARS1"   "IARS1"   "KARS1"   "MARS1"   "TRNC"   
-#> [22] "TRNA"    "TRND"    "TRNE"    "TRNF"    "TRNG"    "TRNH"    "TRNI"   
-#> [29] "TRNK"    "TRNL1"   "TRNL2"   "TRNM"    "TRNN"    "TRNP"    "TRNQ"   
-#> [36] "TRNR"    "TRNS1"   "TRNS2"   "TRNT"    "TRNV"    "TRNW"    "TRNY"   
-#> [43] "NARS1"   "YARS2"   "SEPSECS" "LARS1"   "GATB"    "SARS2"   "DARS2"  
-#> [50] "QRSL1"   "IARS2"   "RARS2"   "VARS2"   "AARS2"   "QARS1"   "RARS1"  
-#> [57] "SARS1"   "TARS1"   "VARS1"   "WARS1"   "CARS2"   "NARS2"   "TARS2"  
-#> [64] "CARS1"   "YARS1"   "MARS2"  
-#> 
-#> $`hsa02010 ABC transporters`
-#>  [1] "ABCC5"  "ABCB6"  "ABCC9"  "ABCC4"  "ABCA7"  "ABCA10" "ABCA9"  "ABCA8" 
-#>  [9] "CFTR"   "ABCB8"  "ABCC2"  "ABCA13" "DEFB1"  "ABCA1"  "ABCA2"  "ABCA3" 
-#> [17] "ABCD1"  "ABCB7"  "ABCD2"  "ABCB10" "ABCB9"  "ABCA6"  "ABCA5"  "ABCA4" 
-#> [25] "ABCA12" "ABCB5"  "ABCC6"  "ABCC1"  "ABCB1"  "ABCB4"  "ABCD3"  "ABCD4" 
-#> [33] "ABCG4"  "ABCG5"  "ABCG8"  "ABCC8"  "TAP1"   "TAP2"   "ABCC11" "ABCB11"
-#> [41] "ABCC3"  "ABCC10" "ABCC12" "ABCG2"  "ABCG1"
-```
-
-Then we can make a simple over representation analysis.
-
-``` r
-vectorIsDE<-DEgenesPrime_Naive$isDE!="NONE";names(vectorIsDE)<-rownames(DEgenesPrime_Naive)
-resEnrich<-enrich.ora(vectorIsDE,db_terms = geneSetDB)
-head(resEnrich[whichTop(resEnrich$pval,decreasing = FALSE),])
-#>                                                                                           term
-#> goBP.GO:0006525 arginine metabolic process               GO:0006525 arginine metabolic process
-#> goBP.GO:0016054 organic acid catabolic process       GO:0016054 organic acid catabolic process
-#> goBP.GO:0046395 carboxylic acid catabolic process GO:0046395 carboxylic acid catabolic process
-#> goBP.GO:0010273 detoxification of copper ion           GO:0010273 detoxification of copper ion
-#> goBP.GO:1990169 stress response to copper ion         GO:1990169 stress response to copper ion
-#>                                                           pval nGeneOfInterest
-#> goBP.GO:0006525 arginine metabolic process        0.0001473692              11
-#> goBP.GO:0016054 organic acid catabolic process    0.0002180845              64
-#> goBP.GO:0046395 carboxylic acid catabolic process 0.0002365888              63
-#> goBP.GO:0010273 detoxification of copper ion      0.0002511642               9
-#> goBP.GO:1990169 stress response to copper ion     0.0002511642               9
-#>                                                   nGene database      padj
-#> goBP.GO:0006525 arginine metabolic process           20     goBP 0.6501636
-#> goBP.GO:0016054 organic acid catabolic process      242     goBP 0.6501636
-#> goBP.GO:0046395 carboxylic acid catabolic process   238     goBP 0.6501636
-#> goBP.GO:0010273 detoxification of copper ion         15     goBP 0.6501636
-#> goBP.GO:1990169 stress response to copper ion        15     goBP 0.6501636
-```
-
-Or a functional class scoring by building first a score for each gene
-based on p-value with the sign of the Log2(Fold-change).
-
-``` r
-fcsScore<-fcsScoreDEgenes(rownames(DEgenesPrime_Naive),DEgenesPrime_Naive$pvalue,DEgenesPrime_Naive$log2FoldChange)
-resEnrich<-enrich.fcs(fcsScore,db_terms = geneSetDB,returnGenes = TRUE) #return genes of the gene set in the dataframe
-head(resEnrich[whichTop(resEnrich$pval,decreasing = FALSE),])
-#>                                            pathway         pval         padj
-#> 1:                  GO:0042254 ribosome biogenesis 8.033497e-17 9.814523e-13
-#> 2: GO:0022613 ribonucleoprotein complex biogenesis 1.518170e-15 9.273738e-12
-#> 3:           GO:0007005 mitochondrion organization 5.816227e-15 2.368562e-11
-#> 4:                      GO:0006364 rRNA processing 1.444752e-12 4.412633e-09
-#> 5:              hsa00190 Oxidative phosphorylation 2.802098e-12 6.846646e-09
-#>      log2err        ES      NES size database
-#> 1: 1.0574636 0.3997234 2.478536  288     goBP
-#> 2: 1.0175448 0.3510926 2.270873  391     goBP
-#> 3: 0.9969862 0.3273475 2.158635  471     goBP
-#> 4: 0.9101197 0.3990798 2.409937  215     goBP
-#> 5: 0.8986712 0.5066084 2.687244  103     kegg
-#>                                                  genes
-#> 1:               BYSL,C1QBP,DDX3X,DDX10,DKC1,ERCC2,...
-#> 2:                  ATM,ATR,BYSL,C1QBP,CLNS1A,DDX1,...
-#> 3:        PARP1,AKT1,SLC25A4,SLC25A5,SLC25A6,ARRB2,...
-#> 4:                  BYSL,DDX10,DKC1,ERCC2,FBL,FRG1,...
-#> 5: NDUFC2-KCTD14,COX17,TCIRG1,ATP5PD,ATP5MG,UQCR11,...
-
-# The result can be visualized as a volcano plot
-library(ggrepel)
-
-ggplot(resEnrich,aes(x=NES,y=-log10(padj),color=padj<0.05))+
-    geom_point()+theme_bw()+scale_color_manual(values=c("grey75","black"))+
-    geom_text_repel(data = resEnrich[whichTop(resEnrich$pval,top = 15,decreasing = FALSE),],
-    aes(x=NES,y=-log10(padj),label=pathway), inherit.aes = FALSE,color="grey50")
-```
-
-<img src="vignettes/figure-markdown_github/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
-
-``` r
-
-#export enrichment with the genes of each gene set
-exportEnrich(resEnrich,"test/resEnrich.tsv")
-```
-
-We can also perform an enrichment based on gene set differential
-activation with `GSDA`.
-
-GSDA was developed independently from
-[GSVA](https://bioconductor.org/packages/release/bioc/html/GSVA.html)
-but is has the exact same idea of working on a matrix of gene set
-scores.
-
-``` r
-geneSetActivScore<-computeActivationScore(bulkLogCounts,db_terms = geneSetDB["kegg"])
-resGSDA<-GSDA(geneSetActivScore = geneSetActivScore,colData = sampleAnnot,contrast = c("culture_media","T2iLGO","KSR+FGF2"),db_terms = geneSetDB["kegg"])
-bestPathay<-whichTop(resGSDA$padj,top = 30,decreasing = FALSE)
-
-library(ComplexHeatmap)
-
-heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=FALSE,
-    name = "Activation score",preSet = NULL,colData = sampleAnnot["culture_media"],
-    right_annotation=rowAnnotation("gene contribution" =
-        GSDA.HeatmapAnnot(contributions = geneSetActivScore$kegg$contribution[bestPathay],width = unit(12,"cm"),fontsizeFactor = 300)
-    ),
-    row_names_side ="left",row_dend_side ="left",
-    row_names_max_width = unit(8, "inches"),autoFontSizeRow=FALSE,row_names_gp=gpar(fontsize=1/length(bestPathay)*300)
-)
-```
-
-<img src="vignettes/figure-markdown_github/unnamed-chunk-23-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="vignettes/figure-markdown_github/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
 
 ## Other utilities functions:
+
+-   `corGeneToOthers` : Compute the correlation of a gene to all other genes in a matrix.
+
+-      `best.cutree`: Find the best cutree for a hierarchical clustering.
+
+-      `hierarchicalClustering`: Hierarchical clustering from a matrix.
 
 -   `supprNAnames`: Delete row/column in a matrix/df with NA
     row/colnames
@@ -631,3 +597,111 @@ heatmap.DM(geneSetActivScore$kegg$eigen[bestPathay,],midColorIs0 = TRUE,center=F
 
 -   `matrixFromDimnames`: Return the row and column index (2D
     coordinate) from a 1D coordinate in a matrix.
+
+## Session info
+
+``` r
+sessionInfo()
+#> R version 4.3.2 (2023-10-31 ucrt)
+#> Platform: x86_64-w64-mingw32/x64 (64-bit)
+#> Running under: Windows 11 x64 (build 22621)
+#> 
+#> Matrix products: default
+#> 
+#> 
+#> locale:
+#> [1] LC_COLLATE=French_France.utf8  LC_CTYPE=French_France.utf8   
+#> [3] LC_MONETARY=French_France.utf8 LC_NUMERIC=C                  
+#> [5] LC_TIME=French_France.utf8    
+#> 
+#> time zone: Europe/Helsinki
+#> tzcode source: internal
+#> 
+#> attached base packages:
+#> [1] stats     graphics  grDevices utils     datasets  methods   base     
+#> 
+#> other attached packages:
+#> [1] ggbeeswarm_0.7.2 MASS_7.3-60.0.1  ggplot2_3.4.4    oob_0.9.0       
+#> 
+#> loaded via a namespace (and not attached):
+#>   [1] splines_4.3.2               batchelor_1.18.1           
+#>   [3] bitops_1.0-7                filelock_1.0.3             
+#>   [5] tibble_3.2.1                basilisk.utils_1.14.1      
+#>   [7] preprocessCore_1.64.0       rpart_4.1.23               
+#>   [9] lifecycle_1.0.4             fastcluster_1.2.6          
+#>  [11] edgeR_4.0.9                 doParallel_1.0.17          
+#>  [13] rprojroot_2.0.4             lattice_0.22-5             
+#>  [15] qualpalr_0.4.4              backports_1.4.1            
+#>  [17] SnowballC_0.7.1             magrittr_2.0.3             
+#>  [19] limma_3.58.1                Hmisc_5.1-1                
+#>  [21] rmarkdown_2.25              yaml_2.3.8                 
+#>  [23] metapod_1.10.1              reticulate_1.34.0          
+#>  [25] DBI_1.2.1                   RColorBrewer_1.1-3         
+#>  [27] ResidualMatrix_1.12.0       abind_1.4-5                
+#>  [29] zlibbioc_1.48.0             GenomicRanges_1.54.1       
+#>  [31] BiocGenerics_0.48.1         RCurl_1.98-1.14            
+#>  [33] rgl_1.2.8                   nnet_7.3-19                
+#>  [35] rappdirs_0.3.3              circlize_0.4.15            
+#>  [37] GenomeInfoDbData_1.2.11     IRanges_2.36.0             
+#>  [39] S4Vectors_0.40.2            ggrepel_0.9.5              
+#>  [41] irlba_2.3.5.1               dqrng_0.3.2                
+#>  [43] DelayedMatrixStats_1.24.0   codetools_0.2-19           
+#>  [45] DelayedArray_0.28.0         scuttle_1.12.0             
+#>  [47] tidyselect_1.2.0            shape_1.4.6                
+#>  [49] farver_2.1.1                randtoolbox_2.0.4          
+#>  [51] ScaledMatrix_1.10.0         viridis_0.6.4              
+#>  [53] matrixStats_1.2.0           stats4_4.3.2               
+#>  [55] dynamicTreeCut_1.63-1       base64enc_0.1-3            
+#>  [57] jsonlite_1.8.8              GetoptLong_1.0.5           
+#>  [59] BiocNeighbors_1.20.2        Formula_1.2-5              
+#>  [61] survival_3.5-7              scater_1.30.1              
+#>  [63] iterators_1.0.14            foreach_1.5.2              
+#>  [65] dbscan_1.1-12               tools_4.3.2                
+#>  [67] Rcpp_1.0.12                 glue_1.7.0                 
+#>  [69] gridExtra_2.3               SparseArray_1.2.3          
+#>  [71] xfun_0.41                   here_1.0.1                 
+#>  [73] MatrixGenerics_1.14.0       GenomeInfoDb_1.38.5        
+#>  [75] dplyr_1.1.4                 withr_3.0.0                
+#>  [77] fastmap_1.1.1               basilisk_1.14.2            
+#>  [79] bluster_1.12.0              fansi_1.0.6                
+#>  [81] digest_0.6.34               rsvd_1.0.5                 
+#>  [83] R6_2.5.1                    colorspace_2.1-0           
+#>  [85] Cairo_1.6-2                 scattermore_1.2            
+#>  [87] GO.db_3.18.0                RSQLite_2.3.4              
+#>  [89] utf8_1.2.4                  generics_0.1.3             
+#>  [91] data.table_1.14.10          FNN_1.1.4                  
+#>  [93] httr_1.4.7                  htmlwidgets_1.6.4          
+#>  [95] S4Arrays_1.2.0              rngWELL_0.10-9             
+#>  [97] uwot_0.1.16                 pkgconfig_2.0.3            
+#>  [99] gtable_0.3.4                blob_1.2.4                 
+#> [101] ComplexHeatmap_2.18.0       impute_1.76.0              
+#> [103] SingleCellExperiment_1.24.0 XVector_0.42.0             
+#> [105] htmltools_0.5.7             clue_0.3-65                
+#> [107] scales_1.3.0                Biobase_2.62.0             
+#> [109] png_0.1-8                   scran_1.30.1               
+#> [111] knitr_1.45                  rstudioapi_0.15.0          
+#> [113] reshape2_1.4.4              rjson_0.2.21               
+#> [115] checkmate_2.3.1             cachem_1.0.8               
+#> [117] GlobalOptions_0.1.2         stringr_1.5.1              
+#> [119] parallel_4.3.2              vipor_0.4.7                
+#> [121] foreign_0.8-86              AnnotationDbi_1.64.1       
+#> [123] pillar_1.9.0                grid_4.3.2                 
+#> [125] vctrs_0.6.5                 lsa_0.73.3                 
+#> [127] BiocSingular_1.18.0         beachmat_2.18.0            
+#> [129] cluster_2.1.6               beeswarm_0.4.0             
+#> [131] htmlTable_2.4.2             evaluate_0.23              
+#> [133] cli_3.6.2                   locfit_1.5-9.8             
+#> [135] compiler_4.3.2              rlang_1.1.3                
+#> [137] crayon_1.5.2                labeling_0.4.3             
+#> [139] RcppArmadillo_0.12.6.6.1    plyr_1.8.9                 
+#> [141] stringi_1.8.3               viridisLite_0.4.2          
+#> [143] WGCNA_1.72-5                BiocParallel_1.36.0        
+#> [145] assertthat_0.2.1            munsell_0.5.0              
+#> [147] Biostrings_2.70.1           glmnet_4.1-8               
+#> [149] Matrix_1.6-5                dir.expiry_1.10.0          
+#> [151] sparseMatrixStats_1.14.0    bit64_4.0.5                
+#> [153] KEGGREST_1.42.0             statmod_1.5.0              
+#> [155] SummarizedExperiment_1.32.0 highr_0.10                 
+#> [157] igraph_1.6.0                memoise_2.0.1              
+#> [159] bit_4.0.5
+```
