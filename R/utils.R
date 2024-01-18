@@ -10,32 +10,32 @@
 #' gmean(c(0,2,3),keepZero = TRUE)
 #' gmean(c(0,2,3),keepZero = FALSE)
 gmean<-function(x, keepZero=TRUE){ #geometrical mean
-	if(sum(x)==0) return(0)
-	if(!keepZero){
-		x<-x[x!=0]
-	}else{
-		if(length(which(x==0))>0) return(0)
-	}
-	return( exp( sum(log(x))/length(x) ) )
+    if(sum(x)==0) return(0)
+    if(!keepZero){
+        x<-x[x!=0]
+    }else{
+        if(length(which(x==0))>0) return(0)
+    }
+    return( exp( sum(log(x))/length(x) ) )
 }
 
 #' Get the precise random seed state
 #' @export
 getRandState <- function() {
-	# Using `get0()` here to have `NULL` output in case object doesn't exist.
-	# Also using `inherits = FALSE` to get value exactly from global environment
-	# and not from one of its parent.
-	get0(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    # Using `get0()` here to have `NULL` output in case object doesn't exist.
+    # Also using `inherits = FALSE` to get value exactly from global environment
+    # and not from one of its parent.
+    get0(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
 }
 
 #' Set the precise random seed state
 #' @param state Object saved by getRandState
 #' @export
 setRandState <- function(state) {
-	# Assigning `NULL` state might lead to unwanted consequences
-	if (!is.null(state)) {
-		assign(".Random.seed", state, envir = .GlobalEnv, inherits = FALSE)
-	}
+    # Assigning `NULL` state might lead to unwanted consequences
+    if (!is.null(state)) {
+        assign(".Random.seed", state, envir = .GlobalEnv, inherits = FALSE)
+    }
 }
 
 #' Coefficient of variation
@@ -47,7 +47,7 @@ setRandState <- function(state) {
 #' @examples
 #' cv(c(1,2,3,4))
 cv<-function(x){
-	return(sd(x)/mean(x));
+    return(sd(x)/mean(x));
 }
 
 #' Coefficient of variation of squared mean and sd
@@ -59,7 +59,7 @@ cv<-function(x){
 #' @examples
 #' cv2(c(1,2,3,4))
 cv2<-function(x){
-	return(sd(x)^2/mean(x)^2);
+    return(sd(x)^2/mean(x)^2);
 }
 
 #' Standard mean error
@@ -72,7 +72,7 @@ cv2<-function(x){
 #' @examples
 #' se(c(1,2,3,4))
 se<-function(x){ #
-	return(sd(x)/sqrt(length(x)));
+    return(sd(x)/sqrt(length(x)));
 }
 
 
@@ -85,8 +85,8 @@ se<-function(x){ #
 #' @examples
 #' uncenter(-5:5)
 uncenter<-function(x){
-	#transform vector to have no negative value
-	return(x+abs(min(x)));
+    #transform vector to have no negative value
+    return(x+abs(min(x)));
 }
 
 #' Take first element of multiple values in a vector
@@ -105,14 +105,14 @@ uncenter<-function(x){
 #' takefirst(a)
 #' takefirst(a,returnIndex = TRUE)
 takefirst<-function(x,returnIndex=FALSE){
-	uniqDat<-unique(x)
-	caseUniq<-c()
-	for(i in uniqDat) caseUniq<-c(caseUniq,which(i==x)[1])
-	if(returnIndex){
-		return(caseUniq)
-	}else{
-		return(x[caseUniq])
-	}
+    uniqDat<-unique(x)
+    caseUniq<-c()
+    for(i in uniqDat) caseUniq<-c(caseUniq,which(i==x)[1])
+    if(returnIndex){
+        return(caseUniq)
+    }else{
+        return(x[caseUniq])
+    }
 }
 
 
@@ -125,22 +125,22 @@ takefirst<-function(x,returnIndex=FALSE){
 #' @return A single numeric value.
 #' @export
 #' @examples
-#' Mode(c(1:10,3))
+#' Mode(c(seq_len(10),3))
 #'
 Mode <- function(x) {
-	### Initial Checks
-	if(missing(x)) stop("The x argument is required.")
-	if(!is.vector(x)) x <- as.vector(x)
-	x <- x[is.finite(x)]
-	### Discrete
-	if(all(x == round(x))) {
-		Mode <- as.numeric(names(which.max(table(x))))
-	} else {
-		### Continuous (using kernel density)
-		x <- as.vector(as.numeric(as.character(x)))
-		kde <- density(x)
-		Mode <- kde$x[kde$y == max(kde$y)]}
-	return(Mode)
+    ### Initial Checks
+    if(missing(x)) stop("The x argument is required.")
+    if(!is.vector(x)) x <- as.vector(x)
+    x <- x[is.finite(x)]
+    ### Discrete
+    if(all(x == round(x))) {
+        Mode <- as.numeric(names(which.max(table(x))))
+    } else {
+        ### Continuous (using kernel density)
+        x <- as.vector(as.numeric(as.character(x)))
+        kde <- density(x)
+        Mode <- kde$x[kde$y == max(kde$y)]}
+    return(Mode)
 }
 
 
@@ -151,9 +151,9 @@ Mode <- function(x) {
 #' @return A string ready to be copied and embedded as R code.
 #' @export
 #' @examples
-#' copyReadyVector(1:5)
+#' copyReadyVector(seq_len(5))
 copyReadyVector<-function(x){
-	paste0("c('",paste0(x,collapse = "','"),"')")
+    paste0("c('",paste0(x,collapse = "','"),"')")
 }
 
 
@@ -170,9 +170,9 @@ copyReadyVector<-function(x){
 #' @examples
 #' make.unique2(c("a", "a", "b"))
 make.unique2<-function(sample.name,sep="."){
-	counts=table(as.factor(sample.name))
-	nmRep<-sapply(as.list(counts),function(x) 1:x)
-	paste0(rep(names(nmRep),counts),sep,as.character(unlist(nmRep,use.names = F)))[order(sample.name)[order(sample.name)]]
+    counts=table(as.factor(sample.name))
+    nmRep<-sapply(as.list(counts),function(x) seq_len(x))
+    paste0(rep(names(nmRep),counts),sep,as.character(unlist(nmRep,use.names = F)))[order(sample.name)[order(sample.name)]]
 }
 
 #' String split with chosen returned element
@@ -190,8 +190,8 @@ make.unique2<-function(sample.name,sep="."){
 #' strsplitNth(c("ax1","bx2"), "x",1)
 #' strsplitNth(c("ax1","bx2"), "x",2)
 strsplitNth<-function(x, split, n=1, fixed=FALSE, perl=FALSE, useBytes=FALSE){
-	res<-strsplit(x, split, fixed, perl, useBytes)
-	sapply(res,function(el){ el[n] })
+    res<-strsplit(x, split, fixed, perl, useBytes)
+    sapply(res,function(el){ el[n] })
 }
 
 
@@ -203,11 +203,11 @@ strsplitNth<-function(x, split, n=1, fixed=FALSE, perl=FALSE, useBytes=FALSE){
 #' @return A charactervector.
 #' @export
 #' @examples
-#' formatNumber2Character(1:10)
-#' formatNumber2Character(1:10,digit = 4)
+#' formatNumber2Character(seq_len(10))
+#' formatNumber2Character(seq_len(10),digit = 4)
 formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
-	x<-as.character(x)
-	sapply(as.list(x),function(el){ paste0(paste0(rep("0",digit-nchar(el)),collapse = ""),el) })
+    x<-as.character(x)
+    sapply(as.list(x),function(el){ paste0(paste0(rep("0",digit-nchar(el)),collapse = ""),el) })
 }
 
 
@@ -220,16 +220,16 @@ formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
 #' @export
 #' @examples
 #' x<-factor(c("a","a","b","b","c","c","c"))
-#' names(x)<-paste0("x",1:7)
+#' names(x)<-paste0("x",seq_len(7))
 #' factorToVectorList(x)
 #'
 #' @seealso VectorListToFactor
 factorToVectorList<-function(factorValues,factorNames=NULL){
-	if(is.null(factorNames)) factorNames<-names(factorValues)
-	if(is.character(factorValues)) factorValues<-as.factor(factorValues)
-	res<-lapply(levels(factorValues),function(x) factorNames[factorValues==x])
-	names(res)<-levels(factorValues)
-	res
+    if(is.null(factorNames)) factorNames<-names(factorValues)
+    if(is.character(factorValues)) factorValues<-as.factor(factorValues)
+    res<-lapply(levels(factorValues),function(x) factorNames[factorValues==x])
+    names(res)<-levels(factorValues)
+    res
 }
 
 #'  Convert a list to a named factor vector
@@ -244,10 +244,10 @@ factorToVectorList<-function(factorValues,factorNames=NULL){
 #'
 #' @seealso factorToVectorList
 VectorListToFactor<-function(listOfVector){
-	res<-factor(unlist(lapply(seq_along(listOfVector),function(i) rep(names(listOfVector)[i],length(listOfVector[[i]])))),
-							levels=names(listOfVector))
-	names(res)<-unlist(listOfVector)
-	res
+    res<-factor(unlist(lapply(seq_along(listOfVector),function(i) rep(names(listOfVector)[i],length(listOfVector[[i]])))),
+                            levels=names(listOfVector))
+    names(res)<-unlist(listOfVector)
+    res
 }
 
 
@@ -263,27 +263,27 @@ VectorListToFactor<-function(listOfVector){
 #' @export
 #'
 #' @examples
-#' oldValues<-1:10
+#' oldValues<-seq_len(10)
 #' linearScale(oldValues,c(0,1),returnFunction = FALSE)
 #' scaleFun<-linearScale(c(1,10),c(0,1),returnFunction = TRUE)
 #' scaleFun(oldValues)
 linearScale <- function(vals,newRange,returnFunction = TRUE) {
-	if(!is.numeric(vals)) stop("x should be a vector of numerics")
-	if(length(newRange)!=2 | !is.numeric(newRange)) stop("newRange should be a vector of 2 numerics")
+    if(!is.numeric(vals)) stop("x should be a vector of numerics")
+    if(length(newRange)!=2 | !is.numeric(newRange)) stop("newRange should be a vector of 2 numerics")
 
-	oldMin<-min(vals)
-	oldMax<-max(vals)
-	newMin<-newRange[1]
-	newMax<-newRange[2]
+    oldMin<-min(vals)
+    oldMax<-max(vals)
+    newMin<-newRange[1]
+    newMax<-newRange[2]
 
-	mfac<-(newMax-newMin)/(oldMax-oldMin)
-	scaleFun<-function(x) newMin+(x-oldMin)*mfac
+    mfac<-(newMax-newMin)/(oldMax-oldMin)
+    scaleFun<-function(x) newMin+(x-oldMin)*mfac
 
-	if(returnFunction){
-		scaleFun
-	}else{
-		scaleFun(vals)
-	}
+    if(returnFunction){
+        scaleFun
+    }else{
+        scaleFun(vals)
+    }
 }
 
 #' Return ordered index of element with top n value.
@@ -301,7 +301,7 @@ linearScale <- function(vals,newRange,returnFunction = TRUE) {
 #' whichTop(x,top=3)
 #' whichTop(x,decreasing=FALSE)
 whichTop<-function(x, top=5, decreasing=TRUE){
-	order(x,decreasing = decreasing)[1:top]
+    order(x,decreasing = decreasing)[seq_len(top)]
 }
 
 #alias

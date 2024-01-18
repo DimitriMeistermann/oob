@@ -25,8 +25,8 @@ Add new samples to an existing PCA.
 data("iris")
 iris1<-iris[1:75,]
 iris2<-iris[76:150,]
-pca<-PCA(iris1[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
+pca<-PCA(iris1[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
 pca2d(pca,colorBy = iris1$Species)
-pcaUpdated<-pcaAddSamples(pca,iris2[,1:4],transpose = FALSE)
+pcaUpdated<-pcaAddSamples(pca,iris2[,seq_len(4)],transpose = FALSE)
 pca2d(pcaUpdated,colorBy = iris$Species)
 }

@@ -1,9 +1,8 @@
 Package: oob
 Type: Package
-Title: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box.
+Title: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box
 Version: 0.9.0
 Authors@R: person("Dimitri", "Meistermann", email = "dimitri.meistermann@helsinki.fi",role = c("aut", "cre"), comment=c(ORCID="0000-0001-6614-2325"))
-Maintainer: Dimitri Meistermann <dimitri.mn@outlook.fr>
 Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -16,6 +15,7 @@ RoxygenNote: 7.3.0
 Roxygen: list(markdown = TRUE)
 Imports:
     AnnotationDbi,
+    basilisk,
     batchelor,
     BiocGenerics,
     BiocManager,
@@ -45,6 +45,8 @@ Imports:
     reshape2,
     reticulate,
     rgl,
+    Rcpp,
+    RcppArmadillo,
     scales,
     scater,
     scattermore,
@@ -56,9 +58,10 @@ Imports:
     WGCNA
 Suggests: 
     knitr,
-    rmarkdown,
-    reactome.db
+    rmarkdown
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,
     RcppArmadillo
+URL: https://github.com/DimitriMeistermann/oob
+BugReports: https://github.com/DimitriMeistermann/oob/issues

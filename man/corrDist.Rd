@@ -19,5 +19,5 @@ Compute correlation distance
 }
 \examples{
 data("iris")
-corrDist(t(iris[,1:3]))
+corrDist(t(iris[,seq_len(3)]))
 }

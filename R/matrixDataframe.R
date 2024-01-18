@@ -12,11 +12,11 @@
 #' @examples
 #' rowScale(matrix(rnorm(100),ncol = 5))
 rowScale <- function(data,
-										 center = TRUE,
-										 scaled = FALSE) {
-	data <- t(data)
-	data <- t(scale(data, center = center, scale = scaled))
-	return(data)
+                                         center = TRUE,
+                                         scaled = FALSE) {
+    data <- t(data)
+    data <- t(scale(data, center = center, scale = scaled))
+    return(data)
 }
 
 #' Print first columns and rows of a matrix/d
@@ -31,7 +31,7 @@ rowScale <- function(data,
 #' data("sampleAnnot")
 #' chead(sampleAnnot)
 chead <- function(x, n = 5) {
-	print(x[1:min(n, nrow(x)), 1:min(n, ncol(x))])
+    print(x[seq_len(min(n, nrow(x))), seq_len(min(n, ncol(x)))])
 }
 
 #' Compute correlation distance
@@ -44,11 +44,11 @@ chead <- function(x, n = 5) {
 #'
 #' @examples
 #' data("iris")
-#' corrDist(t(iris[,1:3]))
+#' corrDist(t(iris[,seq_len(3)]))
 corrDist <- function(x, method = "pearson") {
-	return(as.dist((1 - cor(
-		Matrix::t(x), method = method
-	)) / 2))
+    return(as.dist((1 - cor(
+        Matrix::t(x), method = method
+    )) / 2))
 }
 
 #' Compute cosine distance
@@ -60,11 +60,11 @@ corrDist <- function(x, method = "pearson") {
 #'
 #' @examples
 #' data("iris")
-#' cosineDist(t(iris[,1:3]))
+#' cosineDist(t(iris[,seq_len(3)]))
 cosineDist<-function(x){
-	1 - lsa::cosine(
-		Matrix::t(x)
-	) |> as.dist()
+    1 - lsa::cosine(
+        Matrix::t(x)
+    ) |> as.dist()
 }
 
 
@@ -79,11 +79,11 @@ cosineDist<-function(x){
 #'
 #' @examples
 #' data("iris")
-#' corrDistBicor(t(iris[,1:3]))
+#' corrDistBicor(t(iris[,seq_len(3)]))
 corrDistBicor <- function(x) {
-	return(as.dist((1 - suppressWarnings(
-		WGCNA::bicor(Matrix::t(x))
-	)) / 2))
+    return(as.dist((1 - suppressWarnings(
+        WGCNA::bicor(Matrix::t(x))
+    )) / 2))
 }
 
 #' Compute covariance distance
@@ -95,12 +95,12 @@ corrDistBicor <- function(x) {
 #'
 #' @examples
 #' data("iris")
-#' covDist(t(iris[,1:3]))
+#' covDist(t(iris[,seq_len(3)]))
 covDist<-function(x){
-	x<-cov(
-		Matrix::t(x)
-	)
-	max(x)-x |> as.dist()
+    x<-cov(
+        Matrix::t(x)
+    )
+    max(x)-x |> as.dist()
 }
 
 
@@ -116,18 +116,18 @@ covDist<-function(x){
 #'
 #' @examples
 #' data("bulkLogCounts")
+#' data("humanGeneIDtable")
 #' geneSym<-rownames(bulkLogCounts)
-#' speciesData<-getSpeciesData()
-#' geneEntrez<-ConvertKey(geneSym,tabKey = speciesData$GeneIdTable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+#' geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 ConvertKey <- function(keyList,
-											 tabKey,
-											 colOldKey = 1,
-											 colNewKey = 2) {
-	hashCorr <- tabKey[, colNewKey]
-	names(hashCorr) <- tabKey[, colOldKey]
-	returned <- hashCorr[keyList]
-	names(returned) <- NULL
-	return(as.character(returned))
+                        tabKey,
+                        colOldKey = 1,
+                        colNewKey = 2) {
+    hashCorr <- tabKey[, colNewKey]
+    names(hashCorr) <- tabKey[, colOldKey]
+    returned <- hashCorr[keyList]
+    names(returned) <- NULL
+    return(as.character(returned))
 }
 
 #' Convert rownames from a matrix/df from one ID type to another.
@@ -145,35 +145,35 @@ ConvertKey <- function(keyList,
 #'
 #' @examples
 #' data("bulkLogCounts")
-#' speciesData<-getSpeciesData()
-#' bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = speciesData$GeneIdTable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+#' data("humanGeneIDtable")
+#' bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 ConvertKeyMatrix <-
-	function(tab,
-					 tabKey,
-					 colOldKey = 1,
-					 colNewKey = 2,
-					 first = TRUE,
-					 dim = 1,
-					 fun) {
-		if (dim == 2)
-			tab <- t(tab)
-		keyList <- rownames(tab)
-		newkey <- ConvertKey(keyList, tabKey, colOldKey, colNewKey)
-		names(newkey) <- as.character(1:length(newkey))
-		if (first) {
-			newkey <- newkey[which(!is.na(newkey))]
-			newkey <- takefirst(newkey)
-			tab <- tab[as.numeric(names(newkey)), ]
-			rownames(tab) <- newkey
-		} else{
-			tab <- tab[which(!is.na(newkey)), ]
-			newkey <- newkey[which(!is.na(newkey))]
-			tab <- aggregate(x = tab, by = newkey, FUN = fun)
-		}
-		if (dim == 2)
-			tab <- t(tab)
-		return(tab)
-	}
+    function(tab,
+                     tabKey,
+                     colOldKey = 1,
+                     colNewKey = 2,
+                     first = TRUE,
+                     dim = 1,
+                     fun) {
+        if (dim == 2)
+            tab <- t(tab)
+        keyList <- rownames(tab)
+        newkey <- ConvertKey(keyList, tabKey, colOldKey, colNewKey)
+        names(newkey) <- as.character(seq_along(newkey))
+        if (first) {
+            newkey <- newkey[which(!is.na(newkey))]
+            newkey <- takefirst(newkey)
+            tab <- tab[as.numeric(names(newkey)), ]
+            rownames(tab) <- newkey
+        } else{
+            tab <- tab[which(!is.na(newkey)), ]
+            newkey <- newkey[which(!is.na(newkey))]
+            tab <- aggregate(x = tab, by = newkey, FUN = fun)
+        }
+        if (dim == 2)
+            tab <- t(tab)
+        return(tab)
+    }
 
 #' Delete row/column in a matrix/df with NA names
 #'
@@ -185,24 +185,24 @@ ConvertKeyMatrix <-
 #'
 #' @examples
 #' x<-matrix(1:25,ncol=5)
-#' rownames(x)<-c(letters[1:4],NA)
+#' rownames(x)<-c(letters[seq_len(4)],NA)
 #' supprNAnames(x)
 supprNAnames <- function(x , side = 1) {
-	#Vector case
-	if (is.null(dim(x))) {
-		return(x[which(!is.na(names(x)))])
+    #Vector case
+    if (is.null(dim(x))) {
+        return(x[which(!is.na(names(x)))])
 
-	}
-	#Col case
-	if (side == 2) {
-		return(x[, which(!is.na(colnames(x)))])
+    }
+    #Col case
+    if (side == 2) {
+        return(x[, which(!is.na(colnames(x)))])
 
-	}
-	#Row case
-	else{
-		return(x[which(!is.na(rownames(x))), ])
+    }
+    #Row case
+    else{
+        return(x[which(!is.na(rownames(x))), ])
 
-	}
+    }
 }
 
 #' Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
@@ -218,8 +218,8 @@ supprNAnames <- function(x , side = 1) {
 #' test[10]
 #' matrixCoord1D_2D(10,test)
 matrixCoord1D_2D <- function(x, Mat) {
-	matDim <- dim(Mat)
-	c((x - 1) %% matDim[1] + 1 , (x - 1) %/% matDim[1] + 1)
+    matDim <- dim(Mat)
+    c((x - 1) %% matDim[1] + 1 , (x - 1) %/% matDim[1] + 1)
 }
 
 
@@ -235,12 +235,12 @@ matrixCoord1D_2D <- function(x, Mat) {
 #' @examples
 #' matrixFromDimnames(1:10,letters[1:5])
 matrixFromDimnames <- function(row, col, value = 0) {
-	matrix(
-		value,
-		ncol = length(col),
-		nrow = length(row),
-		dimnames = list(row, col)
-	)
+    matrix(
+        value,
+        ncol = length(col),
+        nrow = length(row),
+        dimnames = list(row, col)
+    )
 }
 
 
@@ -260,11 +260,11 @@ matrixFromDimnames <- function(row, col, value = 0) {
 #' m1Rescale<-reScale(m1,m2)
 #' qplotDensity(m1Rescale[1,])
 reScale <- function(matToAdjust, matGoodRange.) {
-	apply(matGoodRange., 1, function(x)
-		max(x) - min(x)) /
-		(apply(matToAdjust, 1, function(x)
-			max(x) - min(x))) *
-		(matToAdjust - apply(matToAdjust, 1, max)) + apply(matGoodRange., 1, max)
+    apply(matGoodRange., 1, function(x)
+        max(x) - min(x)) /
+        (apply(matToAdjust, 1, function(x)
+            max(x) - min(x))) *
+        (matToAdjust - apply(matToAdjust, 1, max)) + apply(matGoodRange., 1, max)
 }
 
 
@@ -293,26 +293,26 @@ reScale <- function(matToAdjust, matGoodRange.) {
 #' res$b
 #' attr(res,"colorScale")
 formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
-	colorScales = list()
-	for (feature in rownames(metaAnnot)) {
-		if (feature %in% colnames(annotDataFrame))
-			annotDataFrame[, feature] <-
-				do.call(paste0("as.", metaAnnot[feature, "Type"]), list(x = annotDataFrame[, feature]))
-		if (metaAnnot[feature, "colorScale"] != "") {
-			colorScale = strsplit(str_remove_all(metaAnnot[feature, "colorScale"], " "), split = ",")[[1]]
-			splitted = sapply(colorScale, strsplit, "=")
-			colorScales[[feature]] <- sapply(splitted, function(x)
-				x[2])
-			names(colorScales[[feature]]) <- sapply(splitted, function(x)
-				x[1])
-			if (metaAnnot[feature, "Type"] == "factor") {
-				annotDataFrame[, feature] <-
-					factor(annotDataFrame[, feature], levels = names(colorScales[[feature]]))
-			}
-		}
-	}
-	attr(annotDataFrame, "colorScales") <- colorScales
-	annotDataFrame
+    colorScales = list()
+    for (feature in rownames(metaAnnot)) {
+        if (feature %in% colnames(annotDataFrame))
+            annotDataFrame[, feature] <-
+                do.call(paste0("as.", metaAnnot[feature, "Type"]), list(x = annotDataFrame[, feature]))
+        if (metaAnnot[feature, "colorScale"] != "") {
+            colorScale = strsplit(str_remove_all(metaAnnot[feature, "colorScale"], " "), split = ",")[[1]]
+            splitted = sapply(colorScale, strsplit, "=")
+            colorScales[[feature]] <- sapply(splitted, function(x)
+                x[2])
+            names(colorScales[[feature]]) <- sapply(splitted, function(x)
+                x[1])
+            if (metaAnnot[feature, "Type"] == "factor") {
+                annotDataFrame[, feature] <-
+                    factor(annotDataFrame[, feature], levels = names(colorScales[[feature]]))
+            }
+        }
+    }
+    attr(annotDataFrame, "colorScales") <- colorScales
+    annotDataFrame
 }
 
 
@@ -330,21 +330,21 @@ formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
 #' groups<-rep(c("A","B"),each=5)
 #' subSampleColumnPerGroup(mat,groups,n=3)
 subSampleColumnPerGroup <- function(mat, groupVector, n = NULL) {
-	lvlTable <- table(groupVector)
-	lvls <- names(lvlTable)
-	if (is.null(n)) {
-		n <- min(lvlTable)
-	} else {
-		if (n > min(lvlTable))
-			stop("n superior to minimum level freq")
-	}
-	subSampledData <- lapply(lvls, function(lvl) {
-		samples <- which(groupVector == lvl)
-		selected <- sample(samples, size = n)
-		mat[, selected, drop = FALSE]
-	})
+    lvlTable <- table(groupVector)
+    lvls <- names(lvlTable)
+    if (is.null(n)) {
+        n <- min(lvlTable)
+    } else {
+        if (n > min(lvlTable))
+            stop("n superior to minimum level freq")
+    }
+    subSampledData <- lapply(lvls, function(lvl) {
+        samples <- which(groupVector == lvl)
+        selected <- sample(samples, size = n)
+        mat[, selected, drop = FALSE]
+    })
 
-	do.call("cbind", subSampledData)
+    do.call("cbind", subSampledData)
 }
 
 
@@ -355,15 +355,15 @@ subSampleColumnPerGroup <- function(mat, groupVector, n = NULL) {
 #' @return A dataframe where all the factor column have been converted to srings
 #'
 #' @examples
-#' a<-data.frame(x=factor(c("a","a","b")),y=1:3)
+#' a<-data.frame(x=factor(c("a","a","b")),y=seq_len(3))
 #' b<-factorAsStrings(a)
 #' b$x
 factorAsStrings <- function(dt) {
-	for (i in 1:ncol(dt)) {
-		if (is.factor(dt[, i]))
-			dt[, i] <- as.character(dt[, i])
-	}
-	dt
+    for (i in seq_len(ncol(dt))) {
+        if (is.factor(dt[, i]))
+            dt[, i] <- as.character(dt[, i])
+    }
+    dt
 }
 
 #' Aggregate columns or rows of a matrix by a vector of factor
@@ -378,23 +378,23 @@ factorAsStrings <- function(dt) {
 #'
 #' @examples
 #' data(iris)
-#' aggregMatPerVector(iris[,1:4],iris$Species)
+#' aggregMatPerVector(iris[,seq_len(4)],iris$Species)
 aggregMatPerVector <- function(x, by, FUN = mean, byRow = NULL) {
-	if (is.null(byRow)) {
-		if (length(by) == nrow(x)) {
-			byRow <- TRUE
-		} else if (length(by) == ncol(x)) {
-			byRow <- FALSE
-		} else{
-			stop("Number of element should be the same than number of columns or rows in x")
-		}
-	}
-	if (!byRow)
-		x <- t(x)
-	res <- aggregate(x, by = list(by), FUN = FUN)
-	rownames(res) <- res$Group.1
-	res$Group.1 <- NULL
-	if (!byRow)
-		res <- t(res)
-	return(as.matrix(res))
+    if (is.null(byRow)) {
+        if (length(by) == nrow(x)) {
+            byRow <- TRUE
+        } else if (length(by) == ncol(x)) {
+            byRow <- FALSE
+        } else{
+            stop("Number of element should be the same than number of columns or rows in x")
+        }
+    }
+    if (!byRow)
+        x <- t(x)
+    res <- aggregate(x, by = list(by), FUN = FUN)
+    rownames(res) <- res$Group.1
+    res$Group.1 <- NULL
+    if (!byRow)
+        res <- t(res)
+    return(as.matrix(res))
 }

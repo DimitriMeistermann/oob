@@ -16,5 +16,5 @@ A string ready to be copied and embedded as R code.
 Copy paste ready vector
 }
 \examples{
-copyReadyVector(1:5)
+copyReadyVector(seq_len(5))
 }

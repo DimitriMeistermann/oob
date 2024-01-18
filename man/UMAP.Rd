@@ -55,8 +55,8 @@ UMAP projection
 }
 \examples{
 data(iris)
-irisUMAP<-UMAP(iris[,1:4],transpose = FALSE)
+irisUMAP<-UMAP(iris[,seq_len(4)],transpose = FALSE)
 proj2d(irisUMAP,colorBy = iris$Species)
-irisUMAP<-UMAP(rowScale(iris[,1:4],center = TRUE,scaled = TRUE),transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
-proj2d(irisUMAP$embedding,colorBy = iris$Species,nnMatrix = irisUMAP$nn$euclidean$idx[,1:3],fixedCoord = TRUE)
+irisUMAP<-UMAP(rowScale(iris[,seq_len(4)],center = TRUE,scaled = TRUE),transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
+proj2d(irisUMAP$embedding,colorBy = iris$Species,nnMatrix = irisUMAP$nn$euclidean$idx[,c(1, 2, 3)],fixedCoord = TRUE)
 }

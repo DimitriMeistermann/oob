@@ -17,5 +17,5 @@ Compute cosine distance
 }
 \examples{
 data("iris")
-cosineDist(t(iris[,1:3]))
+cosineDist(t(iris[,seq_len(3)]))
 }

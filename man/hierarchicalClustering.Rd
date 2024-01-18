@@ -40,8 +40,8 @@ Perform a hierarchical clustering from a matrix/df of observation × features
 }
 \examples{
 data(iris)
-resClust<-hierarchicalClustering(iris[,1:3],transpose = FALSE)
+resClust<-hierarchicalClustering(iris[,c(1, 2, 3)],transpose = FALSE)
 plot(resClust,hang=-1)
-resClust<-hierarchicalClustering(iris[,1:3],transpose = TRUE,bootstrap = TRUE,nboot = 20)
+resClust<-hierarchicalClustering(iris[,c(1, 2, 3)],transpose = TRUE,bootstrap = TRUE,nboot = 20)
 plot(resClust,hang=-1)
 }

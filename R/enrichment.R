@@ -21,17 +21,17 @@
 #' intersectionSize<-5
 #' enrichSetIntersection(intersectionSize, setSizes, universeSize)
 enrichSetIntersection<-function(intersectionSize, setSizes, universeSize){
-	nSet<-length(setSizes)
-	expected<-prod(setSizes) / (universeSize^(nSet-1))
-	if(nSet==2){
-		pval<-phyper(q = intersectionSize-0.5, m = setSizes[1],n = universeSize-setSizes[1], k = setSizes[2], lower.tail=FALSE)
-	}else if(nSet>2){
-		pval<-pbinom(intersectionSize-1,universeSize, expected/universeSize,  lower.tail = FALSE)
-	}else{
-		stop("Number of set should be superior to 1")
-	}
-	OEdeviation<- (intersectionSize - expected) / sqrt(universeSize)
-	return(list("observed"=intersectionSize,"expected"=expected,"OEdeviation"=OEdeviation,"pval"=pval))
+    nSet<-length(setSizes)
+    expected<-prod(setSizes) / (universeSize^(nSet-1))
+    if(nSet==2){
+        pval<-phyper(q = intersectionSize-0.5, m = setSizes[1],n = universeSize-setSizes[1], k = setSizes[2], lower.tail=FALSE)
+    }else if(nSet>2){
+        pval<-pbinom(intersectionSize-1,universeSize, expected/universeSize,  lower.tail = FALSE)
+    }else{
+        stop("Number of set should be superior to 1")
+    }
+    OEdeviation<- (intersectionSize - expected) / sqrt(universeSize)
+    return(list("observed"=intersectionSize,"expected"=expected,"OEdeviation"=OEdeviation,"pval"=pval))
 }
 
 #' Very simple over abundance analysis via logistic regression
@@ -52,46 +52,46 @@ enrichSetIntersection<-function(intersectionSize, setSizes, universeSize){
 
 simpleAbundanceAnalysis<-function (varToExplain, df, cols, removeIntercepts = TRUE)
 {
-	varToExplain <- as.factor(varToExplain)
-	levels(varToExplain) <- make.names(levels(varToExplain))
-	lvls <- levels(varToExplain)
-	dfReg <- df[, cols]
-	formula <- ""
-	for (col in cols) {
-		if (is.numeric(dfReg[, col])) {
-			formula <- paste0(formula, "+", col)
-		}
-		else {
-			dfReg[, col] <- as.factor(dfReg[, col])
-			if (removeIntercepts) {
-				formula <- paste0(formula, "+", col, "-1")
-			}
-			else {
-				formula <- paste0(formula, "+", col)
-			}
-		}
-	}
-	formula <- substr(formula, 2, nchar(formula))
-	res <- lapply(lvls, function(lvl) {
-		dfReg[, lvl] <- varToExplain == lvl
-		m <- glm(formula = formula(paste0(lvl, "~", formula)),
-						 data = dfReg, family = binomial, )
-		resLm <- coef(summary(m))[, c(1, 4)]
-		colnames(resLm) <- paste0(lvl, "_", c("OD", "pvalue"))
-		resLm
-	})
-	names(res) <- lvls
-	rown<-lapply(res,rownames) |> unlist() |> unique() |> sort()
-	dtres<-data.frame(row.names = rown)
-	for(lvl in lvls){
-		odCol<-cn(res[[lvl]])[1]
-		pvalCOl<-cn(res[[lvl]])[2]
-		dtres[,odCol]<-NA
-		dtres[,pvalCOl]<-NA
-		dtres[rn(res[[lvl]]),odCol]<-res[[lvl]][,odCol]
-		dtres[rn(res[[lvl]]),pvalCOl]<-res[[lvl]][,pvalCOl]
-	}
-	dtres
+    varToExplain <- as.factor(varToExplain)
+    levels(varToExplain) <- make.names(levels(varToExplain))
+    lvls <- levels(varToExplain)
+    dfReg <- df[, cols]
+    formula <- ""
+    for (col in cols) {
+        if (is.numeric(dfReg[, col])) {
+            formula <- paste0(formula, "+", col)
+        }
+        else {
+            dfReg[, col] <- as.factor(dfReg[, col])
+            if (removeIntercepts) {
+                formula <- paste0(formula, "+", col, "-1")
+            }
+            else {
+                formula <- paste0(formula, "+", col)
+            }
+        }
+    }
+    formula <- substr(formula, 2, nchar(formula))
+    res <- lapply(lvls, function(lvl) {
+        dfReg[, lvl] <- varToExplain == lvl
+        m <- glm(formula = formula(paste0(lvl, "~", formula)),
+                         data = dfReg, family = binomial, )
+        resLm <- coef(summary(m))[, c(1, 4)]
+        colnames(resLm) <- paste0(lvl, "_", c("OD", "pvalue"))
+        resLm
+    })
+    names(res) <- lvls
+    rown<-lapply(res,rownames) |> unlist() |> unique() |> sort()
+    dtres<-data.frame(row.names = rown)
+    for(lvl in lvls){
+        odCol<-cn(res[[lvl]])[1]
+        pvalCOl<-cn(res[[lvl]])[2]
+        dtres[,odCol]<-NA
+        dtres[,pvalCOl]<-NA
+        dtres[rn(res[[lvl]]),odCol]<-res[[lvl]][,odCol]
+        dtres[rn(res[[lvl]]),pvalCOl]<-res[[lvl]][,pvalCOl]
+    }
+    dtres
 }
 
 

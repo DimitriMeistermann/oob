@@ -23,7 +23,7 @@ Convert a list of key from an ID to another.
 }
 \examples{
 data("bulkLogCounts")
+data("humanGeneIDtable")
 geneSym<-rownames(bulkLogCounts)
-speciesData<-getSpeciesData()
-geneEntrez<-ConvertKey(geneSym,tabKey = speciesData$GeneIdTable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 }

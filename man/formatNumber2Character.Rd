@@ -18,6 +18,6 @@ A charactervector.
 Convert numeric to string, add 0 to the number to respect lexicographical order.
 }
 \examples{
-formatNumber2Character(1:10)
-formatNumber2Character(1:10,digit = 4)
+formatNumber2Character(seq_len(10))
+formatNumber2Character(seq_len(10),digit = 4)
 }

@@ -96,7 +96,7 @@ proj1d(iris$Sepal.Length,colorBy = iris$Species,pointStroke = 3,strokeColor = "g
 
 proj1d(iris$Sepal.Length,colorBy = iris$Species,emph = "setosa",na.color = "white")
 proj1d(iris$Sepal.Length,colorBy = iris$Species,returnGraph = TRUE)+
-	ggplot2::geom_vline(xintercept = 6)
+    ggplot2::geom_vline(xintercept = 6)
 
 proj1d(iris$Sepal.Length,colorBy = iris$Species,colorScale = c("blue","white","red"))
 proj1d(iris$Sepal.Length,colorBy = iris$Species,funAutoColorScale = mostDistantColor)

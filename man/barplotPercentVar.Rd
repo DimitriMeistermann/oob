@@ -21,7 +21,7 @@ Scree plot of explained variance per PC from a PCA
 }
 \examples{
 data(iris)
-pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
+pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
 barplotPercentVar(pca)
 barplotPercentVar(pca, nPC = 2)
 }

@@ -21,7 +21,7 @@ Transcript per milion (TPM) normalization for full-length transcript, short read
 data("geneLengthGRCh38")
 library(MASS)
 countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+    rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 }));rownames(countMat)<-names(geneLengthGRCh38)
 TPMfullLength(countMat,geneLengthGRCh38)
 }

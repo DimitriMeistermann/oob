@@ -22,5 +22,5 @@ Plot in the current graphical device or a ggplot object if \code{returnGraph=TRU
 Quick plot of values with x values corresponding to index.
 }
 \examples{
-qplotAutoX(1:5)
+qplotAutoX(seq_len(5))
 }

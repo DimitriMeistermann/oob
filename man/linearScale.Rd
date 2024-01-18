@@ -20,7 +20,7 @@ A vector of value or a function if \code{returnFunction=TRUE}.
 Similar to the javascript function \code{d3.scaleLinear()}.
 }
 \examples{
-oldValues<-1:10
+oldValues<-seq_len(10)
 linearScale(oldValues,c(0,1),returnFunction = FALSE)
 scaleFun<-linearScale(c(1,10),c(0,1),returnFunction = TRUE)
 scaleFun(oldValues)

@@ -19,6 +19,6 @@ Delete row/column in a matrix/df with NA names
 }
 \examples{
 x<-matrix(1:25,ncol=5)
-rownames(x)<-c(letters[1:4],NA)
+rownames(x)<-c(letters[seq_len(4)],NA)
 supprNAnames(x)
 }

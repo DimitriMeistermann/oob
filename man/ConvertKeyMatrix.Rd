@@ -37,6 +37,6 @@ Convert rownames from a matrix/df from one ID type to another.
 }
 \examples{
 data("bulkLogCounts")
-speciesData<-getSpeciesData()
-bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = speciesData$GeneIdTable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+data("humanGeneIDtable")
+bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 }

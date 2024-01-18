@@ -17,5 +17,5 @@ The bicorrelation distance is a metric used by WGCNA. In theory it is better to 
 }
 \examples{
 data("iris")
-corrDistBicor(t(iris[,1:3]))
+corrDistBicor(t(iris[,seq_len(3)]))
 }

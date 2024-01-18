@@ -19,6 +19,6 @@ A single numeric value.
 Compute the mode of a distribution.
 }
 \examples{
-Mode(c(1:10,3))
+Mode(c(seq_len(10),3))
 
 }

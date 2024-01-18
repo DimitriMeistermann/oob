@@ -6,7 +6,7 @@
 \usage{
 proj2dWideColor(
   coord,
-  axis = 1:2,
+  axis = c(1, 2),
   colorBy = NULL,
   pointSize = 3,
   plotText = FALSE,

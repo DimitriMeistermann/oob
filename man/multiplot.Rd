@@ -20,7 +20,7 @@ Multiple ggplot one one page
 }
 \examples{
 library(ggplot2)
-p1<-ggplot(data = data.frame(x=1:5,y=1:5),aes(x=x,y=y))+geom_point()+ggtitle("p1")
+p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),aes(x=x,y=y))+geom_point()+ggtitle("p1")
 p2<-qplot(c("a","a","b","b","b","c"))+ggtitle("p2")
 p3<-qplot(c("a","a","b","b","b"))+ggtitle("p3")
 p4<-qplot(c("a","b","c","d"))+ggtitle("p4")
@@ -31,13 +31,13 @@ multiplot(plotlist = plotList)
 multiplot(plotlist = plotList,cols = 2)
 
 layout<-matrix(data = c(
-	4,3,
-	2,1
+    4,3,
+    2,1
 ),ncol = 2,byrow = TRUE)
 multiplot(plotlist = plotList,layout = layout)
 layout<-matrix(data = c(
-	1,2,3,
-	4,0,0
+    1,2,3,
+    4,0,0
 ),ncol = 3,byrow = TRUE)
 multiplot(plotlist = plotList,layout = layout)
 }

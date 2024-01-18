@@ -16,7 +16,7 @@ A dataframe where all the factor column have been converted to srings
 Convert factors in a dataframe to strings
 }
 \examples{
-a<-data.frame(x=factor(c("a","a","b")),y=1:3)
+a<-data.frame(x=factor(c("a","a","b")),y=seq_len(3))
 b<-factorAsStrings(a)
 b$x
 }

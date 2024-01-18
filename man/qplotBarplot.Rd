@@ -18,8 +18,8 @@ Plot in the current graphical device or a ggplot object if \code{returnGraph=TRU
 Quick simple barplot with heights provided in ggplot format.
 }
 \examples{
-qplotBarplot(1:5)
-y<-1:5
+qplotBarplot(seq_len(5))
+y<-seq_len(5)
 names(y)<-intToUtf8(65:69,multiple = TRUE)
 qplotBarplot(y)
 }

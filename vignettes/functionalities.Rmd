@@ -1,12 +1,14 @@
 ---
 title: "Functionalities of oob"
 output:
+  html_document:
+    theme: united
   md_document:
     variant: markdown_github
 vignette: >
   %\VignetteIndexEntry{Functionalities of oob}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::html}
 ---
 
 ```{r, include = FALSE}
@@ -28,22 +30,22 @@ This package provide function for analyzing OMIC data, with a focus on plots, fu
 
 In a R console: 
 
-```{r, eval=FALSE}
+```
 install.packages("devtools")
 devtools::install_github("https://github.com/DimitriMeistermann/oob", build_vignettes = FALSE)
 ```
 For a manual installation of dependencies:
 
-```{r, eval=FALSE}
+```
 install.packages("BiocManager")
 BiocManager::install(c('AnnotationDbi', 'batchelor', 'BiocGenerics', 'BiocManager', 
-	'BiocParallel', 'circlize', 'ComplexHeatmap', 'data.table', 'dbscan', 'doParallel', 
-	'fgsea', 'foreach', 'gage', 'ggbeeswarm', 'ggplot2', 'ggrepel', 'glmnet', 'impute', 'irlba', 'lsa', 
-	'preprocessCore', 'pvclust', 'qualpalr', 'reshape2', 'reticulate', 'rgl', 'scales', 
-	'scater', 'scattermore', 'scran', 'SingleCellExperiment', 'stringr', 'SummarizedExperiment', 
-	'uwot', 'WGCNA', 'Rcpp', 'RcppArmadillo','basilisk'
+    'BiocParallel', 'circlize', 'ComplexHeatmap', 'data.table', 'dbscan', 'doParallel', 
+    'fgsea', 'foreach', 'gage', 'ggbeeswarm', 'ggplot2', 'ggrepel', 'glmnet', 'impute', 'irlba', 'lsa', 
+    'preprocessCore', 'pvclust', 'qualpalr', 'reshape2', 'reticulate', 'rgl', 'scales', 
+    'scater', 'scattermore', 'scran', 'SingleCellExperiment', 'stringr', 'SummarizedExperiment', 
+    'uwot', 'WGCNA', 'Rcpp', 'RcppArmadillo','basilisk'
 ))
-```{
+```
 
 
 
@@ -51,7 +53,7 @@ BiocManager::install(c('AnnotationDbi', 'batchelor', 'BiocGenerics', 'BiocManage
 
 For a quick installation:
 
-```{r eval=FALSE}
+```
 reticulate::py_install(c("numpy","leidenalg","trimap"))
 ```
 
@@ -155,7 +157,7 @@ multiplot(p1,p2,p3,cols = 2) #multiplot for quick display of several plot at onc
 ```{r}
 data("sampleAnnot")
 aggregMatPerVector(bulkLogCounts[c(
-	'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
+    'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
 ),], sampleAnnot$culture_media)
 
 ```
@@ -169,7 +171,7 @@ The package can perform several quick normalization methods. Let's simulate a fa
 data("geneLengthGRCh38") # vector of gene length for GRCh38 Human reference, named by gene symbols
 library(MASS)
 countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){ #generate a fake RNA-Seq dataset
-	rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+    rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 }))
 colnames(countMat)<-letters[1:ncol(countMat)];rownames(countMat)<-names(geneLengthGRCh38)
 chead(countMat)
@@ -196,11 +198,11 @@ data("sampleAnnot") #colData of the count table
 PCAres<-PCA(bulkLogCounts)
 PCAresQuick<-fastPCA(bulkLogCounts,nPC = 2) # /!\ for fastPCA percentage of explained var is on the total of computed PC (less PC -> increase percentage)
 multiplot(
-	pca2d(PCAres,returnGraph = TRUE,main = "PCA on bulkLogCounts",colorBy = sampleAnnot$culture_media),
-	pca2d(PCAresQuick,returnGraph = TRUE,main = "estimation with fastPCA",colorBy = sampleAnnot$culture_media),
-	pca2d(PCAres,plotVars = TRUE,outlierLabel = TRUE,returnGraph = TRUE,main = "Contribution of genes for PC 1 & 2"),
-	barplotPercentVar(PCAres,returnGraph = TRUE,nPC = 30)+ggtitle("Scree plot of explained variance per PC"),
-	cols = 2
+    pca2d(PCAres,returnGraph = TRUE,main = "PCA on bulkLogCounts",colorBy = sampleAnnot$culture_media),
+    pca2d(PCAresQuick,returnGraph = TRUE,main = "estimation with fastPCA",colorBy = sampleAnnot$culture_media),
+    pca2d(PCAres,plotVars = TRUE,outlierLabel = TRUE,returnGraph = TRUE,main = "Contribution of genes for PC 1 & 2"),
+    barplotPercentVar(PCAres,returnGraph = TRUE,nPC = 30)+ggtitle("Scree plot of explained variance per PC"),
+    cols = 2
 )
 
 
@@ -216,15 +218,15 @@ library(ggbeeswarm)
 resPC_aov<-PC_aov(PCAres,colData = sampleAnnot[,c("culture_media","line","passage")])
 
 ggBorderedFactors(
-	ggplot(resPC_aov,aes(x=PC,y=sumSqPercent,fill= feature))+
-		geom_beeswarm(pch=21,size=4,cex = 3)+
-		xlab("Principal component")+ylab("% Sum of Squares")+
-		scale_fill_manual(values = oobColors(nlevels(resPC_aov$feature)))+
-		theme(
-			panel.grid.major.y = element_line(colour = "grey75"),
-			panel.grid.minor.y = element_line(colour = "grey75"),
-			panel.background = element_rect(fill = NA,colour="black")
-		)
+    ggplot(resPC_aov,aes(x=PC,y=sumSqPercent,fill= feature))+
+        geom_beeswarm(pch=21,size=4,cex = 3)+
+        xlab("Principal component")+ylab("% Sum of Squares")+
+        scale_fill_manual(values = oobColors(nlevels(resPC_aov$feature)))+
+        theme(
+            panel.grid.major.y = element_line(colour = "grey75"),
+            panel.grid.minor.y = element_line(colour = "grey75"),
+            panel.background = element_rect(fill = NA,colour="black")
+        )
 )
 
 ```
@@ -259,10 +261,10 @@ coordUMAP<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace))
 coordTRIMAP<-TRIMAP(reducedSpace)
 
 multiplot(cols = 2,
-	pca2d(PCAres,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "PCA",ratioPerPercentVar = TRUE),
-	proj2d(coordNMDS,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "NMDS",fixedCoord = TRUE),
-	proj2d(coordUMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "UMAP",fixedCoord = TRUE),
-	proj2d(coordTRIMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "TRIMAP",fixedCoord = TRUE)
+    pca2d(PCAres,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "PCA",ratioPerPercentVar = TRUE),
+    proj2d(coordNMDS,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "NMDS",fixedCoord = TRUE),
+    proj2d(coordUMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "UMAP",fixedCoord = TRUE),
+    proj2d(coordTRIMAP,colorBy = sampleAnnot$culture_media,returnGraph = TRUE, main = "TRIMAP",fixedCoord = TRUE)
 )
 
 ```
@@ -274,7 +276,7 @@ UMAPwithNN<-UMAP(reducedSpace,n_neighbors = ncol(reducedSpace),ret_nn = TRUE)
 sampleAnnot$leidenClusters<-leidenFromUMAP(UMAPwithNN)
 
 proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,
-			 plotFactorsCentroids = TRUE,plotLabelRepel = TRUE,fixedCoord = TRUE, legendTitle = "Leiden cluster")
+             plotFactorsCentroids = TRUE,plotLabelRepel = TRUE,fixedCoord = TRUE, legendTitle = "Leiden cluster")
 
 ```
 
@@ -328,7 +330,7 @@ Example:
 ```{r}
 values=sort(rnorm(100))
 computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,useProb = TRUE, probs = c(.25,.5,.75)) |> 
-	plotPalette()
+    plotPalette()
 ```
 
 `computeColorScaleFun` can also return a ggplot scale if `returnGGscale`.
@@ -346,10 +348,10 @@ Finally, `customUpsetPlot` is used to compare intersection between gene set with
 
 ```{r out.width = "100%", fig.dim = c(14,14)}
 sets = list(k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
-					k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
-					k3= rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
-					primeVSnaiveUP=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="UPREG"],
-					primeVSnaiveDOWN=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="DOWNREG"])
+                    k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
+                    k3= rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
+                    primeVSnaiveUP=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="UPREG"],
+                    primeVSnaiveDOWN=rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE=="DOWNREG"])
 
 richUpset(sets, universe = rn(markerPerCluster))
 ```
@@ -362,11 +364,11 @@ volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn 
 ```
 
 ## Other utilities functions:
-- 	`corGeneToOthers` : Compute the correlation of a gene to all other genes in a matrix.
+-     `corGeneToOthers` : Compute the correlation of a gene to all other genes in a matrix.
 
--		`best.cutree`: Find the best cutree for a hierarchical clustering.
+-        `best.cutree`: Find the best cutree for a hierarchical clustering.
 
--		`hierarchicalClustering`: Hierarchical clustering from a matrix.
+-        `hierarchicalClustering`: Hierarchical clustering from a matrix.
 
 -   `supprNAnames`: Delete row/column in a matrix/df with NA row/colnames
 

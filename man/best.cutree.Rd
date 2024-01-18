@@ -25,7 +25,7 @@ Determine the best partition in a hierarchichal clustering
 }
 \examples{
 data(iris)
-resClust<-hierarchicalClustering(iris[,1:3],transpose = FALSE)
+resClust<-hierarchicalClustering(iris[,c(1, 2, 3)],transpose = FALSE)
 best.cutree(resClust,graph=TRUE)
 best.cutree(resClust)
 best.cutree(resClust, loss=TRUE)

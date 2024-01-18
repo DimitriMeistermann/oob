@@ -4,9 +4,17 @@
 \name{oob-package}
 \alias{oob}
 \alias{oob-package}
-\title{oob: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box.}
+\title{oob: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box}
 \description{
 A toolbox for analyzing OMIC data, Out Of Bounds from any black box.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/DimitriMeistermann/oob}
+  \item Report bugs at \url{https://github.com/DimitriMeistermann/oob/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Dimitri Meistermann \email{dimitri.meistermann@helsinki.fi} (\href{https://orcid.org/0000-0001-6614-2325}{ORCID})

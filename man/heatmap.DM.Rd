@@ -144,7 +144,7 @@ scale=FALSE
 \if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows = covDist
 clustering_distance_columns = covDist
 name="centered log expression"
-colorScale=	c("darkblue","white","red2")
+colorScale=    c("darkblue","white","red2")
 additionnalRowNamesGpar=list(fontface="italic")
 center=TRUE
 scale=FALSE
@@ -194,7 +194,7 @@ bestDE<-rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,decreasi
 heatmap.DM(matrix(rnorm(50),ncol = 5),preSet = NULL,showValues = TRUE,Nsignif = 2)
 
 heatmap.DM(bulkLogCounts[bestDE,],colData = sampleAnnot[,c("culture_media","line")])
-heatmap.DM(bulkLogCounts[bestDE[1:5],colnames(sampleAnnot)[sampleAnnot$culture_media]])
+heatmap.DM(bulkLogCounts[bestDE[seq_len(5)],colnames(sampleAnnot)[sampleAnnot$culture_media]])
 
 corDat<-cor(bulkLogCounts)
 heatmap.DM(corDat,preSet = "cor")

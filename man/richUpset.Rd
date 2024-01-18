@@ -29,9 +29,9 @@ The main ones are a p-value for each overlap, and a log ratio between  observed 
 }
 \examples{
 lt = list(set1 = sample(letters, 5),
-					set2 = sample(letters, 10),
-					set3 = sample(letters, 15)
-					)
+                    set2 = sample(letters, 10),
+                    set3 = sample(letters, 15)
+                    )
 lt$set4 <- unique(c(lt$set1,lt$set2))
 
 richUpset(lt, universe = letters)

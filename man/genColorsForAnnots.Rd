@@ -52,5 +52,5 @@ colorScales$Species
 
 library(ComplexHeatmap)
 Heatmap(rowScale(t(iris[,c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width")]),center = TRUE,scaled = TRUE),
-				top_annotation = genTopAnnot(iris["Species"],colorScales=colorScales["Species"]))
+                top_annotation = genTopAnnot(iris["Species"],colorScales=colorScales["Species"]))
 }

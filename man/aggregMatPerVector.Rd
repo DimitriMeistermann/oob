@@ -23,5 +23,5 @@ Aggregate columns or rows of a matrix by a vector of factor
 }
 \examples{
 data(iris)
-aggregMatPerVector(iris[,1:4],iris$Species)
+aggregMatPerVector(iris[,seq_len(4)],iris$Species)
 }

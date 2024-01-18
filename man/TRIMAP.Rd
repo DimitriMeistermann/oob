@@ -40,6 +40,6 @@ TriMap dimension reduction.
 }
 \examples{
 data(iris)
-irisTrimap<-TRIMAP(iris[,1:4],transpose=FALSE)
+irisTrimap<-TRIMAP(iris[,seq_len(4)],transpose=FALSE)
 proj2d(irisTrimap,colorBy = iris$Species)
 }

@@ -61,7 +61,7 @@ colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,
 plotPalette(c(colorFun(-1),colorFun(0),colorFun(1)))
 
 dat<-data.frame(x=rnorm(10),y=rnorm(10),expr=rnorm(10))
-ggplot(dat,aes(x=x,y=y,fill=expr))+
-	geom_point(size=5,shape=21)+theme_bw()+
-	computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,useProb = TRUE,geomAes = "fill")
+ggplot2::ggplot(dat,aes(x=x,y=y,fill=expr))+
+    geom_point(size=5,shape=21)+theme_bw()+
+    computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,useProb = TRUE,geomAes = "fill")
 }

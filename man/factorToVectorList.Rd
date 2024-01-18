@@ -19,7 +19,7 @@ Convert a named factor vector to a list
 }
 \examples{
 x<-factor(c("a","a","b","b","c","c","c"))
-names(x)<-paste0("x",1:7)
+names(x)<-paste0("x",seq_len(7))
 factorToVectorList(x)
 
 }

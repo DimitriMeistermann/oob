@@ -57,9 +57,9 @@ Plot the expression of one or several genes
 library(MASS)
 library(ggplot2)
 exprMat<-rbind(
-	rnegbin(30,theta = 10,mu = 10),
-	rnegbin(30,theta = 1,mu = 10),
-	rnegbin(30,theta = 1,mu = 1000)
+    rnegbin(30,theta = 10,mu = 10),
+    rnegbin(30,theta = 1,mu = 10),
+    rnegbin(30,theta = 1,mu = 1000)
 )
 rownames(exprMat)<-c("gene1","gene2","gene3")
 
@@ -75,7 +75,7 @@ plotExpr(exprMat,group = group,dodge.width = .5,legendTitle = "Letter")
 plotExpr(exprMat,boxplot = FALSE,violin = FALSE,dotplot = TRUE)
 plotExpr(exprMat,group = group,colorScale = c("blue","white","red"))
 plotExpr(exprMat,group = group,returnGraph = TRUE)+
-	geom_point()
+    geom_point()
 
 plotExpr(exprMat,group = group,violinArgs = list(scale="area"))
 }

@@ -32,5 +32,5 @@ Principal Component Analysis
 }
 \examples{
 data(iris)
-pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
+pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
 }

@@ -6,7 +6,7 @@
 \usage{
 pca2d(
   pca,
-  comp = 1:2,
+  comp = c(1, 2),
   colorBy = NULL,
   plotVars = FALSE,
   pointSize = 2,
@@ -64,7 +64,7 @@ Plot a PCA in 2D
 }
 \examples{
 data(iris)
-pca<-PCA(iris[,1:4],transpose = FALSE,scale = TRUE,center = TRUE)
+pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
 pca2d(pca)
 pca2d(pca,comp = c(1,3))
 
@@ -77,5 +77,5 @@ pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species)
 pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2)
 
 pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2,returnGraph = TRUE)+
-	ggplot2::theme_dark()
+    ggplot2::theme_dark()
 }

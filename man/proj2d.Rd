@@ -7,7 +7,7 @@
 proj2d(
   coord,
   colorBy = NULL,
-  axis = 1:2,
+  axis = c(1, 2),
   pointSize = 3,
   plotText = FALSE,
   main = NULL,
@@ -113,7 +113,7 @@ proj2d(iris,colorBy = iris$Species,pointStroke = 3,strokeColor = "grey")
 
 proj2d(iris,colorBy = iris$Species,emph = "setosa",na.color = "white")
 proj2d(iris,colorBy = iris$Species,returnGraph = TRUE)+
-	ggplot2::geom_vline(xintercept = 6)
+    ggplot2::geom_vline(xintercept = 6)
 
 proj2d(iris,colorBy = iris$Species,colorScale = c("blue","white","red"))
 proj2d(iris,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
@@ -124,9 +124,9 @@ proj2d(iris,plotLabelRepel = TRUE)
 proj2d(iris,sizeProp2Dens = TRUE)
 proj2d(iris,sizeProp2Dens = TRUE,densEps = 2)
 
-umap<-UMAP(scale(iris[,c(1:4)]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
+umap<-UMAP(scale(iris[,c(seq_len(4))]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
 
 proj2d(umap)
-proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,1:3])
+proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,seq_len(3)])
 proj2d(umap,colorBy = iris$Species,useScatterMore = T,pointSize = 5)
 }

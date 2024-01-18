@@ -17,5 +17,5 @@ Compute covariance distance
 }
 \examples{
 data("iris")
-covDist(t(iris[,1:3]))
+covDist(t(iris[,seq_len(3)]))
 }

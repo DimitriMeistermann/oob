@@ -47,7 +47,7 @@ General volcano plot
 \examples{
 data("DEgenesPrime_Naive")
 volcanoPlot(d = DEgenesPrime_Naive,effectSizeCol = "log2FoldChange", adjPvalCol = "padj", minEffectSize = 1,
-						labelCol = rownames(DEgenesPrime_Naive))
+                        labelCol = rownames(DEgenesPrime_Naive))
 
 markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
 }

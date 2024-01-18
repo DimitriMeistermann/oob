@@ -6,7 +6,7 @@
 \usage{
 proj3d(
   coord,
-  axis = 1:3,
+  axis = c(1, 2, 3),
   colorBy = NULL,
   pointSize = 5,
   plotText = FALSE,
