@@ -1,3 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+ReadMe*
+buildReadMe.R
+vignettes/test
+vignettes/*.html
+vignettes/*.md
+vignettes/functionalities_cache
+vignettes/functionalities_files

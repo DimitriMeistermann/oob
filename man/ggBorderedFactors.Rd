@@ -20,7 +20,6 @@ A ggplot objet.
 Add line break between factors and remove line in the middle if x axis is discrete.
 }
 \examples{
-library(ggplot)
 g<-ggplot(data.frame(x=c("A","A","B","B","B","C")),aes(x=x))+geom_bar()
 g
 ggBorderedFactors(g)

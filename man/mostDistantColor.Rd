@@ -8,8 +8,7 @@ mostDistantColor(
   n,
   colorspace = NULL,
   cvd = c("protan", "deutan", "tritan"),
-  cvd_severity = 0,
-  n_threads = NULL
+  cvd_severity = 0
 )
 }
 \arguments{
@@ -20,8 +19,6 @@ mostDistantColor(
 \item{cvd}{Color vision deficiency adaptation. Use cvd_severity to set the severity of color vision deficiency to adapt to. Permissible values are "protan", "deutan", and "tritan".}
 
 \item{cvd_severity}{Severity of color vision deficiency to adapt to. Can take any value from 0, for normal vision (the default), and 1, for dichromatic vision.}
-
-\item{n_threads}{The number of threads to use, provided to setThreadOptions if non-null.}
 }
 \value{
 Colors in hex format.

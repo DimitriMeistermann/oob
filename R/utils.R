@@ -9,14 +9,17 @@
 #' gmean(c(1,2,3))
 #' gmean(c(0,2,3),keepZero = TRUE)
 #' gmean(c(0,2,3),keepZero = FALSE)
-gmean<-function(x, keepZero=TRUE){ #geometrical mean
-    if(sum(x)==0) return(0)
-    if(!keepZero){
-        x<-x[x!=0]
-    }else{
-        if(length(which(x==0))>0) return(0)
+gmean <- function(x, keepZero = TRUE) {
+    #geometrical mean
+    if (sum(x) == 0)
+        return(0)
+    if (!keepZero) {
+        x <- x[x != 0]
+    } else{
+        if (length(which(x == 0)) > 0)
+            return(0)
     }
-    return( exp( sum(log(x))/length(x) ) )
+    return(exp(sum(log(x)) / length(x)))
 }
 
 #' Get the precise random seed state
@@ -34,7 +37,10 @@ getRandState <- function() {
 setRandState <- function(state) {
     # Assigning `NULL` state might lead to unwanted consequences
     if (!is.null(state)) {
-        assign(".Random.seed", state, envir = .GlobalEnv, inherits = FALSE)
+        assign(".Random.seed",
+               state,
+               envir = .GlobalEnv,
+               inherits = FALSE)
     }
 }
 
@@ -46,8 +52,9 @@ setRandState <- function(state) {
 #' @export
 #' @examples
 #' cv(c(1,2,3,4))
-cv<-function(x){
-    return(sd(x)/mean(x));
+cv <- function(x) {
+    return(sd(x) / mean(x))
+
 }
 
 #' Coefficient of variation of squared mean and sd
@@ -58,8 +65,9 @@ cv<-function(x){
 #' @export
 #' @examples
 #' cv2(c(1,2,3,4))
-cv2<-function(x){
-    return(sd(x)^2/mean(x)^2);
+cv2 <- function(x) {
+    return(sd(x) ^ 2 / mean(x) ^ 2)
+
 }
 
 #' Standard mean error
@@ -71,8 +79,10 @@ cv2<-function(x){
 #' @export
 #' @examples
 #' se(c(1,2,3,4))
-se<-function(x){ #
-    return(sd(x)/sqrt(length(x)));
+se <- function(x) {
+    #
+    return(sd(x) / sqrt(length(x)))
+
 }
 
 
@@ -84,9 +94,10 @@ se<-function(x){ #
 #' @export
 #' @examples
 #' uncenter(-5:5)
-uncenter<-function(x){
+uncenter <- function(x) {
     #transform vector to have no negative value
-    return(x+abs(min(x)));
+    return(x + abs(min(x)))
+
 }
 
 #' Take first element of multiple values in a vector
@@ -104,13 +115,14 @@ uncenter<-function(x){
 #' names(a)<-c("a","b","c","d","e","f")
 #' takefirst(a)
 #' takefirst(a,returnIndex = TRUE)
-takefirst<-function(x,returnIndex=FALSE){
-    uniqDat<-unique(x)
-    caseUniq<-c()
-    for(i in uniqDat) caseUniq<-c(caseUniq,which(i==x)[1])
-    if(returnIndex){
+takefirst <- function(x, returnIndex = FALSE) {
+    uniqDat <- unique(x)
+    caseUniq <- c()
+    for (i in uniqDat)
+        caseUniq <- c(caseUniq, which(i == x)[1])
+    if (returnIndex) {
         return(caseUniq)
-    }else{
+    } else{
         return(x[caseUniq])
     }
 }
@@ -129,17 +141,20 @@ takefirst<-function(x,returnIndex=FALSE){
 #'
 Mode <- function(x) {
     ### Initial Checks
-    if(missing(x)) stop("The x argument is required.")
-    if(!is.vector(x)) x <- as.vector(x)
+    if (missing(x))
+        stop("The x argument is required.")
+    if (!is.vector(x))
+        x <- as.vector(x)
     x <- x[is.finite(x)]
     ### Discrete
-    if(all(x == round(x))) {
+    if (all(x == round(x))) {
         Mode <- as.numeric(names(which.max(table(x))))
     } else {
         ### Continuous (using kernel density)
         x <- as.vector(as.numeric(as.character(x)))
         kde <- density(x)
-        Mode <- kde$x[kde$y == max(kde$y)]}
+        Mode <- kde$x[kde$y == max(kde$y)]
+    }
     return(Mode)
 }
 
@@ -152,8 +167,8 @@ Mode <- function(x) {
 #' @export
 #' @examples
 #' copyReadyVector(seq_len(5))
-copyReadyVector<-function(x){
-    paste0("c('",paste0(x,collapse = "','"),"')")
+copyReadyVector <- function(x) {
+    paste0("c('", paste0(x, collapse = "','"), "')")
 }
 
 
@@ -169,10 +184,11 @@ copyReadyVector<-function(x){
 #' @export
 #' @examples
 #' make.unique2(c("a", "a", "b"))
-make.unique2<-function(sample.name,sep="."){
-    counts=table(as.factor(sample.name))
-    nmRep<-sapply(as.list(counts),function(x) seq_len(x))
-    paste0(rep(names(nmRep),counts),sep,as.character(unlist(nmRep,use.names = F)))[order(sample.name)[order(sample.name)]]
+make.unique2 <- function(sample.name, sep = ".") {
+    counts = table(as.factor(sample.name))
+    nmRep <- sapply(as.list(counts), function(x)
+        seq_len(x))
+    paste0(rep(names(nmRep), counts), sep, as.character(unlist(nmRep, use.names = F)))[order(sample.name)[order(sample.name)]]
 }
 
 #' String split with chosen returned element
@@ -189,10 +205,18 @@ make.unique2<-function(sample.name,sep="."){
 #' @examples
 #' strsplitNth(c("ax1","bx2"), "x",1)
 #' strsplitNth(c("ax1","bx2"), "x",2)
-strsplitNth<-function(x, split, n=1, fixed=FALSE, perl=FALSE, useBytes=FALSE){
-    res<-strsplit(x, split, fixed, perl, useBytes)
-    sapply(res,function(el){ el[n] })
-}
+strsplitNth <-
+    function(x,
+             split,
+             n = 1,
+             fixed = FALSE,
+             perl = FALSE,
+             useBytes = FALSE) {
+        res <- strsplit(x, split, fixed, perl, useBytes)
+        sapply(res, function(el) {
+            el[n]
+        })
+    }
 
 
 #' Convert numeric to string, add 0 to the number to respect lexicographical order.
@@ -205,10 +229,13 @@ strsplitNth<-function(x, split, n=1, fixed=FALSE, perl=FALSE, useBytes=FALSE){
 #' @examples
 #' formatNumber2Character(seq_len(10))
 #' formatNumber2Character(seq_len(10),digit = 4)
-formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
-    x<-as.character(x)
-    sapply(as.list(x),function(el){ paste0(paste0(rep("0",digit-nchar(el)),collapse = ""),el) })
-}
+formatNumber2Character <-
+    function(x, digit = max(nchar(as.character(x)))) {
+        x <- as.character(x)
+        sapply(as.list(x), function(el) {
+            paste0(paste0(rep("0", digit - nchar(el)), collapse = ""), el)
+        })
+    }
 
 
 #' Convert a named factor vector to a list
@@ -224,11 +251,15 @@ formatNumber2Character<-function(x,digit=max(nchar(as.character(x)))){
 #' factorToVectorList(x)
 #'
 #' @seealso VectorListToFactor
-factorToVectorList<-function(factorValues,factorNames=NULL){
-    if(is.null(factorNames)) factorNames<-names(factorValues)
-    if(is.character(factorValues)) factorValues<-as.factor(factorValues)
-    res<-lapply(levels(factorValues),function(x) factorNames[factorValues==x])
-    names(res)<-levels(factorValues)
+factorToVectorList <- function(factorValues, factorNames = NULL) {
+    if (is.null(factorNames))
+        factorNames <- names(factorValues)
+    if (is.character(factorValues))
+        factorValues <- as.factor(factorValues)
+    res <-
+        lapply(levels(factorValues), function(x)
+            factorNames[factorValues == x])
+    names(res) <- levels(factorValues)
     res
 }
 
@@ -243,10 +274,12 @@ factorToVectorList<-function(factorValues,factorNames=NULL){
 #' VectorListToFactor(list(a=c("x1","x2"),b=c("x3","x4"),c=c("x5","x6","x7")))
 #'
 #' @seealso factorToVectorList
-VectorListToFactor<-function(listOfVector){
-    res<-factor(unlist(lapply(seq_along(listOfVector),function(i) rep(names(listOfVector)[i],length(listOfVector[[i]])))),
-                            levels=names(listOfVector))
-    names(res)<-unlist(listOfVector)
+VectorListToFactor <- function(listOfVector) {
+    res <-
+        factor(unlist(lapply(seq_along(listOfVector), function(i)
+            rep(names(listOfVector)[i], length(listOfVector[[i]])))),
+            levels = names(listOfVector))
+    names(res) <- unlist(listOfVector)
     res
 }
 
@@ -267,21 +300,25 @@ VectorListToFactor<-function(listOfVector){
 #' linearScale(oldValues,c(0,1),returnFunction = FALSE)
 #' scaleFun<-linearScale(c(1,10),c(0,1),returnFunction = TRUE)
 #' scaleFun(oldValues)
-linearScale <- function(vals,newRange,returnFunction = TRUE) {
-    if(!is.numeric(vals)) stop("x should be a vector of numerics")
-    if(length(newRange)!=2 | !is.numeric(newRange)) stop("newRange should be a vector of 2 numerics")
+linearScale <- function(vals, newRange, returnFunction = TRUE) {
+    if (!is.numeric(vals))
+        stop("x should be a vector of numerics")
+    if (length(newRange) != 2 |
+        !is.numeric(newRange))
+        stop("newRange should be a vector of 2 numerics")
 
-    oldMin<-min(vals)
-    oldMax<-max(vals)
-    newMin<-newRange[1]
-    newMax<-newRange[2]
+    oldMin <- min(vals)
+    oldMax <- max(vals)
+    newMin <- newRange[1]
+    newMax <- newRange[2]
 
-    mfac<-(newMax-newMin)/(oldMax-oldMin)
-    scaleFun<-function(x) newMin+(x-oldMin)*mfac
+    mfac <- (newMax - newMin) / (oldMax - oldMin)
+    scaleFun <- function(x)
+        newMin + (x - oldMin) * mfac
 
-    if(returnFunction){
+    if (returnFunction) {
         scaleFun
-    }else{
+    } else{
         scaleFun(vals)
     }
 }
@@ -300,28 +337,95 @@ linearScale <- function(vals,newRange,returnFunction = TRUE) {
 #' whichTop(x)
 #' whichTop(x,top=3)
 #' whichTop(x,decreasing=FALSE)
-whichTop<-function(x, top=5, decreasing=TRUE){
-    order(x,decreasing = decreasing)[seq_len(top)]
+whichTop <- function(x, top = 5, decreasing = TRUE) {
+    order(x, decreasing = decreasing)[seq_len(top)]
 }
 
 #alias
 
-#' colnames alias
+#' colnames alias (getter)
+#'
+#' @param x A matrix-like object.
+#' @param do.NULL logical. If `FALSE` and names are `NULL`, names are created.
+#' @param prefix for created names
+#' @return A character vector.
 #' @export
-cn<-function(x, do.NULL = TRUE, prefix = "col") BiocGenerics::colnames(x, do.NULL = TRUE, prefix = "col")
+#' @examples
+#' data(iris)
+#' cn(iris)
+cn <-
+    function(x, do.NULL = TRUE, prefix = "col"){
+        colnames(x, do.NULL = TRUE, prefix = "col")
+    }
 
-'cn<-'<-function(x,value){ colnames(x)<-value;x }
 
-#' rownames alias
+#' colnames alias (setter)
+#'
+#' @param x A matrix-like object.
+#' @param value Either NULL or a character vector equal of length equal to the appropriate dimension.
+#'
+#' @return The modified object.
 #' @export
-rn<-function(x, do.NULL = TRUE, prefix = "row") BiocGenerics::rownames(x, do.NULL = TRUE, prefix = "row")
-'rn<-'<-function(x,value){ rownames(x)<-value;x }
+#'
+#' @examples
+#' data(iris)
+#' cn(iris)<-c("S.l","S.w", "P.l", "P.w", "Sp")
+#' cn(iris)
+'cn<-' <- function(x, value) {
+    colnames(x) <- value
+    x
+}
+
+#' rownames alias (getter)
+#'
+#' @param x A matrix-like object.
+#' @param do.NULL logical. If `FALSE` and names are `NULL`, names are created.
+#' @param prefix for created names
+#' @return A character vector.
+#' @export
+#' @examples
+#' data(iris)
+#' rn(iris)
+rn <-
+    function(x, do.NULL = TRUE, prefix = "row"){
+        rownames(x, do.NULL = TRUE, prefix = "row")
+    }
+
+#' rownames alias (setter)
+#'
+#' @param x A matrix-like object.
+#' @param value Either NULL or a character vector equal of length equal to the appropriate dimension.
+#'
+#' @return The modified object.
+#' @export
+#'
+#' @examples
+#' data(iris)
+#' rn(iris)<-paste0("f",nrow(iris) |> seq_len())
+#' rn(iris)
+'rn<-' <- function(x, value) {
+    rownames(x) <- value
+    x
+}
 
 #' length alias
+#'
+#' @param x A vector-like object.
+#'
 #' @export
-len<-function(x) length(x)
+len <- function(x){
+    length(x)
+}
+
 
 #' intersect alias
+#'
+#' @param x A vector-like object.
+#' @param y A vector-like object.
+#' @param ... Additional arguments passed to `intersect`.
+#'
 #' @export
-inter<-function(x, y, ...) BiocGenerics::intersect(x, y, ...)
+inter <- function(x, y, ...){
+    intersect(x, y, ...)
+}
 

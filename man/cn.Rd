@@ -2,10 +2,24 @@
 % Please edit documentation in R/utils.R
 \name{cn}
 \alias{cn}
-\title{colnames alias}
+\title{colnames alias (getter)}
 \usage{
 cn(x, do.NULL = TRUE, prefix = "col")
 }
+\arguments{
+\item{x}{A matrix-like object.}
+
+\item{do.NULL}{logical. If \code{FALSE} and names are \code{NULL}, names are created.}
+
+\item{prefix}{for created names}
+}
+\value{
+A character vector.
+}
 \description{
-colnames alias
+colnames alias (getter)
+}
+\examples{
+data(iris)
+cn(iris)
 }

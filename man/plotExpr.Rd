@@ -54,12 +54,10 @@ Plot in the current graphical device or a ggplot object if \code{returnGraph=TRU
 Plot the expression of one or several genes
 }
 \examples{
-library(MASS)
-library(ggplot2)
 exprMat<-rbind(
-    rnegbin(30,theta = 10,mu = 10),
-    rnegbin(30,theta = 1,mu = 10),
-    rnegbin(30,theta = 1,mu = 1000)
+    MASS::rnegbin(30,theta = 10,mu = 10),
+    MASS::rnegbin(30,theta = 1,mu = 10),
+    MASS::rnegbin(30,theta = 1,mu = 1000)
 )
 rownames(exprMat)<-c("gene1","gene2","gene3")
 

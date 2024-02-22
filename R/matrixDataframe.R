@@ -1,5 +1,3 @@
-
-
 #' Scale per row
 #'
 #' @param data A matrix or dataframe of numerics.
@@ -38,6 +36,7 @@ chead <- function(x, n = 5) {
 #'
 #' @param x A matrix of numeric. The function will compute the distance between the rows (same as `dist`).
 #' @param method Character. Name of the method to compute correlation. See `method` argument from `cor`.
+#' @param ... Other arguments to be passed to `cor`.
 #'
 #' @return An object of class "dist".
 #' @export
@@ -45,10 +44,15 @@ chead <- function(x, n = 5) {
 #' @examples
 #' data("iris")
 #' corrDist(t(iris[,seq_len(3)]))
-corrDist <- function(x, method = "pearson") {
-    return(as.dist((1 - cor(
-        Matrix::t(x), method = method
-    )) / 2))
+corrDist <- function(x, method = "pearson", ...) {
+    x <- Matrix::t(x)
+    if(requireNamespace("WGCNA", quietly = TRUE)) {
+        x <- WGCNA::cor(x, method = method)
+    } else {
+        x <- stats::cor(x, method = method)
+        print("Consider installing WGCNA for better performance when computing correlation.")
+    }
+    return(as.dist( (1 - x)/2 ))
 }
 
 #' Compute cosine distance
@@ -67,24 +71,6 @@ cosineDist<-function(x){
     ) |> as.dist()
 }
 
-
-#' Compute bicorrelation distance
-#'
-#' @description The bicorrelation distance is a metric used by WGCNA. In theory it is better to describe coexpression than Pearson's correlation.
-#'
-#' @param x A matrix of numeric. The function will compute the distance between the rows (same as `dist`).
-#'
-#' @return An object of class "dist".
-#' @export
-#'
-#' @examples
-#' data("iris")
-#' corrDistBicor(t(iris[,seq_len(3)]))
-corrDistBicor <- function(x) {
-    return(as.dist((1 - suppressWarnings(
-        WGCNA::bicor(Matrix::t(x))
-    )) / 2))
-}
 
 #' Compute covariance distance
 #'
@@ -118,7 +104,8 @@ covDist<-function(x){
 #' data("bulkLogCounts")
 #' data("humanGeneIDtable")
 #' geneSym<-rownames(bulkLogCounts)
-#' geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+#' geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,
+#'     colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 ConvertKey <- function(keyList,
                         tabKey,
                         colOldKey = 1,
@@ -146,7 +133,8 @@ ConvertKey <- function(keyList,
 #' @examples
 #' data("bulkLogCounts")
 #' data("humanGeneIDtable")
-#' bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+#' bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = humanGeneIDtable,
+#'     colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 ConvertKeyMatrix <-
     function(tab,
                      tabKey,
@@ -287,11 +275,16 @@ reScale <- function(matToAdjust, matGoodRange.) {
 #' @export
 #'
 #' @examples
-#' df<-data.frame(a=1:12,b=rep(c("1","19","2"),each=4))
-#' metaDf<-data.frame(Type=c("numeric","factor"),colorScale=c("","1=blue,2=white,19=red"),row.names=c("a","b"))
-#' res<-formatAnnotFromMeta(df, metaDf)
+#' df <- data.frame(a = 1:12, b = rep(c("1", "19", "2"), each = 4))
+#' metaDf <-
+#'     data.frame(
+#'         Type = c("numeric", "factor"),
+#'         colorScale = c("", "1=blue,2=white,19=red"),
+#'         row.names = c("a", "b")
+#'     )
+#' res <- formatAnnotFromMeta(df, metaDf)
 #' res$b
-#' attr(res,"colorScale")
+#' attr(res, "colorScale")
 formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
     colorScales = list()
     for (feature in rownames(metaAnnot)) {
@@ -353,7 +346,7 @@ subSampleColumnPerGroup <- function(mat, groupVector, n = NULL) {
 #' @param dt A dataframe containing factor column
 #'
 #' @return A dataframe where all the factor column have been converted to srings
-#'
+#' @export
 #' @examples
 #' a<-data.frame(x=factor(c("a","a","b")),y=seq_len(3))
 #' b<-factorAsStrings(a)
@@ -363,7 +356,7 @@ factorAsStrings <- function(dt) {
         if (is.factor(dt[, i]))
             dt[, i] <- as.character(dt[, i])
     }
-    dt
+    return(dt)
 }
 
 #' Aggregate columns or rows of a matrix by a vector of factor
@@ -397,4 +390,49 @@ aggregMatPerVector <- function(x, by, FUN = mean, byRow = NULL) {
     if (!byRow)
         res <- t(res)
     return(as.matrix(res))
+}
+
+
+#' Draw n samples from each population and return it has a named vector
+#'
+#' @param sampleNames A character vector of the name of the samples.
+#' @param group A factor or a character vector of the same length as `sampleNames`. Describe the population of each sample.
+#' @param maxDrawSize Maximum number of observation to draw per group.
+#' @param minDrawSize Minimum number of observation to draw per group.
+#' @param replace Logical. Should the sample be drawn with replacement.
+#'
+#' @return A named vector with `sampleNames` with the population of each sample.
+#' @export
+#'
+#' @examples
+#' sampleNames<-paste0("sample",1:20)
+#' group<-c(rep("A",5),rep("B",12),rep("C",3))
+#' drawSamplePerGroup(sampleNames,group)
+#' drawSamplePerGroup(sampleNames,group,minDrawSize=6)
+#' drawSamplePerGroup(sampleNames,group,maxDrawSize=2)
+#'
+#' # If minDrawSize > number of sample in a group and replace=TRUE, samples
+#' # will be drawn with replacement in this group
+#' drawSamplePerGroup(sampleNames,group,minDrawSize=6, replace=TRUE)
+drawSamplePerGroup<-function(sampleNames, group, maxDrawSize = NULL, minDrawSize = NULL,replace=FALSE){
+    if (is.null(group))
+        return(sampleNames)
+    if (is.null(names(group)))
+        names(group)<-sampleNames
+    if(! (is.factor(group) | is.character(group)))
+        stop("group must be a factor or a character vector")
+    drawSize <- min(table(group))
+    if (!is.null(maxDrawSize))
+        drawSize <- min(drawSize, maxDrawSize)
+    if (!is.null(minDrawSize))
+        drawSize <- max(drawSize, minDrawSize)
+    drawCells <- unlist(lapply(unique(group), function(lvl) {
+        cells <- sampleNames[group == lvl]
+        if(replace & length(cells)<drawSize){
+            return(sample(cells, drawSize, replace = TRUE))
+        } else {
+            sample(cells, min(drawSize, length(cells)))
+        }
+    }))
+    return(group[drawCells])
 }

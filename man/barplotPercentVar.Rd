@@ -4,7 +4,7 @@
 \alias{barplotPercentVar}
 \title{Scree plot of explained variance per PC from a PCA}
 \usage{
-barplotPercentVar(pca, nPC = length(pca$propExplVar), returnGraph = FALSE, ...)
+barplotPercentVar(pca, nPC = length(pca$propExplVar), returnGraph = FALSE)
 }
 \arguments{
 \item{pca}{PCA object created by \code{PCA} function.}

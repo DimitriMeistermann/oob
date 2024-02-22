@@ -13,7 +13,7 @@ qplotAutoX(x, returnGraph = FALSE, geom = "point", ...)
 
 \item{geom}{Geom to draw. Defaults to "point"}
 
-\item{...}{Parameters passed to \code{qplot}}
+\item{...}{Parameters passed to \code{oobqplot}}
 }
 \value{
 Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.

@@ -46,5 +46,6 @@ Volcano plot with additional annotation for interpreting DE genes.
 }
 \examples{
 data("DEgenesPrime_Naive")
-volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
+volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",
+    condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
 }

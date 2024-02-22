@@ -4,12 +4,14 @@
 \alias{corrDist}
 \title{Compute correlation distance}
 \usage{
-corrDist(x, method = "pearson")
+corrDist(x, method = "pearson", ...)
 }
 \arguments{
 \item{x}{A matrix of numeric. The function will compute the distance between the rows (same as \code{dist}).}
 
 \item{method}{Character. Name of the method to compute correlation. See \code{method} argument from \code{cor}.}
+
+\item{...}{Other arguments to be passed to \code{cor}.}
 }
 \value{
 An object of class "dist".

@@ -3,7 +3,7 @@ Type: Package
 Title: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box
 Version: 0.9.0
 Authors@R: person("Dimitri", "Meistermann", email = "dimitri.meistermann@helsinki.fi",role = c("aut", "cre"), comment=c(ORCID="0000-0001-6614-2325"))
-Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box.
+Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box. This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
@@ -13,53 +13,54 @@ biocViews:
 	Transcriptomics
 RoxygenNote: 7.3.0
 Roxygen: list(markdown = TRUE)
+Depends: 
+    R (>= 4.2),
+    ggplot2,
+    stats,
+    ComplexHeatmap
 Imports:
-    AnnotationDbi,
     basilisk,
     batchelor,
-    BiocGenerics,
-    BiocManager,
     BiocParallel,
+    BiocGenerics,
     circlize,
-    ComplexHeatmap,
     data.table,
     dbscan,
-    doParallel,
-    fgsea,
-    foreach,
-    gage,
     ggbeeswarm,
-    ggplot2,
     ggrepel,
     glmnet,
     grDevices,
     grid,
-    impute,
     irlba,
+    labeling,
     lsa,
     MASS,
     Matrix,
-    preprocessCore,
     pvclust,
-    qualpalr,
     reshape2,
     reticulate,
     rgl,
     Rcpp,
     RcppArmadillo,
+    rlang,
     scales,
     scater,
     scattermore,
     scran,
     SingleCellExperiment,
-    stringr,
     SummarizedExperiment,
+    stringr,
+    cli,
     uwot,
-    WGCNA
+    graphics,
+    methods,
+    utils
 Suggests: 
     knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    rmarkdown,
+    qualpalr,
+    WGCNA
+VignetteBuilder:  knitr, rmarkdown
 LinkingTo:
     Rcpp,
     RcppArmadillo

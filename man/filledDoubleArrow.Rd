@@ -37,6 +37,6 @@ Plot a double arrow in a grid plot.
 }
 \examples{
 filledDoubleArrow()
-ggplot2::qplot(seq_len(5))
+oobqplot(seq_len(5))
 filledDoubleArrow()
 }

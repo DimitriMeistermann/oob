@@ -30,5 +30,6 @@ Add or remove colors to an existing palette by interpolation
 }
 \examples{
 extendColorPalette(9,  colors=c("red","green","blue")) |> plotPalette()
-extendColorPalette(9,  colors=c("red","green","blue"), sortColorIn=TRUE, sortColorOut=TRUE) |> plotPalette()
+extendColorPalette(9,  colors=c("red","green","blue"),
+    sortColorIn=TRUE, sortColorOut=TRUE) |> plotPalette()
 }

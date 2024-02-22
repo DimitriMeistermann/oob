@@ -48,20 +48,51 @@ A vector of colors, or a function if \code{returnColorFun=TRUE} or a ggplot scal
 Compute a color scale function from numeric values by interpolation
 }
 \examples{
-
 values=sort(rnorm(100))
 
-plotPalette(computeColorScaleFun(colors = c("black","red"),values = values,returnColorFun = FALSE))
-plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE))
-plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,midColorIs0 = TRUE))
-plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,useProb = TRUE))
-plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,useProb = TRUE,probs = c(.25,.5,.75)))
+plotPalette(computeColorScaleFun(
+    colors = c("black", "red"),
+    values = values,
+    returnColorFun = FALSE
+))
+plotPalette(computeColorScaleFun(
+    colors = c("blue", "white", "red"),
+    values = values,
+    returnColorFun = FALSE
+))
+plotPalette(
+    computeColorScaleFun(
+        colors = c("blue", "white", "red"),
+        values = values,
+        returnColorFun = FALSE,
+        midColorIs0 = TRUE
+    )
+)
+plotPalette(
+    computeColorScaleFun(
+        colors = c("blue", "white", "red"),
+        values = values,
+        returnColorFun = FALSE,
+        useProb = TRUE
+    )
+)
+plotPalette(
+    computeColorScaleFun(
+        colors = c("blue", "white", "red"),
+        values = values,
+        returnColorFun = FALSE,
+        useProb = TRUE,
+        probs = c(.25, .5, .75)
+    )
+)
 
-colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = TRUE,useProb = TRUE)
+colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,
+                               returnColorFun = TRUE,useProb = TRUE)
 plotPalette(c(colorFun(-1),colorFun(0),colorFun(1)))
 
 dat<-data.frame(x=rnorm(10),y=rnorm(10),expr=rnorm(10))
-ggplot2::ggplot(dat,aes(x=x,y=y,fill=expr))+
+ggplot(dat,aes(x=x,y=y,fill=expr))+
     geom_point(size=5,shape=21)+theme_bw()+
-    computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,useProb = TRUE,geomAes = "fill")
+    computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,
+                       useProb = TRUE,geomAes = "fill")
 }

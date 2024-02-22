@@ -11,7 +11,7 @@ qplotDensity(x, returnGraph = FALSE, ...)
 
 \item{returnGraph}{Logical. Logical. Return the graph as a ggplot object instead of printing it.}
 
-\item{...}{Parameters passed to \code{qplot}}
+\item{...}{Parameters passed to \code{oobqplot}}
 }
 \value{
 Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.

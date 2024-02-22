@@ -23,9 +23,8 @@ Quick single cell normalization (scran method).
 }
 \examples{
 data("geneLengthGRCh38")
-library(MASS)
 countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 }));rownames(countMat)<-names(geneLengthGRCh38)
 quickSCnorm(countMat, returnLog=FALSE)
 quickSCnorm(countMat, returnLog=TRUE)

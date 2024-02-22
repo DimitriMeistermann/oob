@@ -18,6 +18,8 @@ A vector of colors, sorted.
 Sort a vector if color by their similarity
 }
 \examples{
-sortColorByDistance(c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")) |> plotPalette()
-sortColorByDistance(c("#000066","#0000FF","#660000","#FF0000","#006600","#00FF00"), inverted=TRUE) |> plotPalette()
+colors <- c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")
+sortColorByDistance(colors) |> plotPalette()
+colors <- c("#000066","#0000FF","#660000","#FF0000","#006600","#00FF00")
+sortColorByDistance(colors, byDissimilarity=TRUE) |> plotPalette()
 }

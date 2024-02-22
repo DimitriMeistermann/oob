@@ -27,9 +27,14 @@ In the case of factors, the colors are named to their corresponding level.
 Format a dataframe following instructions from another.
 }
 \examples{
-df<-data.frame(a=1:12,b=rep(c("1","19","2"),each=4))
-metaDf<-data.frame(Type=c("numeric","factor"),colorScale=c("","1=blue,2=white,19=red"),row.names=c("a","b"))
-res<-formatAnnotFromMeta(df, metaDf)
+df <- data.frame(a = 1:12, b = rep(c("1", "19", "2"), each = 4))
+metaDf <-
+    data.frame(
+        Type = c("numeric", "factor"),
+        colorScale = c("", "1=blue,2=white,19=red"),
+        row.names = c("a", "b")
+    )
+res <- formatAnnotFromMeta(df, metaDf)
 res$b
-attr(res,"colorScale")
+attr(res, "colorScale")
 }

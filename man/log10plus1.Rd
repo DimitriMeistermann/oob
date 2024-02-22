@@ -13,5 +13,7 @@ A transformation object.
 log10(x+1) continuous scale for ggplot2
 }
 \examples{
-ggplot(data.frame(x=c(0,10,100,1000),y=seq_len(4)),mapping = aes(x=x,y=y))+geom_point()+scale_x_continuous(trans = log10plus1())
+ggplot(data.frame(x=c(0,10,100,1000),y=seq_len(4)),
+    mapping = aes(x=x,y=y))+geom_point()+
+    scale_x_continuous(trans = log10plus1())
 }

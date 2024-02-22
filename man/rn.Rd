@@ -2,10 +2,24 @@
 % Please edit documentation in R/utils.R
 \name{rn}
 \alias{rn}
-\title{rownames alias}
+\title{rownames alias (getter)}
 \usage{
 rn(x, do.NULL = TRUE, prefix = "row")
 }
+\arguments{
+\item{x}{A matrix-like object.}
+
+\item{do.NULL}{logical. If \code{FALSE} and names are \code{NULL}, names are created.}
+
+\item{prefix}{for created names}
+}
+\value{
+A character vector.
+}
 \description{
-rownames alias
+rownames alias (getter)
+}
+\examples{
+data(iris)
+rn(iris)
 }

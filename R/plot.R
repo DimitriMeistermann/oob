@@ -26,11 +26,10 @@ autoGparFontSizeMatrix <- function(n, ...) {
 #' @export
 #'
 #' @examples
-#' library(ggplot2)
 #' p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),aes(x=x,y=y))+geom_point()+ggtitle("p1")
-#' p2<-qplot(c("a","a","b","b","b","c"))+ggtitle("p2")
-#' p3<-qplot(c("a","a","b","b","b"))+ggtitle("p3")
-#' p4<-qplot(c("a","b","c","d"))+ggtitle("p4")
+#' p2<-oobqplot(c("a","a","b","b","b","c"))+ggtitle("p2")
+#' p3<-oobqplot(c("a","a","b","b","b"))+ggtitle("p3")
+#' p4<-oobqplot(c("a","b","c","d"))+ggtitle("p4")
 #'
 #' multiplot(p1,p2,p3,p4)
 #' plotList<-list(p1,p2,p3,p4)
@@ -49,9 +48,9 @@ autoGparFontSizeMatrix <- function(n, ...) {
 #' multiplot(plotlist = plotList,layout = layout)
 
 multiplot <- function(...,
-                                            plotlist = NULL,
-                                            cols = 1,
-                                            layout = NULL) {
+                      plotlist = NULL,
+                      cols = 1,
+                      layout = NULL) {
     # Make a list from the ... arguments and plotlist
     plots <- c(list(...), plotlist)
 
@@ -63,8 +62,8 @@ multiplot <- function(...,
         # ncol: Number of columns of plots
         # nrow: Number of rows needed, calculated from # of cols
         layout <- matrix(seq(1, cols * ceiling(numPlots / cols)),
-                                         ncol = cols,
-                                         nrow = ceiling(numPlots / cols))
+                         ncol = cols,
+                         nrow = ceiling(numPlots / cols))
     }
     if (numPlots == 1) {
         print(plots[[1]])
@@ -77,13 +76,16 @@ multiplot <- function(...,
         # Make each plot, in the correct location
         for (i in seq_len(numPlots)) {
             # Get the i,j matrix positions of the regions that contain this subplot
-            matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+            matchidx <-
+                as.data.frame(which(layout == i, arr.ind = TRUE))
 
-            print(plots[[i]],
-                        vp = viewport(
-                            layout.pos.row = matchidx$row,
-                            layout.pos.col = matchidx$col
-                        ))
+            print(
+                plots[[i]],
+                vp = viewport(
+                    layout.pos.row = matchidx$row,
+                    layout.pos.col = matchidx$col
+                )
+            )
         }
     }
 }
@@ -111,6 +113,7 @@ ggplotColours <- function(n = 6, h = c(0, 360) + 15) {
 #' Convert color from additive to subtracting mixing
 #'
 #' @param color A vector of 3 numeric containing rgb values (from 0 to 1), or a single character of the color name or hex code
+#' @param returnHex Logical value indicating if the color should be returned as a hex code or as a vector of rgb values.
 #'
 #' @return a vector containing rgb values if returnHex=FALSE, otherwise a color as a character format.
 #' @export
@@ -141,8 +144,8 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
     } else{
         return(c(
             "red" = newRed,
-                        "green" = newGreen,
-                        "blue" = newBlue
+            "green" = newGreen,
+            "blue" = newBlue
         ))
     }
 }
@@ -154,7 +157,6 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 #' @param colorspace A color space to generate colors from. See ?qualpalr::qualpal. If NULL computed regarding the number of asked color.
 #' @param cvd Color vision deficiency adaptation. Use cvd_severity to set the severity of color vision deficiency to adapt to. Permissible values are "protan", "deutan", and "tritan".
 #' @param cvd_severity Severity of color vision deficiency to adapt to. Can take any value from 0, for normal vision (the default), and 1, for dichromatic vision.
-#' @param n_threads The number of threads to use, provided to setThreadOptions if non-null.
 #'
 #' @return Colors in hex format.
 #' @export
@@ -164,26 +166,31 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 #'
 mostDistantColor <-
     function(n,
-                     colorspace = NULL,
-                     cvd = c("protan", "deutan", "tritan"),
-                     cvd_severity = 0,
-                     n_threads = NULL) {
+             colorspace = NULL,
+             cvd = c("protan", "deutan", "tritan"),
+             cvd_severity = 0) {
         if (n == 1)
             return("#000000")
-        if (is.null(colorspace)) {
-            if (n < 7) {
-                colorspace <- "pretty"
-            } else{
-                colorspace <- "rainbow"
+        # test if qualpalr is installed
+        if (!requireNamespace("qualpalr", quietly = TRUE)) {
+            warning("qualpalr is not installed, please install for getting better colors.")
+            return(ggplotColours(n))
+        } else{
+            if (is.null(colorspace)) {
+                if (n < 7) {
+                    colorspace <- "pretty"
+                } else{
+                    colorspace <- "rainbow"
+                }
             }
+            qualpalr::qualpal(
+                n = n,
+                colorspace = colorspace,
+                cvd = cvd,
+                cvd_severity = cvd_severity
+            )$hex
         }
-        qualpalr::qualpal(
-            n = n,
-            colorspace = colorspace,
-            cvd = cvd,
-            cvd_severity = cvd_severity,
-            n_threads = n_threads
-        )$hex
+
     }
 
 
@@ -202,7 +209,7 @@ pointdensity.nrd <- function(mat, eps = 1) {
     if (!is.matrix(mat))
         mat <- as.matrix(mat)
     dbscan::pointdensity(apply(mat, 2, function(d)
-        d / bandwidth.nrd(d)),
+        d / max(MASS::bandwidth.nrd(d),1e-6)),
         eps = eps,
         type = "density")
 }
@@ -214,7 +221,9 @@ pointdensity.nrd <- function(mat, eps = 1) {
 #' @export
 #'
 #' @examples
-#' ggplot(data.frame(x=c(0,10,100,1000),y=seq_len(4)),mapping = aes(x=x,y=y))+geom_point()+scale_x_continuous(trans = log10plus1())
+#' ggplot(data.frame(x=c(0,10,100,1000),y=seq_len(4)),
+#'     mapping = aes(x=x,y=y))+geom_point()+
+#'     scale_x_continuous(trans = log10plus1())
 log10plus1 <- function() {
     scales::trans_new(
         name = "log10plus1",
@@ -288,35 +297,67 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
 #' @export
 #'
 #' @examples
-#'
 #' values=sort(rnorm(100))
 #'
-#' plotPalette(computeColorScaleFun(colors = c("black","red"),values = values,returnColorFun = FALSE))
-#' plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE))
-#' plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,midColorIs0 = TRUE))
-#' plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,useProb = TRUE))
-#' plotPalette(computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = FALSE,useProb = TRUE,probs = c(.25,.5,.75)))
+#' plotPalette(computeColorScaleFun(
+#'     colors = c("black", "red"),
+#'     values = values,
+#'     returnColorFun = FALSE
+#' ))
+#' plotPalette(computeColorScaleFun(
+#'     colors = c("blue", "white", "red"),
+#'     values = values,
+#'     returnColorFun = FALSE
+#' ))
+#' plotPalette(
+#'     computeColorScaleFun(
+#'         colors = c("blue", "white", "red"),
+#'         values = values,
+#'         returnColorFun = FALSE,
+#'         midColorIs0 = TRUE
+#'     )
+#' )
+#' plotPalette(
+#'     computeColorScaleFun(
+#'         colors = c("blue", "white", "red"),
+#'         values = values,
+#'         returnColorFun = FALSE,
+#'         useProb = TRUE
+#'     )
+#' )
+#' plotPalette(
+#'     computeColorScaleFun(
+#'         colors = c("blue", "white", "red"),
+#'         values = values,
+#'         returnColorFun = FALSE,
+#'         useProb = TRUE,
+#'         probs = c(.25, .5, .75)
+#'     )
+#' )
 #'
-#' colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColorFun = TRUE,useProb = TRUE)
+#' colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,
+#'                                returnColorFun = TRUE,useProb = TRUE)
 #' plotPalette(c(colorFun(-1),colorFun(0),colorFun(1)))
 #'
 #' dat<-data.frame(x=rnorm(10),y=rnorm(10),expr=rnorm(10))
-#' ggplot2::ggplot(dat,aes(x=x,y=y,fill=expr))+
+#' ggplot(dat,aes(x=x,y=y,fill=expr))+
 #'     geom_point(size=5,shape=21)+theme_bw()+
-#'     computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,useProb = TRUE,geomAes = "fill")
+#'     computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,
+#'                        useProb = TRUE,geomAes = "fill")
 computeColorScaleFun <-
     function(colors,
-                     values,
-                     useProb = FALSE,
-                     probs = NULL,
-                     minProb = 0.05,
-                     maxProb = 0.95,
-                     midColorIs0 = FALSE,
-                     returnColorFun = TRUE,
-                     returnGGscale = FALSE,
-                     geomAes = "fill",
-                     geomArgument = list()) {
-        if(is.null(values)) stop("values cannot be NULL")
+             values,
+             useProb = FALSE,
+             probs = NULL,
+             minProb = 0.05,
+             maxProb = 0.95,
+             midColorIs0 = FALSE,
+             returnColorFun = TRUE,
+             returnGGscale = FALSE,
+             geomAes = "fill",
+             geomArgument = list()) {
+        if (is.null(values))
+            stop("values cannot be NULL")
         if (!useProb) {
             breaks = seq(min(values), max(values), length.out = length(colors))
         } else{
@@ -328,7 +369,8 @@ computeColorScaleFun <-
         if (midColorIs0 & (length(colors) %% 2 == 1)) {
             breaks[ceiling(length(breaks) / 2)] <- 0
         }
-        colorFun <- circlize::colorRamp2(breaks = breaks, colors = colors)
+        colorFun <-
+            circlize::colorRamp2(breaks = breaks, colors = colors)
         if (returnGGscale) {
             scaledBreaks <-
                 linearScale(values, c(0, 1), returnFunction = TRUE)(breaks)
@@ -376,30 +418,38 @@ computeColorScaleFun <-
 #'
 #' genColorsForAnnots(iris)
 #'
-#' precomputedColorScale<-list(Species=c("setosa"="red","versicolor"="blue","virginica"="grey"))
+#' precomputedColorScale <-
+#'     list(Species = c(
+#'         "setosa" = "red",
+#'         "versicolor" = "blue",
+#'         "virginica" = "grey"
+#'     ))
 #'
-#' genColorsForAnnots(iris,colorScales = precomputedColorScale)
+#' genColorsForAnnots(iris, colorScales = precomputedColorScale)
 #'
-#' colorScales<-genColorsForAnnots(iris,returnContinuousFun = TRUE)
+#' colorScales <- genColorsForAnnots(iris, returnContinuousFun = TRUE)
 #' colorScales$Sepal.Length(4.5)
 #' colorScales$Species
 #'
 #' library(ComplexHeatmap)
-#' Heatmap(rowScale(t(iris[,c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width")]),center = TRUE,scaled = TRUE),
-#'                 top_annotation = genTopAnnot(iris["Species"],colorScales=colorScales["Species"]))
-
+#' Heatmap(
+#'     rowScale(t(iris[, c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]),
+#'     center = TRUE, scaled = TRUE),
+#'     top_annotation = genTopAnnot(iris["Species"], colorScales =
+#'                                      colorScales["Species"])
+#' )
 
 genColorsForAnnots <-
     function(annots,
-                     colorScales = NULL,
-                     discreteFuns = list(oobColors, mostDistantColor, mostDistantColor),
-                     returnContinuousFun = FALSE ,
-                     continuousPalettes = list(
-                         c("#440154", "#6BA75B", "#FDE725"),
-                         c("#2EB538", "#1D1D1B", "#DC0900"),
-                         c("#FFFFC6", "#FF821B", "#950961")
-                     ),
-                     ...) {
+             colorScales = NULL,
+             discreteFuns = list(oobColors, mostDistantColor, mostDistantColor),
+             returnContinuousFun = FALSE ,
+             continuousPalettes = list(
+                 c("#440154", "#6BA75B", "#FDE725"),
+                 c("#2EB538", "#1D1D1B", "#DC0900"),
+                 c("#FFFFC6", "#FF821B", "#950961")
+             ),
+             ...) {
         if (is.null(colnames(annots)))
             stop("annots must have colnames.")
         annotNames <- colorScalesToGen <- colnames(annots)
@@ -408,9 +458,11 @@ genColorsForAnnots <-
         if (!is.null(colorScales)) {
             for (colorScaleName in names(colorScales)) {
                 if (!colorScaleName %in% colorScalesToGen)
-                    stop("Condition '",
-                             colorScaleName,
-                             "' does not match with existing condition names")
+                    stop(
+                        "Condition '",
+                        colorScaleName,
+                        "' does not match with existing condition names"
+                    )
                 colorScale <- colorScales[[colorScaleName]]
                 annotVect <- annots[, colorScaleName]
                 if (!is.null(names(colorScale))) {
@@ -433,8 +485,7 @@ genColorsForAnnots <-
                         stop(
                             "Levels of ",
                             colorScaleName,
-                            " are existing in sample annotation table but not in ",
-                            colorScaleFile
+                            " are existing in sample annotation table but not in provided color scale."
                         )
                     newColorScales[[colorScaleName]] <-
                         colorScale[levels(annotVect)]
@@ -446,14 +497,17 @@ genColorsForAnnots <-
                             " is not numeric but encoded as numeric (color vector has no names)"
                         )
                     if (is.function(colorScale) &
-                            !returnContinuousFun)
-                        stop("You must not provide function in colorScales if returnContinuousFun=FALSE")
-                    if (!is.function(colorScale) & returnContinuousFun) {
+                        !returnContinuousFun)
+                        stop(
+                            "You must not provide function in colorScales if returnContinuousFun=FALSE"
+                        )
+                    if (!is.function(colorScale) &
+                        returnContinuousFun) {
                         newColorScales[[colorScaleName]] <-
                             computeColorScaleFun(colorScale,
-                                                                     values = annotVect,
-                                                                     returnColorFun = TRUE,
-                                                                     ...)
+                                                 values = annotVect,
+                                                 returnColorFun = TRUE,
+                                                 ...)
                     } else{
                         newColorScales[[colorScaleName]] <- colorScale
                     }
@@ -470,10 +524,12 @@ genColorsForAnnots <-
             if (is.numeric(annotVect)) {
                 if (returnContinuousFun) {
                     newColorScales[[colorScaleName]] <-
-                        computeColorScaleFun(continuousPalettes[[cN]],
-                                                                 values = annotVect,
-                                                                 returnColorFun = TRUE,
-                                                                 ...)
+                        computeColorScaleFun(
+                            continuousPalettes[[cN]],
+                            values = annotVect,
+                            returnColorFun = TRUE,
+                            ...
+                        )
                 } else{
                     newColorScales[[colorScaleName]] <- continuousPalettes[[cN]]
                 }
@@ -486,7 +542,8 @@ genColorsForAnnots <-
                 annotVect <- annots[, colorScaleName]
                 newColorScales[[colorScaleName]] <-
                     discreteFuns[[cF]](nlevels(annotVect))
-                names(newColorScales[[colorScaleName]]) <- levels(annotVect)
+                names(newColorScales[[colorScaleName]]) <-
+                    levels(annotVect)
                 cF <- cF + 1
                 if (cF > length(discreteFuns))
                     cF <- 1
@@ -505,14 +562,13 @@ genColorsForAnnots <-
 #' @export
 #'
 #' @examples
-#' library(ggplot)
 #' g<-ggplot(data.frame(x=c("A","A","B","B","B","C")),aes(x=x))+geom_bar()
 #' g
 #' ggBorderedFactors(g)
 #' ggBorderedFactors(g,borderColor="white",borderSize=1.5)
 ggBorderedFactors <- function(gg,
-                                                            borderSize = .75,
-                                                            borderColor = "grey75") {
+                              borderSize = .75,
+                              borderColor = "grey75") {
     nX <- nlevels(as.factor(gg$data[, quo_name(gg$mapping$x)]))
     gg + geom_vline(
         xintercept = seq(1.5, nX - 0.5, 1),
@@ -527,834 +583,11 @@ ggBorderedFactors <- function(gg,
 }
 
 
-#' Plot a PCA in 2D
-#'
-#' @param pca PCA object created by `PCA` function.
-#' @param comp A vector of 2 integer. Principal Component to be plotted.
-#' @param colorBy A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.
-#' @param plotVars Logical. Plot variable loadings instead of coordinates of samples on PCs.
-#' @param pointSize Single numeric. Size of points.
-#' @param plotText Logical. Plot sample/variable name instead of point.
-#' @param ratioPerPercentVar Logical. Ratio of the plot is corresponding to the percentage of explained variation from each PC.
-#' @param main Single character. Main title of the graph.
-#' @param ellipse Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).
-#' @param colorScale A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.
-#' @param returnGraph Logical. Return the graph as a ggplot object instead of printing it.
-#' @param outlierLabel Logical. Add a `ggrepel` label for point in low-density area of the plot.
-#' @param outlierLabelThres Numeric. Density value threshold below that the labelled is displayed if `outlierLabel=TRUE`.
-#' @param outlierLabelSize Numeric. Size of outlier labels.
-#' @param customRatio Single numeric. Custom ratio for the plot.
-#' @param ... Arguments passed to `proj2d`
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#' pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
-#' pca2d(pca)
-#' pca2d(pca,comp = c(1,3))
-#'
-#' pca2d(pca,colorBy = iris$Species,ratioPerPercentVar = TRUE)
-#' pca2d(pca,colorBy = iris$Species,colorScale=c("blue","white","red"))
-#'
-#' pca2d(pca,plotVars = TRUE,plotText = TRUE,pointSize = 5)
-#'
-#' pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species)
-#' pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2)
-#'
-#' pca2d(pca,outlierLabel = TRUE,colorBy = iris$Species,ellipse = TRUE,outlierLabelThres = .2,returnGraph = TRUE)+
-#'     ggplot2::theme_dark()
-pca2d <-
-    function(pca,
-                     comp = c(1, 2),
-                     colorBy = NULL,
-                     plotVars = FALSE,
-                     pointSize = 2,
-                     plotText = FALSE,
-                     ratioPerPercentVar = FALSE,
-                     main = NULL,
-                     ellipse = FALSE,
-                     colorScale = NULL,
-                     returnGraph = FALSE,
-                     outlierLabel = FALSE,
-                     outlierLabelThres = NULL,
-                     outlierLabelSize = 3,
-                     customRatio = NULL,
-                     ...) {
-        if (length(comp) != 2)
-            stop("You must give a vector of 2 integer for comp parameter")
-
-        propExplVar <- pca$propExplVar
-        if (ratioPerPercentVar) {
-            customRatio <- propExplVar[comp[2]] / propExplVar[comp[1]] * 2
-        }
-        if(pca$isFastPCA){
-            varianceMesage <- "% variance of computed PC"
-        }else{
-            varianceMesage <- "% total variance"
-        }
-        dt <- pca[[ifelse(plotVars, "rotation", "x")]]
-        graph <-
-            proj2d(
-                coord = dt,
-                axis = comp,
-                colorBy = colorBy,
-                returnGraph = TRUE,
-                colorScale = colorScale,
-                main = main,
-                plotText = plotText,
-                ellipse = ellipse,
-                pointSize = pointSize,
-                customRatio = customRatio,
-                fixedCoord = FALSE,
-                ...
-            ) +
-            xlab(paste0("PC", comp[1], ": ", round(propExplVar[comp[1]] * 100), varianceMesage)) +
-            ylab(paste0("PC", comp[2], ": ", round(propExplVar[comp[2]] * 100), varianceMesage))
-        if (outlierLabel) {
-            if (is.null(rownames(dt)))
-                rownames(dt) <- as.character(seq_len(nrow(dt)))
-            dtOutlier <-
-                data.frame(x = dt[, comp[1]],
-                                     y = dt[, comp[2]],
-                                     label = rownames(dt))
-            dens <- pointdensity.nrd(dtOutlier[, c(1, 2)])
-
-            if (is.null(outlierLabelThres))
-                outlierLabelThres = Mode(dens) / 3
-            dtOutlier <- dtOutlier[dens / max(dens) < outlierLabelThres, ]
-            graph <-
-                graph + geom_text_repel(
-                    data = dtOutlier,
-                    mapping = aes(x = x, y = y, label = label),
-                    size = outlierLabelSize,
-                    fontface = "italic",
-                    inherit.aes = FALSE
-                )
-        }
-
-        if (returnGraph) {
-            return(graph)
-        } else{
-            print(graph)
-        }
-    }
-
-#' Plot a 2D projection.
-#'
-#' @param coord Matrix or dataframe containing at least two vectors of numeric corresponding to the x/y coordinates.
-#' @param colorBy A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.
-#' @param axis  A vector of 2 integer. The column index of `coord` containing respectively the x and y coordinates.
-#' @param pointSize  Single numeric. Size of points.
-#' @param plotText Logical. Plot sample instead of point.
-#' @param main Single character. Main title of the graph.
-#' @param alpha Single numeric (from 0 to 1). Opacity of the points.
-#' @param ellipse Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).
-#' @param emph Single character or `NULL`. Must be a level of `colorBy` if it is a factor. Emphasize a particular value on the plot.
-#' @param colorScale A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.
-#' @param returnGraph Logical. Return the graph as a ggplot object instead of printing it.
-#' @param legendTitle Character. The legend title on the plot.
-#' @param axis.names Vector of two characters. Axis names (x, y) showed on the plot.
-#' @param na.color Character. Color of NA values if `ColorBy` is provided.
-#' @param na.bg Logical. Put the NA points behind the others in term of layers.
-#' @param plotFactorsCentroids Logical. If `ColorBy` is a factor Display the name of the factor at the centroid of its points.
-#' @param pointStroke Numeric. Width of points border.
-#' @param strokeColor Character. Color of points border.
-#' @param funAutoColorScale A function that return n colors with n as a first argument. Responsible for color mapping of the levels.
-#' @param fixedCoord Logical. The ratio of the plot is representative of the ratio between x and y values.
-#' @param plotLabelRepel Logical. Plot the rownames of the coordinates as a ggrepel label of each point.
-#' @param labelSize Numeric. Size of the labels if `plotLabelRepel=TRUE`.
-#' @param sizeProp2Dens Logical. Size of point is inversely proportional to the 2D density of its area.
-#' @param densEps Numeric. Radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel). Used if `sizeProp2Dens=TRUE`.
-#' @param nnMatrix A matrix of integer, number of row equal to the number of points, as returned by `make.umap(..., ,ret_nn = TRUE)`. Plot segments between the neighbors.
-#' @param nnSegmentParam List of arguments for customizing the nn segments. Passed to `geom_segment`.
-#' @param useScatterMore Logical. Use `geom_scatter` for making the plot. Render the points as a pixel image, difficult to modify afterward but quicker plotting for very large datasets.
-#' @param customRatio Single numeric. Custom ratio for the plot.
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#'
-#' proj2d(iris)
-#' proj2d(iris,axis = c(1,3))
-#'
-#' proj2d(iris,pointSize = .1)
-#' proj2d(iris,axis.names = c("Width of sepal","Length of sepal") ,main = "Two features from iris")
-#'
-#'
-#' proj2d(iris,colorBy = iris$Species,ellipse = TRUE,plotFactorsCentroids = TRUE,legendTitle = "Species")
-#' proj2d(iris,colorBy = iris$Species,pointStroke = 3,strokeColor = "grey")
-#'
-#' proj2d(iris,colorBy = iris$Species,emph = "setosa",na.color = "white")
-#' proj2d(iris,colorBy = iris$Species,returnGraph = TRUE)+
-#'     ggplot2::geom_vline(xintercept = 6)
-#'
-#' proj2d(iris,colorBy = iris$Species,colorScale = c("blue","white","red"))
-#' proj2d(iris,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
-#' proj2d(iris,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",fixedCoord = FALSE)
-#' proj2d(iris,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",colorScale = c("blue","white","red"))
-#'
-#' proj2d(iris,plotLabelRepel = TRUE)
-#' proj2d(iris,sizeProp2Dens = TRUE)
-#' proj2d(iris,sizeProp2Dens = TRUE,densEps = 2)
-#'
-#' umap<-UMAP(scale(iris[,c(seq_len(4))]),ret_nn = TRUE,transpose = FALSE,n_neighbors = nrow(iris))
-#'
-#' proj2d(umap)
-#' proj2d(umap,colorBy = iris$Species ,nnMatrix = umap$nn$euclidean$idx[,seq_len(3)])
-#' proj2d(umap,colorBy = iris$Species,useScatterMore = T,pointSize = 5)
-proj2d <-
-    function(coord,
-                    colorBy = NULL,
-                    axis = c(1,2),
-                    pointSize = 3,
-                    plotText = FALSE,
-                    main = NULL,
-                    alpha = 9 / 10,
-                    ellipse = FALSE,
-                    emph = NULL,
-                    colorScale = NULL,
-                    returnGraph = FALSE,
-                    legendTitle = "Values",
-                    axis.names = NULL,
-                    na.color = "grey50",
-                    na.bg = TRUE,
-                    plotFactorsCentroids = FALSE,
-                    pointStroke = 1 / 8,
-                    strokeColor = "black",
-                    funAutoColorScale = oobColors,
-                    fixedCoord = TRUE,
-                    plotLabelRepel = FALSE,
-                    labelSize = 3,
-                    sizeProp2Dens = FALSE,
-                    densEps = 1,
-                    nnMatrix = NULL,
-                    nnSegmentParam = list(alpha = .75, size = .1),
-                    useScatterMore = FALSE,
-                    customRatio = NULL) {
-        coord <- data.frame(coord)
-        if (length(axis) != 2)
-            stop("You must give a vector of 2 integer for axis parameter")
-
-        if ((!is.null(axis.names)) &
-                length(axis.names) != 2)
-            stop("Error, if given axis.names parameter must contain 2 values.")
-
-        if (!is.null(customRatio))
-            fixedCoord <- TRUE
-
-        d <-
-            data.frame(
-                lab = rownames(coord),
-                Axis1 = coord[, axis[1]],
-                Axis2 = coord[, axis[2]],
-                sizeMultiplier = rep(pointSize, nrow(coord))
-            )
-
-        if (sizeProp2Dens) {
-            dens <- pointdensity.nrd(d[, c("Axis1", "Axis2")], eps = densEps)
-            d$sizeMultiplier <- d$sizeMultiplier * (1 - dens / max(dens)) * 2
-        }
-        if (is.null(colorBy)) {
-            graph <- ggplot(data = d,
-                                            mapping = aes(x = Axis1, y = Axis2, label = lab))
-        } else{
-            if (is.data.frame(colorBy) | is.matrix(colorBy)) {
-                if (!is.null(colnames(colorBy)))
-                    legendTitle <- colnames(colorBy)[1]
-                colorBy <- colorBy[, 1]
-            }
-
-            if (is.character(colorBy))
-                colorBy <- as.factor(colorBy)
-            d$colorBy <- colorBy
-
-            colorByIsFactor <- is.factor(colorBy)
-            if (!is.null(emph)) {
-                if (!emph %in% levels(colorBy))
-                    stop("emph value not in levels of colorBy")
-                d$colorBy <- as.character(d$colorBy)
-                d$colorBy[which(d$colorBy != emph)] <- NA
-                d$colorBy <- as.factor(d$colorBy)
-                d$sizeMultiplier[which(d$colorBy == emph)] <-
-                    d$sizeMultiplier[which(d$colorBy == emph)]
-            }
-            if (na.bg) {
-                indexNA <- which(is.na(d$colorBy))
-                indexNotNA <- which(!is.na(d$colorBy))
-                if (length(indexNA) > 0) {
-                    tempd <- d
-                    tempd[seq_along(indexNA), ] <- d[indexNA, ]
-                    tempd[seq(length(indexNA) + 1, nrow(d), 1), ] <- d[indexNotNA, ]
-                    d <- tempd
-                }
-            }
-            graph <-
-                ggplot(
-                    data = d,
-                    mapping = aes(
-                        x = Axis1,
-                        y = Axis2,
-                        label = lab,
-                        color = colorBy,
-                        fill = colorBy
-                    )
-                )
-            if (is.null(colorScale)) {
-                colorScale <- c("grey", "red")
-                if (colorByIsFactor)
-                    colorScale <- funAutoColorScale(nlevels(colorBy))
-            }
-            funColorScaleFill <-
-                paste0("scale_fill_",
-                             ifelse(colorByIsFactor, "manual", "gradientn"))
-            funColorScaleColor <-
-                paste0("scale_color_",
-                             ifelse(colorByIsFactor, "manual", "gradientn"))
-            paramColorScale <-
-                list("name" = legendTitle, na.value = na.color)
-            paramColorScaleType <-
-                ifelse(colorByIsFactor, "values", "colors")
-            paramColorScale[[paramColorScaleType]] <- colorScale
-            graph <- graph + do.call(funColorScaleFill, paramColorScale)
-            graph <- graph + do.call(funColorScaleColor, paramColorScale)
-        }
-        if (!is.null(nnMatrix)) {
-            if (!is.matrix(nnMatrix))
-                stop("If nnMatrix is not null, it should be a matrix !")
-            retainCoord <- as.matrix(coord[, axis])
-            segmentsCoord <-
-                data.frame(do.call("rbind", lapply(seq_len(nrow(retainCoord)), function(i) {
-                    t(vapply(nnMatrix[i, ], FUN.VALUE = numeric(4), function(x) {
-                        c(retainCoord[i, ], retainCoord[x, ])
-                    }))
-                })))
-            colnames(segmentsCoord) <- c("x", "y", "xend", "yend")
-            graph <- graph + do.call("geom_segment",
-                c(
-                    list(
-                        data = segmentsCoord,
-                        mapping = aes(
-                            x = x,
-                            y = y,
-                            xend = xend,
-                            yend = yend
-                        ),
-                        inherit.aes = FALSE
-                    ),
-                    nnSegmentParam
-                ))
-        }
-        if (plotText) {
-            graph <- graph + geom_text(alpha = alpha, size = d$sizeMultiplier)
-        } else{
-            if (useScatterMore) {
-                ratioX <- ratioY <- 1
-                if (fixedCoord) {
-                    if (is.null(customRatio)) {
-                        rangeA1 <- range(d$Axis1)
-                        rangeA2 <- range(d$Axis2)
-                        ratio <- (rangeA1[2] - rangeA1[1]) / (rangeA2[2] - rangeA2[1])
-                    } else{
-                        ratio <- 1 / (customRatio)
-                    }
-                    if (ratio > 1) {
-                        ratioX <- ratio
-                    } else{
-                        ratioY <- 1 / ratio
-                    }
-                }
-                if (is.null(colorBy)) {
-                    graph <-
-                        graph + geom_scattermore(
-                            pointsize = d$sizeMultiplier,
-                            pixels = c(1000 * ratioX, 1000 * ratioY)
-                        )
-                } else{
-                    graph <-
-                        graph + geom_scattermore(
-                            pointsize = d$sizeMultiplier,
-                            mapping = aes(color = colorBy),
-                            pixels = c(1000 * ratioX, 1000 * ratioY)
-                        )
-                }
-            } else{
-                if (is.null(colorBy)) {
-                    graph <-
-                        graph + geom_point(
-                            stroke = pointStroke,
-                            colour = strokeColor,
-                            shape = 21,
-                            alpha = alpha,
-                            fill = "black",
-                            size = d$sizeMultiplier
-                        )
-                } else{
-                    graph <-
-                        graph + geom_point(
-                            stroke = pointStroke,
-                            colour = strokeColor,
-                            shape = 21,
-                            alpha = alpha,
-                            size = d$sizeMultiplier
-                        )
-                }
-            }
-        }
-        if (plotLabelRepel) {
-            graph <- graph + geom_text_repel(color = "black", size = labelSize)
-        }
-        if (is.null(axis.names)) {
-            if (is.null(colnames(coord))) {
-                axis.names <- paste0("Axis", axis)
-            } else{
-                axis.names <- colnames(coord[, c(axis[1], axis[2])])
-            }
-        }
-        graph <- graph + xlab(axis.names[1]) + ylab(axis.names[2])
-        if (!is.null(main))
-            graph <- graph + ggtitle(main)
-        if (ellipse)
-            graph <- graph + stat_ellipse(size = .5)
-        if (fixedCoord)
-            graph <-
-            graph + coord_fixed(ratio = ifelse(is.null(customRatio), 1, customRatio))
-        if (plotFactorsCentroids) {
-            samplePerFactor <-
-                lapply(levels(colorBy), function(x)
-                    which(colorBy == x))
-            names(samplePerFactor) <- levels(colorBy)
-            centroids <-
-                data.frame(t(sapply(samplePerFactor, function(x)
-                    colMeans(d[x, c("Axis1", "Axis2")]))), groupName = names(samplePerFactor))
-            graph <-
-                graph + geom_label(
-                    data = centroids,
-                    mapping = aes(x = Axis1, y = Axis2, label = groupName),
-                    inherit.aes = FALSE
-                )
-        }
-        graph <- graph + theme(
-            panel.background = element_rect(fill = NA, colour = "black"),
-            panel.grid.major = element_line(colour = NA),
-            panel.grid.minor = element_line(colour = NA)
-        ) + guides(size = "none")
-        if (returnGraph) {
-            return(graph)
-        } else{
-            print(graph)
-        }
-    }
-
-#' Plot a 1D projection.
-#'
-#' @param variable Numeric vector. X coordinates.
-#' @param colorBy A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.
-#' @param pointSize Single numeric. Size of points.
-#' @param plotText Logical. Plot sample names instead of points.
-#' @param main Single character. Main title of the graph.
-#' @param alpha Single numeric (from 0 to 1). Opacity of the points.
-#' @param ellipse Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).
-#' @param emph Single character or `NULL`. Must be a level of `colorBy` if it is a factor. Emphasize a particular value on the plot.
-#' @param colorScale A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.
-#' @param returnGraph Logical. Return the graph as a ggplot object instead of printing it.
-#' @param legendTitle Character. The legend title on the plot.
-#' @param variable.name Single characters. Axis name showed on the plot.
-#' @param na.color Character. Color of NA values if `ColorBy` is provided.
-#' @param na.bg Logical. Put the NA points behind the others in term of layers.
-#' @param plotFactorsCentroids Logical. If `ColorBy` is a factor Display the name of the factor at the centroid of its points.
-#' @param pointStroke Numeric. Width of points border.
-#' @param strokeColor Character. Color of points border.
-#' @param funAutoColorScale A function that return n colors with n as a first argument. Responsible for color mapping of the levels.
-#' @param plotLabelRepel Logical. Plot the rownames of the coordinates as a ggrepel label of each point.
-#' @param labelSize Numeric. Size of the labels if `plotLabelRepel=TRUE`.
-#' @param sizeProp2Dens Logical. Size of point is inversely proportional to the density of its area.
-#' @param densEps Numeric. Radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel). Used if `sizeProp2Dens=TRUE`.
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#'
-#' proj1d(iris$Sepal.Length)
-#'
-#' proj1d(iris$Sepal.Length,colorBy=iris$Species)
-#'
-#' proj1d(iris$Sepal.Length,pointSize = .1)
-#' proj1d(iris$Sepal.Length,variable.name = "Length of sepal" ,main = "Two features from iris")
-#'
-#'
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,plotFactorsCentroids = TRUE,legendTitle = "Species")
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,pointStroke = 3,strokeColor = "grey")
-#'
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,emph = "setosa",na.color = "white")
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,returnGraph = TRUE)+
-#'     ggplot2::geom_vline(xintercept = 6)
-#'
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,colorScale = c("blue","white","red"))
-#' proj1d(iris$Sepal.Length,colorBy = iris$Species,funAutoColorScale = mostDistantColor)
-#' proj1d(iris$Sepal.Length,colorBy = iris$Petal.Length,legendTitle = "Petal.Length",colorScale = c("blue","white","red"))
-#'
-#' proj1d(iris$Sepal.Length,plotLabelRepel = TRUE)
-#' proj1d(iris$Sepal.Length,sizeProp2Dens = TRUE)
-#' proj1d(iris$Sepal.Length,sizeProp2Dens = TRUE,densEps = 2)
-proj1d <-
-    function(variable,
-                    colorBy = NULL,
-                    pointSize = 3,
-                    plotText = FALSE,
-                    main = NULL,
-                    alpha = 9 / 10,
-                    ellipse = FALSE,
-                    emph = NULL,
-                    colorScale = NULL,
-                    returnGraph = FALSE,
-                    legendTitle = "Values",
-                    variable.name = "x",
-                    na.color = "grey50",
-                    na.bg = TRUE,
-                    plotFactorsCentroids = FALSE,
-                    pointStroke = 1 / 8,
-                    strokeColor = "black",
-                    funAutoColorScale = oobColors,
-                    plotLabelRepel = FALSE,
-                    labelSize = 3,
-                    sizeProp2Dens = FALSE,
-                    densEps = 1) {
-        if (!is.numeric(variable))
-            stop("'variable' must be a numeric vector")
-
-        if (is.null(names(variable)))
-            names(variable) <- as.character(seq_along(variable))
-        d <-
-            data.frame(
-                lab = names(variable),
-                Axis1 = variable,
-                Axis2 = rep(0, length(variable)),
-                sizeMultiplier = rep(pointSize, length(variable))
-            )
-
-        if (sizeProp2Dens) {
-            dens <- pointdensity.nrd(d[, c("Axis1", "Axis2")], eps = densEps)
-            d$sizeMultiplier <- d$sizeMultiplier * (1 - dens / max(dens)) * 2
-        }
-        if (is.null(colorBy)) {
-            graph <- ggplot(data = d,
-                                            mapping = aes(x = Axis1, y = Axis2, label = lab))
-        } else{
-            if (is.data.frame(colorBy) | is.matrix(colorBy)) {
-                if (!is.null(colnames(colorBy)))
-                    legendTitle <- colnames(colorBy)[1]
-                colorBy <- colorBy[, 1]
-            }
-
-            if (is.character(colorBy))
-                colorBy <- as.factor(colorBy)
-            d$colorBy <- colorBy
-
-            colorByIsFactor <- is.factor(colorBy)
-            if (!is.null(emph)) {
-                if (!emph %in% levels(colorBy))
-                    stop("emph value not in levels of colorBy")
-                d$colorBy <- as.character(d$colorBy)
-                d$colorBy[which(d$colorBy != emph)] <- NA
-                d$colorBy <- as.factor(d$colorBy)
-                d$sizeMultiplier[which(d$colorBy == emph)] <-
-                    d$sizeMultiplier[which(d$colorBy == emph)]
-            }
-            if (na.bg) {
-                indexNA <- which(is.na(d$colorBy))
-                indexNotNA <- which(!is.na(d$colorBy))
-                if (length(indexNA) > 0) {
-                    tempd <- d
-                    tempd[seq_along(indexNA), ] <- d[indexNA, ]
-                    tempd[(length(indexNA) + 1):nrow(d), ] <- d[indexNotNA, ]
-                    d <- tempd
-                }
-            }
-            graph <-
-                ggplot(
-                    data = d,
-                    mapping = aes(
-                        x = Axis1,
-                        y = Axis2,
-                        label = lab,
-                        color = colorBy,
-                        fill = colorBy
-                    )
-                )
-            if (is.null(colorScale)) {
-                colorScale <- c("grey", "red")
-                if (colorByIsFactor)
-                    colorScale <- funAutoColorScale(nlevels(colorBy))
-            }
-            funColorScaleFill <-
-                paste0("scale_fill_",
-                             ifelse(colorByIsFactor, "manual", "gradientn"))
-            funColorScaleColor <-
-                paste0("scale_color_",
-                             ifelse(colorByIsFactor, "manual", "gradientn"))
-            paramColorScale <-
-                list("name" = legendTitle, na.value = na.color)
-            paramColorScaleType <-
-                ifelse(colorByIsFactor, "values", "colors")
-            paramColorScale[[paramColorScaleType]] <- colorScale
-            graph <- graph + do.call(funColorScaleFill, paramColorScale)
-            graph <- graph + do.call(funColorScaleColor, paramColorScale)
-        }
-        if (plotText) {
-            graph <- graph + geom_text(alpha = alpha, size = d$sizeMultiplier)
-        } else{
-            if (is.null(colorBy)) {
-                graph <-
-                    graph + geom_point(
-                        stroke = pointStroke,
-                        colour = strokeColor,
-                        shape = 21,
-                        alpha = alpha,
-                        fill = "black",
-                        size = d$sizeMultiplier
-                    )
-            } else{
-                graph <-
-                    graph + geom_point(
-                        stroke = pointStroke,
-                        colour = strokeColor,
-                        shape = 21,
-                        alpha = alpha,
-                        size = d$sizeMultiplier
-                    )
-            }
-        }
-        if (plotLabelRepel) {
-            graph <- graph + geom_text_repel(color = "black", size = labelSize)
-        }
-        graph <- graph + xlab(variable.name)
-        if (!is.null(main))
-            graph <- graph + ggtitle(main)
-        if (ellipse)
-            graph <- graph + stat_ellipse(size = .5)
-        if (plotFactorsCentroids) {
-            samplePerFactor <-
-                lapply(levels(colorBy), function(x)
-                    which(colorBy == x))
-            names(samplePerFactor) <- levels(colorBy)
-            centroids <-
-                data.frame(t(sapply(samplePerFactor, function(x)
-                    colMeans(d[x, c("Axis1", "Axis2")]))), groupName = names(samplePerFactor))
-            graph <-
-                graph + geom_label(
-                    data = centroids,
-                    mapping = aes(x = Axis1, y = Axis2, label = groupName),
-                    inherit.aes = FALSE
-                )
-        }
-        graph <- graph + theme(
-            panel.background = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.y = element_blank()
-        ) + guides(size = "none")
-        if (returnGraph) {
-            return(graph)
-        } else{
-            print(graph)
-        }
-    }
-
-
-#' Wrapper for proj2d with highly contrasted color scale.
-#'
-#' @export
-#'
-#' @examples
-#' data(iris)
-#' proj2dWideColor(iris,colorBy = iris$Petal.Length)
-proj2dWideColor <-
-    function(coord,
-                    axis = c(1, 2),
-                    colorBy = NULL,
-                    pointSize = 3,
-                    plotText = FALSE,
-                    main = NULL,
-                    alpha = 9 / 10,
-                    ellipse = FALSE,
-                    emph = NULL,
-                    returnGraph = FALSE,
-                    legendTitle = "Values",
-                    axis.names = NULL,
-                    na.color = "grey50",
-                    na.bg = TRUE,
-                    funAutoColorScale = oobColors,
-                    ...) {
-        proj2d(
-            coord,
-            axis = axis,
-            colorBy = colorBy,
-            pointSize = pointSize,
-            plotText = plotText,
-            main = main,
-            alpha = alpha,
-            ellipse = ellipse,
-            emph = emph,
-            colorScale = c("white", "yellow", "red", "purple"),
-            returnGraph = returnGraph,
-            legendTitle = legendTitle,
-            axis.names = axis.names,
-            na.color = na.color,
-            na.bg = na.bg,
-            funAutoColorScale = ggplotColours,
-            ...
-        )
-    }
-
-#' Plot a 3D projection.
-#'
-#' @param coord Matrix or dataframe containing at least three vectors of numeric corresponding to the x/y/z coordinates.
-#' @param axis A vector of 3 integer. The column index of `coord` containing respectively the x and y coordinates.
-#' @param colorBy A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.
-#' @param pointSize Single numeric. Size of points.
-#' @param plotText Logical. Plot sample instead of point.
-#' @param colorScale A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.
-#' @param na.color Character. Color of NA values if `ColorBy` is provided.
-#' @param na.bg Logical. Put the NA points behind the others in term of layers.
-#' @param alpha Single numeric (from 0 to 1). Opacity of the points.
-#' @param ... Other arguments passed to `plot3d`.
-#'
-#' @return Plot the projection in a new rgl window.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#'
-#' proj3d(iris,pointSize = .05)
-#' proj3d(iris,axis = c(1,3,4),pointSize = .05)
-#'
-#'
-#' proj3d(iris,colorBy = iris$Species,pointSize = .05)
-#'
-#' proj3d(iris,colorBy = iris$Species,colorScale = c("blue","white","red"),pointSize = .05)
-proj3d <-
-    function(coord,
-                    axis = c(1, 2, 3),
-                    colorBy = NULL,
-                    pointSize = 5,
-                    plotText = FALSE,
-                    colorScale = NULL,
-                    na.color = "grey50",
-                    na.bg = TRUE,
-                    alpha = 1,
-                    ...) {
-        if (!(is.factor(colorBy) |
-                    is.numeric(colorBy) |
-                    is.null(colorBy)))
-            stop("Error, colorBy must be numeric, factor or null.")
-        if (length(axis) != 3)
-            stop("You must give a vector of 3 integer for axis parameter")
-
-        if (is.null(colorBy)) {
-            colors = "black"
-        }
-        else{
-            if (na.bg) {
-                indexNA <- which(is.na(colorBy))
-                indexNotNA <- which(!is.na(colorBy))
-                if (length(indexNA) > 0) {
-                    tempc <-
-                        coord
-                    tempc[seq_along(indexNA), ] <-
-                        coord[indexNA, ]
-                    tempc[(length(indexNA) + 1):nrow(coord), ] <-
-                        coord[indexNotNA, ]
-                    coord <- tempc
-
-                    tempg <-
-                        colorBy
-                    tempg[seq_along(indexNA)] <-
-                        colorBy[indexNA]
-                    tempg[(length(indexNA) + 1):length(colorBy)] <-
-                        colorBy[indexNotNA]
-                    colorBy <- tempg
-
-                }
-            }
-            if (is.factor(colorBy)) {
-                if (is.null(colorScale))
-                    colorScale <- rainbow(nlevels(colorBy))
-                hashCol <- colorScale
-                names(hashCol) <- levels(colorBy)
-                colors <- hashCol[colorBy]
-            } else{
-                if (is.null(colorScale))
-                    colorScale <- c("grey", "red")
-                funCol <-
-                    circlize::colorRamp2(seq(min(colorBy), max(colorBy), length.out = length(colorScale)), colorScale)
-                colors <- funCol(colorBy)
-            }
-        }
-        colors[is.na(colors)] <- na.color
-        plot3d(
-            coord[, axis[1]],
-            coord[, axis[2]],
-            coord[, axis[3]],
-            xlab = paste0("Axis", axis[1]),
-            ylab = paste0("Axis", axis[2]),
-            zlab = paste0("Axis", axis[3]),
-            type = "n",
-            ...
-        )
-        if (plotText) {
-            text3d(
-                coord[, axis[1]],
-                coord[, axis[2]],
-                coord[, axis[3]],
-                texts = rownames(coord),
-                cex = pointSize,
-                col = colors,
-                alpha = alpha
-            )
-        } else{
-            spheres3d(
-                coord[, axis[1]],
-                coord[, axis[2]],
-                coord[, axis[3]],
-                col = colors,
-                radius = pointSize,
-                alpha = alpha
-            )
-        }
-        if (!is.null(colorBy)) {
-            if (is.factor(colorBy))
-                legend3d(
-                    "topright",
-                    legend = names(hashCol),
-                    pch = 16,
-                    col = hashCol,
-                    cex = 1,
-                    inset = c(0.02)
-                )
-            if (is.numeric(colorBy))
-                legend3d(
-                    "topright",
-                    legend = c(min(colorBy), max(colorBy)),
-                    pch = 16,
-                    col = colorScale,
-                    cex = 1,
-                    inset = c(0.02)
-                )
-        }
-    }
-
-
 #' Plot a density-based distribution of a feature.
 #'
 #' @param x A numeric vector.
 #' @param returnGraph Logical. Logical. Return the graph as a ggplot object instead of printing it.
-#' @param ... Parameters passed to `qplot`
+#' @param ... Parameters passed to `oobqplot`
 #'
 #' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
 #' @export
@@ -1362,11 +595,11 @@ proj3d <-
 #' @examples
 #' qplotDensity(rnorm(10000))
 qplotDensity <- function(x, returnGraph = FALSE, ...) {
-    if (class(x) == "data.frame" | class(x) == "list")
+    if (is.data.frame(x) | is.list(x))
         x <- unlist(x)
-    if (class(x) == "matrix")
+    if (inherits(x, "matrix"))
         x <- as.vector(x)
-    g <- qplot(x, geom = "density", ...)
+    g <- oobqplot(x, geom = "density", ...)
     if (!returnGraph) {
         print(g)
     } else{
@@ -1393,7 +626,7 @@ qplotBarplot <- function(y, returnGraph = FALSE) {
     } else{
         aesX = names(y)
     }
-    g <- ggplot(data.frame(x = aesX, y = y), aes(x = x, y = y)) +
+    g <- ggplot(data.frame(x = aesX, y = y), aes(x = .data$x, y = .data$y)) +
         geom_bar(stat = "identity")
     if (!returnGraph) {
         print(g)
@@ -1407,7 +640,7 @@ qplotBarplot <- function(y, returnGraph = FALSE) {
 #' @param x Vector of numeric.
 #' @param returnGraph Logical. Print the ggplot object or return it.
 #' @param geom Geom to draw. Defaults to "point"
-#' @param ...  Parameters passed to `qplot`
+#' @param ...  Parameters passed to `oobqplot`
 #'
 #' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
 #' @export
@@ -1415,13 +648,13 @@ qplotBarplot <- function(y, returnGraph = FALSE) {
 #' @examples
 #' qplotAutoX(seq_len(5))
 qplotAutoX <- function(x,
-                                             returnGraph = FALSE,
-                                             geom = "point",
-                                             ...) {
-    g <- qplot(x = seq_along(x),
-                         y = x,
-                         geom = geom,
-                         ...)
+                       returnGraph = FALSE,
+                       geom = "point",
+                       ...) {
+    g <- oobqplot(x = seq_along(x),
+               y = x,
+               geom = geom,
+               ...)
     if (!returnGraph) {
         print(g)
     } else{
@@ -1445,9 +678,8 @@ qplotAutoX <- function(x,
 #' barplotPercentVar(pca, nPC = 2)
 barplotPercentVar <-
     function(pca,
-                     nPC = length(pca$propExplVar),
-                     returnGraph = FALSE,
-                     ...) {
+             nPC = length(pca$propExplVar),
+             returnGraph = FALSE) {
         g <-
             qplotBarplot(pca$propExplVar[seq_len(nPC)] * 100, returnGraph = TRUE) + ylab("% variance explained") +
             xlab("Principal component") +
@@ -1479,16 +711,16 @@ barplotPercentVar <-
 #'
 #' @examples
 #' filledDoubleArrow()
-#' ggplot2::qplot(seq_len(5))
+#' oobqplot(seq_len(5))
 #' filledDoubleArrow()
 filledDoubleArrow <-
     function(x = 0,
-                    y = 0,
-                    width = 1,
-                    height = 1,
-                    just = c("left", "bottom"),
-                    gp = gpar(col = "black"),
-                    ...) {
+             y = 0,
+             width = 1,
+             height = 1,
+             just = c("left", "bottom"),
+             gp = gpar(col = "black"),
+             ...) {
         pushViewport(viewport(
             x = x,
             y = y,
@@ -1526,12 +758,10 @@ filledDoubleArrow <-
 #' @export
 #'
 #' @examples
-#' library(MASS)
-#' library(ggplot2)
 #' exprMat<-rbind(
-#'     rnegbin(30,theta = 10,mu = 10),
-#'     rnegbin(30,theta = 1,mu = 10),
-#'     rnegbin(30,theta = 1,mu = 1000)
+#'     MASS::rnegbin(30,theta = 10,mu = 10),
+#'     MASS::rnegbin(30,theta = 1,mu = 10),
+#'     MASS::rnegbin(30,theta = 1,mu = 1000)
 #' )
 #' rownames(exprMat)<-c("gene1","gene2","gene3")
 #'
@@ -1553,18 +783,18 @@ filledDoubleArrow <-
 
 plotExpr <-
     function(expr,
-                     group = NULL,
-                     log10Plus1yScale = NULL,
-                     violin = TRUE,
-                     boxplot = TRUE,
-                     dotplot = FALSE,
-                     violinArgs = list(),
-                     boxplotArgs = list(),
-                     dotplotArgs = list(),
-                     colorScale = mostDistantColor,
-                     legendTitle = "group",
-                     dodge.width = .9,
-                     returnGraph = FALSE) {
+             group = NULL,
+             log10Plus1yScale = NULL,
+             violin = TRUE,
+             boxplot = TRUE,
+             dotplot = FALSE,
+             violinArgs = list(),
+             boxplotArgs = list(),
+             dotplotArgs = list(),
+             colorScale = mostDistantColor,
+             legendTitle = "group",
+             dodge.width = .9,
+             returnGraph = FALSE) {
         barplotGraph = greyGraph = coloredGraph = FALSE
 
         if (is.vector(expr))
@@ -1583,13 +813,16 @@ plotExpr <-
         if (is.null(group)) {
             if (nrow(expr) < 2) {
                 if (is.null(colnames(expr)))
-                    colnames(expr) <- as.character(seq_len(ncol(expr)))
+                    colnames(expr) <-
+                        as.character(seq_len(ncol(expr)))
                 ggData <-
-                    data.frame(expression = expr[1, ],
-                                         sample = factor(colnames(expr), levels = colnames(expr)[order(expr[1, ], decreasing = TRUE)]))
+                    data.frame(
+                        expression = expr[1,],
+                        sample = factor(colnames(expr), levels = colnames(expr)[order(expr[1,], decreasing = TRUE)])
+                    )
                 ggData$sample <- factor(ggData$sample)
                 g <-
-                    ggplot(ggData, mapping = aes(x = sample, y = expression)) + geom_bar(stat = "identity") +
+                    ggplot(ggData, mapping = aes(x = .data$sample, y = .data$expression)) + geom_bar(stat = "identity") +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -1599,10 +832,12 @@ plotExpr <-
             } else{
                 ggData <-
                     reshape2::melt(expr,
-                                                 value.name = "expression",
-                                                 varnames = c("gene", "sample"))
-                ggData$gene <- factor(ggData$gene, levels = rownames(expr))
-                g <- ggplot(ggData, mapping = aes(x = gene, y = expression)) +
+                                   value.name = "expression",
+                                   varnames = c("gene", "sample"))
+                ggData$gene <-
+                    factor(ggData$gene, levels = rownames(expr))
+                g <-
+                    ggplot(ggData, mapping = aes(x = .data$gene, y = .data$expression)) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -1619,9 +854,9 @@ plotExpr <-
                 stop("Multiple group are not allowed in the same time")
             groupName <- colnames(group)
             if (nrow(expr) == 1) {
-                ggData <- data.frame(expression = expr[1, ], group)
+                ggData <- data.frame(expression = expr[1,], group)
                 g <-
-                    ggplot(ggData, mapping = aes_string(x = groupName, y = "expression")) +
+                    ggplot(ggData, mapping = aes(x = .data[[groupName]], y = .data$expression)) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -1640,14 +875,15 @@ plotExpr <-
                     )
                 if (violin) {
                     factorSampling <- table(group[, 1])
-                    factor2drop <- names(factorSampling)[factorSampling < 3]
+                    factor2drop <-
+                        names(factorSampling)[factorSampling < 3]
                     if (length(factor2drop) > 1)
                         warning(
                             paste0(factor2drop, collapse = " "),
                             " were dropped (n<3 is not compatible with violin plot). You can deactivate violin layer by setting violin argument to FALSE"
                         )
                     ggData <-
-                        ggData[!ggData[, groupName] %in% factor2drop, ] #drop levels where n < 3
+                        ggData[!ggData[, groupName] %in% factor2drop,] #drop levels where n < 3
 
                 }
                 colors <-
@@ -1657,7 +893,11 @@ plotExpr <-
                     colorScale
                 g <-
                     ggplot(ggData,
-                                 mapping = aes_string(x = "gene", y = "expression", fill = groupName)) +
+                           mapping = aes(
+                               x = .data$gene,
+                               y = .data$expression,
+                               fill = .data[[groupName]]
+                           )) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -1665,16 +905,16 @@ plotExpr <-
                         face = "bold.italic"
                     )) +
                     scale_fill_manual(values = colors[!levels(group[, 1]) %in% factor2drop], name =
-                                                            legendTitle)
+                                          legendTitle)
             }
         }
         if (greyGraph) {
             if (is.null(violinArgs$fill))
                 violinArgs$fill <- "grey50"
-                    if (is.null(violinArgs$scale))
-                        violinArgs$scale <- "width"
-                    if (is.null(boxplotArgs$width))
-                        boxplotArgs$width <- .2
+            if (is.null(violinArgs$scale))
+                violinArgs$scale <- "width"
+            if (is.null(boxplotArgs$width))
+                boxplotArgs$width <- .2
         }
         if (coloredGraph) {
             if (is.null(violinArgs$scale))
@@ -1691,7 +931,9 @@ plotExpr <-
                 dotplotArgs$dodge.width <- dodge.width
         }
         if (!barplotGraph) {
-            g <- ggBorderedFactors(g, borderColor = "black", borderSize = .5)
+            g <- ggBorderedFactors(g,
+                                   borderColor = "black",
+                                   borderSize = .5)
             if (violin)
                 g <- g + do.call("geom_violin", violinArgs)
             if (boxplot)
@@ -1724,453 +966,6 @@ plotExpr <-
     }
 
 
-#' Generate a top annotation for ComplexHeatmap
-#'
-#' @param annot A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.
-#' @param colorScales
-#' List or NULL. Precomputed color scales. Color scales will be only generated for the features not described.
-#' Must be in the format of a list named by columns of `annots`.
-#' Each element contains the colors at breaks for continuous values.
-#' In the case of factors, the colors are named to their corresponding level or in the order of the levels.
-#' @param border Logical. Whether draw border. The value can be logical or a string of color.
-#' @param ... Other parameters passed to `genColorsForAnnots`.
-#'
-#' @return A HeatmapAnnotation object. Can be used for example in the `top_annotation` argument of `Heatmap`.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' data("DEgenesPrime_Naive")
-#'
-#' library(ComplexHeatmap)
-#'
-#' bestDE<-rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,decreasing = FALSE,top = 50)]
-#' Heatmap(rowScale(bulkLogCounts[bestDE,]),top_annotation = genTopAnnot(sampleAnnot[,c("culture_media","line")]))
-genTopAnnot <- function(annot,
-                                                colorScales = NULL,
-                                                border = TRUE,
-                                                ...) {
-    if (is.factor(annot) | is.data.frame(annot))
-        annot <- droplevels(annot)
-    if (is.vector(annot) | is.factor(annot)) {
-        annot = data.frame(Annotation = annot)
-        if (is.list(colorScales))
-            colnames(annot) <- names(colorScales)[1]
-        if ((!is.null(colorScales)) &
-                !is.list(colorScales))
-            colorScales <- list("Annotation" = colorScales)
-    }
-    colorScales <-
-        genColorsForAnnots(
-            annots = annot,
-            colorScales = colorScales,
-            returnContinuousFun = TRUE,
-            ...
-        )
-    HeatmapAnnotation(df = annot, col = colorScales, border = border)
-}
-
-
-#' Generate a row annotation for ComplexHeatmap
-#'
-#' @param annot A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.
-#' @param colorScales
-#' List or NULL. Precomputed color scales. Color scales will be only generated for the features not described.
-#' Must be in the format of a list named by columns of `annots`.
-#' Each element contains the colors at breaks for continuous values.
-#' In the case of factors, the colors are named to their corresponding level or in the order of the levels.
-#' @param border Logical. Whether draw border. The value can be logical or a string of color.
-#' @param ... Other parameters passed to `genColorsForAnnots`.
-#'
-#' @return A HeatmapAnnotation object. Can be used for example in the `top_annotation` argument of `Heatmap`.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' data("DEgenesPrime_Naive")
-#'
-#' library(ComplexHeatmap)
-#'
-#' bestDE<-rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,decreasing = FALSE,top = 50)]
-#' Heatmap(rowScale(bulkLogCounts[bestDE,]) |> t(),right_annotation  = genRowAnnot(sampleAnnot[,c("culture_media","line")]))
-genRowAnnot <-
-    function (annot,
-                        colorScales = NULL,
-                        border = TRUE,
-                        ...) {
-        if (is.factor(annot) | is.data.frame(annot))
-            annot <- droplevels(annot)
-        if (is.vector(annot) | is.factor(annot)) {
-            annot = data.frame(Annotation = annot)
-            if (is.list(colorScales))
-                colnames(annot) <- names(colorScales)[1]
-            if ((!is.null(colorScales)) & !is.list(colorScales))
-                colorScales <- list(Annotation = colorScales)
-        }
-        colorScales <-
-            genColorsForAnnots(
-                annots = annot,
-                colorScales = colorScales,
-                returnContinuousFun = TRUE,
-                ...
-            )
-        ComplexHeatmap::rowAnnotation(df = annot, col = colorScales, border = border)
-    }
-
-
-#' Complex Heatmap wrapper optimized for RNA-Seq analyses...
-#'
-#' @param matrix     A matrix. Either numeric or character. If it is a simple vector, it will be converted to a one-column matrix.
-#' @param preSet A value from `"expr"`, `"cor"`, `"dist"` or `NULL`. Change other arguments given a specific preset (default preSet if NULL).
-#' @param clustering_distance_rows
-#' It can be a pre-defined character which is in ("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski", "pearson", "spearman", "kendall").
-#' It can also be a function. If the function has one argument, the input argument should be a matrix and the returned value should be a dist object.
-#' If the function has two arguments, the input arguments are two vectors and the function calculates distance between these two vectors.
-#' In default and expression preset, default value is the `corrDistBicor` function.
-#' @param clustering_distance_columns Same setting as `clustering_distance_rows`.
-#' @param clustering_method_columns Method to perform hierarchical clustering, pass to `hclust`.
-#' @param clustering_method_rows Method to perform hierarchical clustering, pass to `hclust`.
-#' @param autoFontSizeRow Logical, should row names font size automatically adjusted to the number of row?
-#' @param autoFontSizeColumn Logical, should column names font size automatically adjusted to the number of columns?
-#' @param scale Logical. Divide rows of `matrix` by their standard deviation. If NULL determined by preSet.
-#' @param center Logical. Subtract rows of `matrix` by their average. If NULL determined by preSet.
-#' @param returnHeatmap Logical, return the plot as a Heatmap object or print it in the current graphical device.
-#' @param name Character, name of the legend for the main heatmap.
-#' @param additionnalRowNamesGpar List. Additional parameter passed to `gpar` for row names.
-#' @param additionnalColNamesGpar List. Additional parameter passed to `gpar` for column names.
-#' @param border Logical. Whether draw border. The value can be logical or a string of color.
-#' @param colorScale A vector of colors that will be used for mapping colors to the main heatmap.
-#' @param colorScaleFun A function that map values to colors. Used for the main heatmap. If not NULL this will supersede the use of the `colorScale` argument.
-#' @param midColorIs0 Logical. Force that 0 is the midColor.  If NULL turned on if the matr.
-#' @param probs A numeric vector (between 0 and 1) same length as color or NULL. Quantile probability of the values that will be mapped to colors.
-#' @param useProb Logical. Use quantile probability to map the colors. Else the min and max of values will be mapped to first and last color and interpolated continuously.
-#' @param minProb A numeric value (between 0 and 1). If `useProb=TRUE` and `probs=NULL` this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.
-#' @param maxProb A numeric value (between 0 and 1).
-#' @param cluster_rows If the value is a logical, it controls whether to make cluster on rows. The value can also be a hclust or a dendrogram which already contains clustering.
-#' @param cluster_columns Whether make cluster on columns? Same settings as cluster_rows.
-#' @param colData A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.
-#' @param colorAnnot
-#' List or NULL. Precomputed color scales for the `colData`. Color scales will be only generated for the features not described.
-#' Must be in the format of a list named by columns of `annots`.
-#' Each element contains the colors at breaks for continuous values.
-#' In the case of factors, the colors are named to their corresponding level or in the order of the levels.
-#' @param border Logical. Whether draw border. The value can be logical or a string of color.
-#' @param showGrid Logical. Draw a border of each individual square on the heatmap. If NULL automatically true if number of values < 500.
-#' @param gparGrid Gpar object of the heatmap grid if `showGrid`.
-#' @param showValues Logical. Show values from the matrix in the middle of each square of the heatmap.
-#' @param Nsignif Integer. Number of significant digits showed if `showValues`.
-#' @param column_dend_reorder Apply reordering on column dendrograms. Same settings as row_dend_reorder.
-#' @param row_dend_reorder Apply reordering on row dendrograms. The value can be a logical value or a vector which contains weight which is used to reorder rows. The reordering is applied by reorder.dendrogram.
-#' @param squareHt Logical or NULL. Apply clustering columns on rows. If NULL automatically turned TRUE if `ncol==nrow`.
-#' @param ... Other parameters passed to `Heatmap`.
-#'
-#' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
-#' @export
-#'
-#' @details
-#'
-#' A preSet attributes a list of default values for each argument. However, even if a preSet is selected, arguments precised by the user precede the preSet.
-#' # Default arguments
-#' ## preSet is `NULL`
-#' ```
-#' clustering_distance_rows = covDist
-#' clustering_distance_columns = covDist
-#' name="matrix"
-#' colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
-#' center=TRUE
-#' scale=FALSE
-#' ```
-#' ## preSet is `"expr"` (expression)
-#' ```
-#' clustering_distance_rows = covDist
-#' clustering_distance_columns = covDist
-#' name="centered log expression"
-#' colorScale=    c("darkblue","white","red2")
-#' additionnalRowNamesGpar=list(fontface="italic")
-#' center=TRUE
-#' scale=FALSE
-#' ```
-#' ## preSet is `"cor"` (correlation)
-#' ```
-#' clustering_distance_rows ="euclidean"
-#' clustering_distance_columns ="euclidean"
-#' name="Pearson correlation"
-#' colorScale=c("darkblue","white","#FFAA00")
-#' center=FALSE
-#' scale=FALSE
-#' ```
-#' ## preSet is `"dist"` (distance)
-#' ```
-#' clustering_distance_rows ="euclidean"
-#' name="Euclidean distance"
-#' colorScale=c("white","yellow","red","purple")
-#' center=FALSE
-#' scale=FALSE
-#'
-#' ## preSet is `"vanilla"` (don't transform value, same as default ComplexHeatmap)
-#' ```
-#' clustering_distance_rows ="euclidean"
-#' name="matrix"
-#' colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
-#' center=FALSE
-#' scale=FALSE
-#' ```
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' data("DEgenesPrime_Naive")
-#'
-#' library(ComplexHeatmap)
-#'
-#' bestDE<-rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,decreasing = FALSE,top = 50)]
-#' heatmap.DM(matrix(rnorm(50),ncol = 5),preSet = NULL,showValues = TRUE,Nsignif = 2)
-#'
-#' heatmap.DM(bulkLogCounts[bestDE,],colData = sampleAnnot[,c("culture_media","line")])
-#' heatmap.DM(bulkLogCounts[bestDE[seq_len(5)],colnames(sampleAnnot)[sampleAnnot$culture_media]])
-#'
-#' corDat<-cor(bulkLogCounts)
-#' heatmap.DM(corDat,preSet = "cor")
-#' heatmap.DM(corDat,preSet = "cor",center = TRUE,colorScaleFun = circlize::colorRamp2(c(-0.2,0,0.2),c("blue","white","red")))
-heatmap.DM <-
-    function(matrix,
-                     preSet = "expr",
-                     clustering_distance_rows = NULL,
-                     clustering_distance_columns = NULL,
-                     clustering_method_columns = "ward.D2",
-                     clustering_method_rows = "ward.D2",
-                     autoFontSizeRow = TRUE,
-                     autoFontSizeColumn = TRUE,
-                     scale = NULL,
-                     center = NULL,
-                     returnHeatmap = FALSE,
-                     name = NULL,
-                     additionnalRowNamesGpar = NULL,
-                     additionnalColNamesGpar = list(),
-                     border = TRUE,
-                     colorScale = NULL,
-                     colorScaleFun = NULL,
-                     midColorIs0 = NULL,
-                     probs = NULL,
-                     useProb = TRUE,
-                     minProb = 0.05,
-                     maxProb = 0.95,
-                     cluster_rows = NULL,
-                     cluster_columns = NULL,
-                     colData = NULL,
-                     colorAnnot = NULL,
-                     showGrid = NULL,
-                     gparGrid = gpar(col = "black"),
-                     showValues = FALSE,
-                     Nsignif = 3,
-                     column_dend_reorder = FALSE,
-                     row_dend_reorder = FALSE,
-                     squareHt = NULL,
-                     row_split = NULL,
-                     column_split = NULL,
-                     ...) {
-        args <- list()
-
-        if (is.null(preSet)) {
-            if (is.null(clustering_distance_rows))
-                clustering_distance_rows = covDist
-            if (is.null(clustering_distance_columns))
-                clustering_distance_rows = covDist
-            if (is.null(name))
-                name = "matrix"
-            if (is.null(colorScale))
-                colorScale = c("#2E3672", "#4B9AD5", "white", "#FAB517", "#E5261D")
-            if (is.null(additionnalRowNamesGpar))
-                additionnalRowNamesGpar = list()
-            if (is.null(center))
-                center = TRUE
-            if (is.null(scale))
-                scale = FALSE
-        } else if (preSet == "expr") {
-            if (is.null(clustering_distance_rows))
-                clustering_distance_rows = covDist
-            if (is.null(clustering_distance_columns))
-                clustering_distance_rows = covDist
-            if (is.null(name))
-                name = "centered log expression"
-            if (is.null(colorScale))
-                colorScale =    c("darkblue", "white", "red2")
-            if (is.null(additionnalRowNamesGpar))
-                additionnalRowNamesGpar = list(fontface = "italic")
-            if (is.null(center))
-                center = TRUE
-            if (is.null(scale))
-                scale = FALSE
-        } else if (preSet == "cor") {
-            if (is.null(clustering_distance_rows))
-                clustering_distance_rows = "euclidean"
-            if (is.null(clustering_distance_columns))
-                clustering_distance_columns = "euclidean"
-            if (is.null(name))
-                name = "Pearson\ncorrelation"
-            if (is.null(colorScale))
-                colorScale = c("darkblue", "white", "#FFAA00")
-            if (is.null(additionnalRowNamesGpar))
-                additionnalRowNamesGpar = list()
-            if (is.null(center))
-                center = FALSE
-            if (is.null(scale))
-                scale = FALSE
-        } else if (preSet == "dist") {
-            if (is.null(clustering_distance_rows))
-                clustering_distance_rows = "euclidean"
-            if (is.null(clustering_distance_columns))
-                clustering_distance_columns = "euclidean"
-            if (is.null(name))
-                name = "Euclidean\ndistance"
-            if (is.null(colorScale))
-                colorScale = c("white", "yellow", "red", "purple")
-            if (is.null(additionnalRowNamesGpar))
-                additionnalRowNamesGpar = list()
-            if (is.null(center))
-                center = FALSE
-            if (is.null(scale))
-                scale = FALSE
-        } else if (preSet == "vanilla") {
-            if (is.null(clustering_distance_rows))
-                clustering_distance_rows = "euclidean"
-            if (is.null(clustering_distance_columns))
-                clustering_distance_columns = "euclidean"
-            if (is.null(name))
-                name = "matrix"
-            if (is.null(colorScale))
-                colorScale = c("#2E3672", "#4B9AD5", "white", "#FAB517", "#E5261D")
-            if (is.null(additionnalRowNamesGpar))
-                additionnalRowNamesGpar = list()
-            if (is.null(center))
-                center = FALSE
-            if (is.null(scale))
-                scale = FALSE
-        } else{
-            stop("preSet must equal to one of this value: NULL, 'expr', 'cor', 'dist', 'vanilla'")
-        }
-        matrix <- as.matrix(matrix)
-
-        if (min(apply(matrix, 1, sd)) == 0 &
-                (scale | identical(corrDist, clustering_distance_rows))) {
-            warning(
-                "some row have a 0 sd. sd-based method (correlation distance, scaling) will be deactivated or switched."
-            )
-            scale = FALSE
-            if (identical(corrDist, clustering_distance_rows)) {
-                args$clustering_distance_rows <- "euclidean"
-            }
-        }
-        if (scale |
-                center)
-            matrix <- rowScale(matrix, scaled = scale, center = center)
-        if (is.null(midColorIs0)) {
-            if (min(matrix) < 0 & max(matrix) > 0) {
-                midColorIs0 <- TRUE
-            } else{
-                midColorIs0 <- FALSE
-            }
-        }
-        if (is.null(squareHt)) {
-            if (nrow(matrix) == ncol(matrix)) {
-                squareHt <- TRUE
-            } else{
-                squareHt <- FALSE
-            }
-        }
-        if (squareHt) {
-            if (is.null(cluster_columns)) {
-                cluster_columns <-
-                    hierarchicalClustering(
-                        matrix,
-                        transpose = FALSE,
-                        method.dist = clustering_distance_columns,
-                        method.hclust = clustering_method_columns
-                    )
-            }
-            args$cluster_rows <- cluster_columns
-            args$cluster_columns <- cluster_columns
-        } else{
-            if (is.null(cluster_rows)) {
-                args$clustering_method_rows <- clustering_method_rows
-                args$clustering_distance_rows <- clustering_distance_rows
-            } else{
-                args$cluster_rows <- cluster_rows
-            }
-            if (is.null(cluster_columns)) {
-                args$clustering_method_columns <- clustering_method_columns
-                args$clustering_distance_columns <- clustering_distance_columns
-            } else{
-                args$cluster_columns <- cluster_columns
-            }
-        }
-
-        if (is.null(colorScaleFun)) {
-            colorScaleFun <-
-                computeColorScaleFun(
-                    colors = colorScale,
-                    values = unlist(matrix),
-                    useProb = useProb,
-                    probs = probs,
-                    minProb = minProb,
-                    maxProb = maxProb,
-                    midColorIs0 = midColorIs0,
-                    returnColorFun = TRUE
-                )
-        }
-        args$col <- colorScaleFun
-        if (is.null(showGrid)) {
-            if (nrow(matrix) * ncol(matrix) < 500) {
-                showGrid = TRUE
-            } else{
-                showGrid = FALSE
-            }
-        }
-        if (showGrid) {
-            args$rect_gp = gparGrid
-        }
-        if (showValues) {
-            args$cell_fun = function(j, i, x, y, w, h, col) {
-                #dark or light background .
-                if (colSums(col2rgb(col)) < 382.5)
-                    col = "white"
-                        else
-                            col = "black"
-                                grid.text(as.character(signif(matrix[i, j], Nsignif)), x, y, gp = gpar(col =
-                                                                                                                                                                                 col))
-            }
-        }
-        if (autoFontSizeRow)
-            args$row_names_gp = do.call("autoGparFontSizeMatrix",
-                                                                    c(list(nrow(matrix)), additionnalRowNamesGpar))
-        if (autoFontSizeColumn)
-            args$column_names_gp = do.call("autoGparFontSizeMatrix",
-                                                                         c(list(ncol(matrix)), additionnalColNamesGpar))
-
-        if (!is.null(colData)) {
-            args$top_annotation <- genTopAnnot(colData, colorAnnot)
-        }
-
-        args$column_dend_reorder <-
-            column_dend_reorder
-        args$row_dend_reorder <- row_dend_reorder
-        args$row_split <- row_split
-        args$column_split <- column_split
-        args$matrix <- matrix
-        args$name = name
-        args$border <- border
-        args <- c(args, list(...))
-
-        ht <- do.call("Heatmap", args)
-        if (returnHeatmap) {
-            return(ht)
-        } else{
-            print(ht)
-        }
-    }
-
 #' Volcano plot with additional annotation for interpreting DE genes.
 #'
 #' @param DEresult Dataframe that contains at least those columns:
@@ -2191,33 +986,37 @@ heatmap.DM <-
 #'
 #' @examples
 #' data("DEgenesPrime_Naive")
-#' volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
+#' volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",
+#'     condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
 
 volcanoPlot.DESeq2 <-
     function(DEresult,
-                     formula,
-                     downLevel,
-                     upLevel,
-                     condColumn,
-                     padjThreshold = 0.05,
-                     LFCthreshold = 1,
-                     topGene = 30) {
-        DEresult <- DEresult[!is.na(DEresult$padj), ]
+             formula,
+             downLevel,
+             upLevel,
+             condColumn,
+             padjThreshold = 0.05,
+             LFCthreshold = 1,
+             topGene = 30) {
+        DEresult <- DEresult[!is.na(DEresult$padj),]
         gene2Plot <- order(DEresult$padj)
-        gene2Plot <- gene2Plot[DEresult[gene2Plot, "isDE"] != "NONE"]
-        gene2Plot <- gene2Plot[seq_len(min(topGene, length(gene2Plot)))]
+        gene2Plot <-
+            gene2Plot[DEresult[gene2Plot, "isDE"] != "NONE"]
+        gene2Plot <-
+            gene2Plot[seq_len(min(topGene, length(gene2Plot)))]
         g <-
-            ggplot(DEresult, aes(
-                x = log2FoldChange,
-                y = -log10(padj) + 0.01,
-                color = isDE
-            )) +
+            ggplot(DEresult,
+                   aes(
+                       x = .data$log2FoldChange,
+                       y = -log10(.data$padj),
+                       color = .data$isDE
+                   )) +
             geom_point(size = 1) + theme_bw() + scale_color_manual(values = c("#3AAA35", "grey75", "#E40429")) +
             geom_text_repel(
-                data = DEresult[gene2Plot, ],
+                data = DEresult[gene2Plot,],
                 aes(
-                    x = log2FoldChange,
-                    y = -log10(padj),
+                    x = .data$log2FoldChange,
+                    y = -log10(.data$padj),
                     label = rownames(DEresult)[gene2Plot]
                 ),
                 inherit.aes = FALSE,
@@ -2335,7 +1134,9 @@ volcanoPlot.DESeq2 <-
 #' The main ones are a p-value for each overlap, and a log ratio between  observed and expected overlap size, the *log2OE*.
 #'
 #'
-#' @return Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2). Ω indicates the universe size (total number of elements).
+#' @return
+#' Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2).
+#' U indicates the universe size (total number of elements).
 #' @export
 #'
 #' @examples
@@ -2346,162 +1147,207 @@ volcanoPlot.DESeq2 <-
 #' lt$set4 <- unique(c(lt$set1,lt$set2))
 #'
 #' richUpset(lt, universe = letters)
-richUpset<- function(featurePerGroupList, universe = NULL,pvalThreshold=0.01 ,returnEnrichDat = FALSE) {
-    if (is.null(universe))
-        universe <- unique(unlist(featurePerGroupList))
-    isInGroupMatrix <-
-        ComplexHeatmap::list_to_matrix(featurePerGroupList, universal_set = universe)
-    upsetMatrix <- ComplexHeatmap::make_comb_mat(isInGroupMatrix, mode = "intersect")
-    upsetMatrix <-
-        upsetMatrix[ComplexHeatmap::comb_degree(upsetMatrix) > 1] # retain only intersections of sets
+richUpset <-
+    function(featurePerGroupList,
+             universe = NULL,
+             pvalThreshold = 0.01 ,
+             returnEnrichDat = FALSE) {
+        if (is.null(universe))
+            universe <- unique(unlist(featurePerGroupList))
+        isInGroupMatrix <-
+            ComplexHeatmap::list_to_matrix(featurePerGroupList, universal_set = universe)
+        upsetMatrix <-
+            ComplexHeatmap::make_comb_mat(isInGroupMatrix, mode = "intersect")
+        upsetMatrix <-
+            upsetMatrix[ComplexHeatmap::comb_degree(upsetMatrix) > 1] # retain only intersections of sets
 
-    combsize = ComplexHeatmap::comb_size(upsetMatrix)
-    setsize = ComplexHeatmap::set_size(upsetMatrix)
+        combsize = ComplexHeatmap::comb_size(upsetMatrix)
+        setsize = ComplexHeatmap::set_size(upsetMatrix)
 
-    #Are the intersections sets (or venn diagramm region) enriched or not ?
-    regionEnrich <- lapply(ComplexHeatmap::comb_name(upsetMatrix), function(region) {
-        colOfcomp = which(strsplit(region, split = "")[[1]] == "1")
-        enrichSetIntersection(combsize[region],setsize[colOfcomp],length(universe))
-    })
-    regionEnrichRes<-data.frame(row.names = ComplexHeatmap::comb_name(upsetMatrix))
-    for(el in names(regionEnrich[[1]])) regionEnrichRes[[el]]<-sapply(regionEnrich,function(x) x[[el]])
-    rm(regionEnrich)
-    regionEnrichRes$padj<-p.adjust(regionEnrichRes$pval,method = "BH")
-    regionEnrichRes$log10padj<- -log10(regionEnrichRes$padj)
-    regionEnrichRes$log10padj[regionEnrichRes$log10padj==Inf] <- 384
+        #Are the intersections sets (or venn diagramm region) enriched or not ?
+        regionEnrich <-
+            lapply(ComplexHeatmap::comb_name(upsetMatrix), function(region) {
+                colOfcomp = which(strsplit(region, split = "")[[1]] == "1")
+                enrichSetIntersection(combsize[region], setsize[colOfcomp], length(universe))
+            })
+        regionEnrichRes <-
+            data.frame(row.names = ComplexHeatmap::comb_name(upsetMatrix))
+        for (el in names(regionEnrich[[1]]))
+            regionEnrichRes[[el]] <- sapply(regionEnrich, function(x)
+                x[[el]])
+        rm(regionEnrich)
+        regionEnrichRes$padj <-
+            p.adjust(regionEnrichRes$pval, method = "BH")
+        regionEnrichRes$log10padj <- -log10(regionEnrichRes$padj)
+        regionEnrichRes$log10padj[regionEnrichRes$log10padj == Inf] <-
+            384
 
-    if(returnEnrichDat) return(regionEnrichRes)
+        if (returnEnrichDat)
+            return(regionEnrichRes)
 
-    enrich_ha = ComplexHeatmap::HeatmapAnnotation(
-        "pval" = ComplexHeatmap::anno_barplot(
-            regionEnrichRes$log10padj,
-            gp = grid::gpar(fill = "black"),
-            height = unit(3, "cm"),
-            axis_param = list(side = "left"),
-            ylim = c(0, max(max(regionEnrichRes$log10padj) * 1.1, 2))
-        ),
-        annotation_name_side = "left",
-        annotation_name_rot = 0,
-        annotation_name_gp = grid::gpar(fontface = "bold"),
-        annotation_label = c("-log10\nadj.\np-val")
-    )
-    intersect_ha = ComplexHeatmap::HeatmapAnnotation(
-        "intersection_size" = ComplexHeatmap::anno_barplot(
-            combsize,
-            gp = grid::gpar(fill = "black"),
-            height = unit(3, "cm"),
-            axis_param = list(side = "left"),
-            ylim = c(0, max(combsize) * 1.1)
-        ),
-        annotation_name_side = "left",
-        annotation_name_rot = 0,
-        annotation_name_gp = grid::gpar(fontface = "bold"),
-        annotation_label = "Observed \nintersection\nsize\n(expected)"
-    )
-    set_size_ha = ComplexHeatmap::rowAnnotation(
-        "set_size" = ComplexHeatmap::anno_barplot(
-            setsize,
-            gp = grid::gpar(fill = "black"),
-            width = unit(2, "cm"),
-            ylim = c(0, max(setsize) * 1.3)
-        ),
-        annotation_name_side = "bottom",
-        annotation_name_rot = 0,
-        annotation_name_gp = grid::gpar(fontface = "bold"),
-        annotation_label = paste0("Set\nsize\n(Ω=",length(universe),")")
-    )
-
-    combDegree<-ComplexHeatmap::comb_degree(upsetMatrix)
-    combDegree<-paste0(combDegree,"°")
-
-    OEdevMatrix<-regionEnrichRes[,"OEdeviation",drop=FALSE] |> t()
-    rownames(OEdevMatrix)<-"Observed /\nExpexted\ndeviation"
-
-    ht = ComplexHeatmap::draw(
-        ComplexHeatmap::UpSet(
-            upsetMatrix,
-            top_annotation = intersect_ha,
-            bottom_annotation = enrich_ha,
-            right_annotation = set_size_ha,
-            border = TRUE,
-            column_split = combDegree,
-            row_names_gp = gpar(fontsize = min(1 / max(nchar(
-                rownames(upsetMatrix)
-            )) * 260, 20))#automatic fontsize to avoid out of bound text
+        enrich_ha = ComplexHeatmap::HeatmapAnnotation(
+            "pval" = ComplexHeatmap::anno_barplot(
+                regionEnrichRes$log10padj,
+                gp = grid::gpar(fill = "black"),
+                height = unit(3, "cm"),
+                axis_param = list(side = "left"),
+                ylim = c(0, max(
+                    max(regionEnrichRes$log10padj) * 1.1, 2
+                ))
+            ),
+            annotation_name_side = "left",
+            annotation_name_rot = 0,
+            annotation_name_gp = grid::gpar(fontface = "bold"),
+            annotation_label = c("-log10\nadj.\np-val")
         )
-        %v% ComplexHeatmap::Heatmap(OEdevMatrix, show_column_names = FALSE,
-                    cell_fun = function(j, i, x, y, w, h, col) {
-                        if (colSums(col2rgb(col)) < 382.5)
-                            col = "white"
-                        else col = "black"
-                        grid::grid.text(as.character(signif(regionEnrichRes[j, "OEdeviation"], 2)), x, y, gp = gpar(col = col, fontface=2))
-                    },
-                    show_heatmap_legend = FALSE,col= computeColorScaleFun(c("darkblue", "white", "red2"), regionEnrichRes$OEdeviation, returnColorFun = TRUE, midColorIs0 = TRUE),
-                    rect_gp=gpar(col = "black"), row_names_side = "left", row_names_gp = grid::gpar(fontface=2)
-                )
-    )
-
-    #Offset to counterbalance column split space
-    colPerSplit = sapply(column_order(ht), length)
-    offsetPerSplit = seq(0, length(colPerSplit) - 1)
-    offsets <-
-        unlist(lapply(seq_along(colPerSplit), function(i)
-            rep(offsetPerSplit[i], colPerSplit[i])), use.names = FALSE)
-
-    rowOrder = rev(row_order(ht)[[1]])
-    columnOrder = unlist(column_order(ht))
-    xCoordinatesColText<-unit(seq_along(columnOrder), "native") + unit(offsets, "mm")
-
-    decorate_annotation("intersection_size", {
-        grid.text(
-            paste0(combsize[columnOrder], " (", round(regionEnrichRes$expected[columnOrder],1),")"),
-            x = xCoordinatesColText,
-            y = unit(combsize[columnOrder], "native") + unit(6, "pt"),
-            default.units = "native",
-            just = "center",
-            gp = gpar(fontsize = 8)
+        intersect_ha = ComplexHeatmap::HeatmapAnnotation(
+            "intersection_size" = ComplexHeatmap::anno_barplot(
+                combsize,
+                gp = grid::gpar(fill = "black"),
+                height = unit(3, "cm"),
+                axis_param = list(side = "left"),
+                ylim = c(0, max(combsize) * 1.1)
+            ),
+            annotation_name_side = "left",
+            annotation_name_rot = 0,
+            annotation_name_gp = grid::gpar(fontface = "bold"),
+            annotation_label = "Observed \nintersection\nsize\n(expected)"
         )
-    })
-    decorate_annotation("pval", {
-        grid.text(
-            round(regionEnrichRes$log10padj[columnOrder], 3),
-            x = xCoordinatesColText,
-            y = unit(regionEnrichRes$log10padj[columnOrder], "native") + unit(6, "pt"),
-            default.units = "native",
-            just = "center",
-            gp = gpar(fontsize = 8)
+        set_size_ha = ComplexHeatmap::rowAnnotation(
+            "set_size" = ComplexHeatmap::anno_barplot(
+                setsize,
+                gp = grid::gpar(fill = "black"),
+                width = unit(2, "cm"),
+                ylim = c(0, max(setsize) * 1.3)
+            ),
+            annotation_name_side = "bottom",
+            annotation_name_rot = 0,
+            annotation_name_gp = grid::gpar(fontface = "bold"),
+            annotation_label = paste0("Set\nsize\n(U=", length(universe), ")")
         )
-    })
 
+        combDegree <- ComplexHeatmap::comb_degree(upsetMatrix)
+        combDegree <- paste0(combDegree, "\u00b0")
 
-    bestPval<-min(regionEnrichRes$padj)
+        OEdevMatrix <- regionEnrichRes[, "OEdeviation", drop = FALSE] |> t()
+        rownames(OEdevMatrix) <- "Observed /\nExpexted\ndeviation"
 
-    decorate_annotation("pval", addHbarUpset(-log10(pvalThreshold), offsetPerSplit, colPerSplit, gp = gpar(alpha=.5,col="red") ))
-
-    decorate_annotation("set_size", {
-        grid.text(
-            round(setsize[rowOrder], 2),
-            y = seq_along(setsize),
-            x = unit(setsize[rowOrder], "native") + unit(7, "pt"),
-            default.units = "native",
-            just = "center",
-            gp = gpar(fontsize = 10),
-            rot = -90
+        ht = ComplexHeatmap::draw(
+            ComplexHeatmap::UpSet(
+                upsetMatrix,
+                top_annotation = intersect_ha,
+                bottom_annotation = enrich_ha,
+                right_annotation = set_size_ha,
+                border = TRUE,
+                column_split = combDegree,
+                row_names_gp = gpar(fontsize = min(1 / max(
+                    nchar(rownames(upsetMatrix))
+                ) * 260, 20))#automatic fontsize to avoid out of bound text
+            )
+            %v% ComplexHeatmap::Heatmap(
+                OEdevMatrix,
+                show_column_names = FALSE,
+                cell_fun = function(j, i, x, y, w, h, col) {
+                    if (colSums(col2rgb(col)) < 382.5)
+                        col = "white"
+                    else
+                        col = "black"
+                    grid::grid.text(as.character(signif(regionEnrichRes[j, "OEdeviation"], 2)), x, y, gp = gpar(col = col, fontface =
+                                                                                                                    2))
+                },
+                show_heatmap_legend = FALSE,
+                col = computeColorScaleFun(
+                    c("darkblue", "white", "red2"),
+                    regionEnrichRes$OEdeviation,
+                    returnColorFun = TRUE,
+                    midColorIs0 = TRUE
+                ),
+                rect_gp = gpar(col = "black"),
+                row_names_side = "left",
+                row_names_gp = grid::gpar(fontface = 2)
+            )
         )
-    })
-}
 
-addHbarUpset<-function(y, offsetPerSplit, colPerSplit, gp=NULL){
-        return({y = unit(y,"native")
+        #Offset to counterbalance column split space
+        colPerSplit = sapply(column_order(ht), length)
+        offsetPerSplit = seq(0, length(colPerSplit) - 1)
+        offsets <-
+            unlist(lapply(seq_along(colPerSplit), function(i)
+                rep(offsetPerSplit[i], colPerSplit[i])), use.names = FALSE)
 
-        x1<-cumsum(colPerSplit)+0.5
-        x0<- c(0.5,x1[seq_len(length(x1)-1)])
+        rowOrder = rev(row_order(ht)[[1]])
+        columnOrder = unlist(column_order(ht))
+        xCoordinatesColText <-
+            unit(seq_along(columnOrder), "native") + unit(offsets, "mm")
 
-        x0<-unit(x0,"native") + unit(offsetPerSplit,"mm")
-        x1<-unit(x1,"native") + unit(offsetPerSplit,"mm")
-
-        grid.segments(x0 = x0, x1= x1,y0 = y, y1= y, gp = gp)
+        decorate_annotation("intersection_size", {
+            grid.text(
+                paste0(
+                    combsize[columnOrder],
+                    " (",
+                    round(regionEnrichRes$expected[columnOrder], 1),
+                    ")"
+                ),
+                x = xCoordinatesColText,
+                y = unit(combsize[columnOrder], "native") + unit(6, "pt"),
+                default.units = "native",
+                just = "center",
+                gp = gpar(fontsize = 8)
+            )
         })
+        decorate_annotation("pval", {
+            grid.text(
+                round(regionEnrichRes$log10padj[columnOrder], 3),
+                x = xCoordinatesColText,
+                y = unit(regionEnrichRes$log10padj[columnOrder], "native") + unit(6, "pt"),
+                default.units = "native",
+                just = "center",
+                gp = gpar(fontsize = 8)
+            )
+        })
+
+
+        bestPval <- min(regionEnrichRes$padj)
+
+        decorate_annotation("pval",
+                            addHbarUpset(
+                                -log10(pvalThreshold),
+                                offsetPerSplit,
+                                colPerSplit,
+                                gp = gpar(alpha = .5, col = "red")
+                            ))
+
+        decorate_annotation("set_size", {
+            grid.text(
+                round(setsize[rowOrder], 2),
+                y = seq_along(setsize),
+                x = unit(setsize[rowOrder], "native") + unit(7, "pt"),
+                default.units = "native",
+                just = "center",
+                gp = gpar(fontsize = 10),
+                rot = -90
+            )
+        })
+    }
+
+addHbarUpset <- function(y, offsetPerSplit, colPerSplit, gp = NULL) {
+    return({
+        y = unit(y, "native")
+
+        x1 <- cumsum(colPerSplit) + 0.5
+        x0 <- c(0.5, x1[seq_len(length(x1) - 1)])
+
+        x0 <- unit(x0, "native") + unit(offsetPerSplit, "mm")
+        x1 <- unit(x1, "native") + unit(offsetPerSplit, "mm")
+
+        grid.segments(
+            x0 = x0,
+            x1 = x1,
+            y0 = y,
+            y1 = y,
+            gp = gp
+        )
+    })
 }
 
 #' Add or remove colors to an existing palette by interpolation
@@ -2516,40 +1362,42 @@ addHbarUpset<-function(y, offsetPerSplit, colPerSplit, gp=NULL){
 #'
 #' @examples
 #' extendColorPalette(9,  colors=c("red","green","blue")) |> plotPalette()
-#' extendColorPalette(9,  colors=c("red","green","blue"), sortColorIn=TRUE, sortColorOut=TRUE) |> plotPalette()
+#' extendColorPalette(9,  colors=c("red","green","blue"),
+#'     sortColorIn=TRUE, sortColorOut=TRUE) |> plotPalette()
 extendColorPalette <- function(n,
-                                                             colors = c(
-                                                                 "#E52421",
-                                                                                  "#66B32E",
-                                                                                  "#2A4B9B",
-                                                                                  "#6EC6D9",
-                                                                                  "#F3E600",
-                                                                                  "#A6529A",
-                                                                                  "#7C1623",
-                                                                                  "#006633",
-                                                                                  "#29235C",
-                                                                                  "#0084BC",
-                                                                                  "#E6007E",
-                                                                                  "#F49600",
-                                                                                  "#E3E3E3",
-                                                                                  "#626F72",
-                                                                                  "#040505",
-                                                                                  "#E74B65",
-                                                                                  "#95B37F",
-                                                                                  "#683C11",
-                                                                                  "#F8BAA0",
-                                                                                  "#DD8144"),
-                                                                                  sortColorIn = FALSE,
-                                                             sortColorOut = FALSE
-) {
+                               colors = c(
+                                   "#E52421",
+                                   "#66B32E",
+                                   "#2A4B9B",
+                                   "#6EC6D9",
+                                   "#F3E600",
+                                   "#A6529A",
+                                   "#7C1623",
+                                   "#006633",
+                                   "#29235C",
+                                   "#0084BC",
+                                   "#E6007E",
+                                   "#F49600",
+                                   "#E3E3E3",
+                                   "#626F72",
+                                   "#040505",
+                                   "#E74B65",
+                                   "#95B37F",
+                                   "#683C11",
+                                   "#F8BAA0",
+                                   "#DD8144"
+                               ),
+                               sortColorIn = FALSE,
+                               sortColorOut = FALSE) {
     if (sortColorIn)
         colors <- sortColorByDistance(colors)
     colorFun <-
         circlize::colorRamp2(breaks = seq(0, 1, length.out = length(colors)),
-                                                 colors = colors)
+                             colors = colors)
     colorOut <- colorFun(seq(0, 1, length.out = n))
     if (sortColorOut)
-        colorOut <- sortColorByDistance(colorOut, byDissimilarity = TRUE)
+        colorOut <-
+        sortColorByDistance(colorOut, byDissimilarity = TRUE)
     colorOut
 }
 
@@ -2562,14 +1410,19 @@ extendColorPalette <- function(n,
 #' @export
 #'
 #' @examples
-#' sortColorByDistance(c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")) |> plotPalette()
-#' sortColorByDistance(c("#000066","#0000FF","#660000","#FF0000","#006600","#00FF00"), inverted=TRUE) |> plotPalette()
-sortColorByDistance <- function(colorVector, byDissimilarity=FALSE) {
-    d <- col2rgb(colorVector) |> t()
-    d <- grDevices::convertColor(d,from="sRGB",to="Lab") |> dist(method = "manhattan")
-    if(byDissimilarity) d<- max(d)-d
-    colorVector[hclust(d)$order]
-}
+#' colors <- c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")
+#' sortColorByDistance(colors) |> plotPalette()
+#' colors <- c("#000066","#0000FF","#660000","#FF0000","#006600","#00FF00")
+#' sortColorByDistance(colors, byDissimilarity=TRUE) |> plotPalette()
+sortColorByDistance <-
+    function(colorVector, byDissimilarity = FALSE) {
+        d <- col2rgb(colorVector) |> t()
+        d <-
+            grDevices::convertColor(d, from = "sRGB", to = "Lab") |> dist(method = "manhattan")
+        if (byDissimilarity)
+            d <- max(d) - d
+        colorVector[hclust(d)$order]
+    }
 
 
 
@@ -2584,91 +1437,41 @@ sortColorByDistance <- function(colorVector, byDissimilarity=FALSE) {
 #' oobColors() |> plotPalette()
 #' oobColors(n=5) |> plotPalette()
 #' oobColors(n=40) |> plotPalette()
-oobColors <- function(n=20) {
+oobColors <- function(n = 20) {
     myCOlors <- c(
         "#E52421",
-                         "#66B32E",
-                         "#2A4B9B",
-                         "#6EC6D9",
-                         "#F3E600",
-                         "#A6529A",
-                         "#7C1623",
-                         "#006633",
-                         "#29235C",
-                         "#0084BC",
-                         "#E6007E",
-                         "#F49600",
-                         "#E3E3E3",
-                         "#626F72",
-                         "#040505",
-                         "#E74B65",
-                         "#95B37F",
-                         "#683C11",
-                         "#F8BAA0",
-                         "#DD8144"
+        "#66B32E",
+        "#2A4B9B",
+        "#6EC6D9",
+        "#F3E600",
+        "#A6529A",
+        "#7C1623",
+        "#006633",
+        "#29235C",
+        "#0084BC",
+        "#E6007E",
+        "#F49600",
+        "#E3E3E3",
+        "#626F72",
+        "#040505",
+        "#E74B65",
+        "#95B37F",
+        "#683C11",
+        "#F8BAA0",
+        "#DD8144"
     )
     if (n <= 20) {
         return(myCOlors[seq_len(n)])
     } else{
-        return(extendColorPalette(n = n, colors = myCOlors,sortColorIn = TRUE,sortColorOut = TRUE))
+        return(
+            extendColorPalette(
+                n = n,
+                colors = myCOlors,
+                sortColorIn = TRUE,
+                sortColorOut = TRUE
+            )
+        )
     }
-}
-
-
-
-#' Plot best marker per group on a tidy Heatmap
-#' @details Draw the same number of observation from each condition/group, and take the top n marker per group. Heatmap is sliced by group for each gene and
-#'
-#' @param countTable A matrix of numeric (in the RNA-Seq context, log counts)
-#' @param group A feature of factor/character, same length as number of sample. Describe group of each sample (for example clusters).
-#' @param markerData A matrix describing marker scores for each group.
-#' @param topn Number of marker to plot, rankes from the best
-#' @param maxDrawSize Maximum nu
-#' @param colData
-#' A dataframe of any type of value. The annotation that will be displayed on the heatmap.
-#' @param returnHeatmap  Logical, return the plot as a Heatmap object or print it in the current graphical device.
-#' @param show_column_names Whether show column names.
-#' @param ... Arguments passed to `heatmap.DM`
-#'
-#' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
-#' htMarker(bulkLogCounts,  group=sampleAnnot$culture_media, markerData=extractFeatureMarkerData(markerData), colData=sampleAnnot[c("line","passage")])
-
-htMarker<-function (countTable, group, markerData, colData = NULL, topn = 5,
-                                        maxDrawSize = NULL, minDrawSize=NULL, returnHeatmap = FALSE, show_column_names = FALSE,
-                                        ...)
-{
-    if (length(group) != ncol(countTable))
-        stop("Length of group should be the same as number of columns in countTable")
-    group <- as.factor(make.names(group))
-    if (sum(!sort(colnames(markerData)) == sort(levels(group))) >
-            0)
-        stop("Colnames of markerData must correspond to the levels of group")
-    names(group) <- colnames(countTable)
-    drawSize <- min(table(group))
-    if (!is.null(maxDrawSize))
-        drawSize <- min(drawSize, maxDrawSize)
-    if (!is.null(minDrawSize))
-        drawSize <- max(drawSize, minDrawSize)
-    drawCells <- unlist(lapply(unique(group), function(lvl) {
-        cells <- colnames(countTable)[group == lvl]
-
-        sample(cells, min(drawSize),length(cells))
-    }))
-    topMarker <- apply(markerData, 2, function(x) {
-        names(x)[order(x, decreasing = T)][seq_len(topn)]
-    })
-    topMarker <- as.list(data.frame(topMarker))
-    heatmap.DM(countTable[unlist(topMarker), drawCells], colData = colData[drawCells,
-    ], column_split = group[drawCells], row_split = VectorListToFactor(topMarker),
-    cluster_row_slices = FALSE, cluster_column_slices = FALSE,
-    returnHeatmap = returnHeatmap, show_column_names = show_column_names,
-    ...)
 }
 
 
@@ -2684,7 +1487,8 @@ htMarker<-function (countTable, group, markerData, colData = NULL, topn = 5,
 #'
 #' @examples
 #' data("DEgenesPrime_Naive")
-#' scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x), inverse = function(x) 10^(-x), domain = c(0, Inf))
+#' scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x),
+#'     inverse = function(x) 10^(-x), domain = c(0, Inf))
 #' breaks <- ggplotBreak(DEgenesPrime_Naive$pvalue ,scale)
 ggplotBreak <- function(x, scale, m = 5) {
     transValues <- scale$transform(x)
@@ -2712,30 +1516,31 @@ ggplotBreak <- function(x, scale, m = 5) {
 #'
 #' @examples
 #' data("DEgenesPrime_Naive")
-#' volcanoPlot(d = DEgenesPrime_Naive,effectSizeCol = "log2FoldChange", adjPvalCol = "padj", minEffectSize = 1,
-#'                         labelCol = rownames(DEgenesPrime_Naive))
+#' data(sampleAnnot)
+#' volcanoPlot(d = DEgenesPrime_Naive,effectSizeCol = "log2FoldChange",
+#'     adjPvalCol = "padj", minEffectSize = 1,
+#'     labelCol = rownames(DEgenesPrime_Naive))
 #'
-#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
 volcanoPlot <-
     function(d = NULL,
-                     effectSizeCol,
-                     adjPvalCol,
-                     labelCol,
-                     padjThres = 0.05,
-                     minEffectSize = 0,
-                     topShownPerSide = 15,
-                     returnGraph = FALSE,
-                     neutralVal = 0,
-                     ...) {
+             effectSizeCol,
+             adjPvalCol,
+             labelCol,
+             padjThres = 0.05,
+             minEffectSize = 0,
+             topShownPerSide = 15,
+             returnGraph = FALSE,
+             neutralVal = 0,
+             ...) {
         if (is.null(d)) {
             if (!(is.numeric(effectSizeCol) &
-                        is.numeric(adjPvalCol) &
-                        length(labelCol) > 1))
+                  is.numeric(adjPvalCol) &
+                  length(labelCol) > 1))
                 stop("If d is null, other parameters must be vector of the same size")
             d <-
                 data.frame(effectSize = effectSizeCol,
-                                     adjPval = adjPvalCol,
-                                     label = labelCol)
+                           adjPval = adjPvalCol,
+                           label = labelCol)
             effectSizeCol <- "effectSize"
             adjPvalCol <- "adjPval"
             labelCol = "label"
@@ -2764,7 +1569,8 @@ volcanoPlot <-
                 stop(labelCol, "is not a colname of d")
         }
 
-        d <- d[, c(effectSizeCol, adjPvalCol, labelCol)] |> na.omit()
+        d <-
+            d[, c(effectSizeCol, adjPvalCol, labelCol)] |> na.omit()
 
         scale <-
             scales::trans_new(
@@ -2784,7 +1590,7 @@ volcanoPlot <-
 
         shownLabel <-
             c(d[isNegEffectSize, labelCol][whichTop(d[isNegEffectSize, adjPvalCol], top = topShownPerSide, decreasing = FALSE)],
-                d[!isNegEffectSize, labelCol][whichTop(d[!isNegEffectSize, adjPvalCol], top = topShownPerSide, decreasing = FALSE)])
+              d[!isNegEffectSize, labelCol][whichTop(d[!isNegEffectSize, adjPvalCol], top = topShownPerSide, decreasing = FALSE)])
 
         d$significant <-
             d[, adjPvalCol] < padjThres &
@@ -2792,13 +1598,13 @@ volcanoPlot <-
 
         g <-
             ggplot(d,
-                         aes_string(x = effectSizeCol, y = adjPvalCol, color = "significant")) +
+                   aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]], color = .data$significant)) +
             scale_y_continuous(trans = scale, breaks = breaks) +
             geom_point() + theme_bw() + scale_color_manual(values = c("grey75", "black")) +
             xlim(xlims) +
             ggrepel::geom_text_repel(
-                data = d[d[, labelCol] %in% shownLabel, ],
-                aes_string(x = effectSizeCol, y = adjPvalCol, label = labelCol),
+                data = d[d[, labelCol] %in% shownLabel,],
+                aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]], label = .data[[labelCol]]),
                 inherit.aes = FALSE,
                 color = "grey50",
                 ...

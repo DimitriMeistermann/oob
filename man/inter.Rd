@@ -6,6 +6,13 @@
 \usage{
 inter(x, y, ...)
 }
+\arguments{
+\item{x}{A vector-like object.}
+
+\item{y}{A vector-like object.}
+
+\item{...}{Additional arguments passed to \code{intersect}.}
+}
 \description{
 intersect alias
 }

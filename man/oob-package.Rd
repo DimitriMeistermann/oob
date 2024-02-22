@@ -6,7 +6,7 @@
 \alias{oob-package}
 \title{oob: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box}
 \description{
-A toolbox for analyzing OMIC data, Out Of Bounds from any black box.
+A toolbox for analyzing OMIC data, Out Of Bounds from any black box. This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
 }
 \seealso{
 Useful links:

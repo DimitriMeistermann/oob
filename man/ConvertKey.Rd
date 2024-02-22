@@ -25,5 +25,6 @@ Convert a list of key from an ID to another.
 data("bulkLogCounts")
 data("humanGeneIDtable")
 geneSym<-rownames(bulkLogCounts)
-geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+geneEntrez<-ConvertKey(geneSym,tabKey = humanGeneIDtable,
+    colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 }

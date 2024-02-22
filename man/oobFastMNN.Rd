@@ -25,11 +25,11 @@ Use fastMNN fron the package batchelor, but return a matrix. Rescale the counts 
 }
 \examples{
 data("geneLengthGRCh38")
-library(MASS)
 countMat<-sapply(vector("numeric",length = 100),function(x){
-     c(rnegbin(10,mu = 50,theta = 5), rnegbin(10,mu = 10,theta = 5))
+     c(MASS::rnegbin(10,mu = 50,theta = 5), MASS::rnegbin(10,mu = 10,theta = 5))
 }) |> t(); countMat<-log2(countMat+1)
 heatmap.DM(countMat)
-correctedMat<-oobFastMNN(countMat,batch = c(rep(1,10),rep(2,10)), k=5) #warning because of the small matrix
+#warning because of the small matrix
+correctedMat<-oobFastMNN(countMat,batch = c(rep(1,10),rep(2,10)), k=5)
 heatmap.DM(correctedMat)
 }

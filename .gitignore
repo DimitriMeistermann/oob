@@ -11,3 +11,4 @@ vignettes/functionalities_cache
 vignettes/functionalities_files
 *.Rproj.user
 buildReadme.sh
+.Rproj.user

@@ -19,9 +19,8 @@ Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, 
 }
 \examples{
 data("geneLengthGRCh38")
-library(MASS)
 countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
+    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
 }));rownames(countMat)<-names(geneLengthGRCh38)
-RPKM(countMat,geneLengthGRCh38)
+chead(RPKM(countMat,geneLengthGRCh38))
 }

@@ -6,6 +6,9 @@
 \usage{
 len(x)
 }
+\arguments{
+\item{x}{A vector-like object.}
+}
 \description{
 length alias
 }

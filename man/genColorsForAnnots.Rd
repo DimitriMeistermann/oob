@@ -42,15 +42,24 @@ data("iris")
 
 genColorsForAnnots(iris)
 
-precomputedColorScale<-list(Species=c("setosa"="red","versicolor"="blue","virginica"="grey"))
+precomputedColorScale <-
+    list(Species = c(
+        "setosa" = "red",
+        "versicolor" = "blue",
+        "virginica" = "grey"
+    ))
 
-genColorsForAnnots(iris,colorScales = precomputedColorScale)
+genColorsForAnnots(iris, colorScales = precomputedColorScale)
 
-colorScales<-genColorsForAnnots(iris,returnContinuousFun = TRUE)
+colorScales <- genColorsForAnnots(iris, returnContinuousFun = TRUE)
 colorScales$Sepal.Length(4.5)
 colorScales$Species
 
 library(ComplexHeatmap)
-Heatmap(rowScale(t(iris[,c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width")]),center = TRUE,scaled = TRUE),
-                top_annotation = genTopAnnot(iris["Species"],colorScales=colorScales["Species"]))
+Heatmap(
+    rowScale(t(iris[, c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]),
+    center = TRUE, scaled = TRUE),
+    top_annotation = genTopAnnot(iris["Species"], colorScales =
+                                     colorScales["Species"])
+)
 }

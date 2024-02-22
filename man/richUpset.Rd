@@ -21,7 +21,8 @@ richUpset(
 \item{returnEnrichDat}{Logical. If TRUE, the function returns a data.frame with the enrichment values.}
 }
 \value{
-Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2). Ω indicates the universe size (total number of elements).
+Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2).
+U indicates the universe size (total number of elements).
 }
 \description{
 In addition to Upset plot, this method computes and represents additional values useful for understanding the relationship between sets.
