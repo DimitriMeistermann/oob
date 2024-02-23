@@ -1,5 +1,5 @@
 ---
-title: "Functionalities of oob"
+title: "oob: a toolbox for analyzing OMIC data Out Of Bounds"
 output: 
   rmarkdown::html_vignette
 vignette: >
@@ -19,8 +19,6 @@ cache = TRUE,
 warning=FALSE
 )
 ```
-
-# oob: a toolbox for analyzing OMIC data Out Of Bounds
 
 This package provide function for analyzing OMIC data, with a focus on plots, functional enrichment and bulk/single-cell RNA-Seq.
 
@@ -53,8 +51,7 @@ For a quick installation:
 ```
 reticulate::py_install(c("numpy","leidenalg","trimap"))
 ```
-
-#Functionalities of oob
+The package is ready to load.
   
 ```{r setup}
   library(oob)

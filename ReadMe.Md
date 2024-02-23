@@ -1,7 +1,5 @@
-Functionalities of oob
+oob: a toolbox for analyzing OMIC data Out Of Bounds
 ================
-
-# oob: a toolbox for analyzing OMIC data Out Of Bounds
 
 This package provide function for analyzing OMIC data, with a focus on
 plots, functional enrichment and bulk/single-cell RNA-Seq.
@@ -33,7 +31,7 @@ For a quick installation:
 
     reticulate::py_install(c("numpy","leidenalg","trimap"))
 
-\#Functionalities of oob
+The package is ready to load.
 
 ``` r
   library(oob)
@@ -298,7 +296,7 @@ multiplot(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-9-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-9-1.png" width="100%" style="display: block; margin: auto;" />
 
 In the gene contribution plot, `pointdensity.nrd` is used for estimating
 the 2 density of points. `pcaAddSamples` is another PCA function than
@@ -324,7 +322,7 @@ ggBorderedFactors(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 The culture media seems to be linked here with PC 1 & 2. Note in the
 code the use of `mostDistantColor` for generating a color scale with
@@ -343,7 +341,7 @@ normCount<-2^(bulkLogCounts-1)
 dispData<-getMostVariableGenes(normCount,minCount=1)
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -387,7 +385,7 @@ multiplot(cols = 2,
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-13-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-13-1.png" width="100%" style="display: block; margin: auto;" />
 
 The knn graph used can also be saved when computing the UMAP, and used
 for a community detection (Leiden) clustering.
@@ -400,7 +398,7 @@ proj2d(UMAPwithNN$embedding,colorBy = sampleAnnot$leidenClusters,
        plotFactorsCentroids = TRUE,plotLabelRepel = TRUE,fixedCoord = TRUE, legendTitle = "Leiden cluster")
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 We now pick the best marker per cluster with `getMarkers`, which use the
 `auroc` function for computing marker scores, along with logFC and
@@ -440,7 +438,7 @@ topGenePerCluster<-sapply(top20MarkerPerCluster,function(x) x[1])
 plotExpr(normCount[topGenePerCluster,],group = sampleAnnot$leidenClusters, legendTitle = "Leiden cluster")
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
 
 We then used those marker for plotting an heatmap with the dedicated
 function.
@@ -449,7 +447,7 @@ function.
 htMarker(bulkLogCounts,markerData = markerScorePerCluster,topn = 20 ,group = sampleAnnot$leidenClusters, colData = sampleAnnot[c("culture_media","line")])
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-17-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-17-1.png" width="100%" style="display: block; margin: auto;" />
 Note that we can obtain the same result with more struggles using the
 more general function `heatmap.DM`:
 
@@ -465,7 +463,7 @@ heatmap.DM(markEXpressionSubSampled, colData = sampleAnnot[cn(markEXpressionSubS
            cluster_row_slices = FALSE, cluster_column_slices =FALSE)
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-18-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-18-1.png" width="100%" style="display: block; margin: auto;" />
 
 ``` r
 #> 
@@ -486,7 +484,7 @@ computeColorScaleFun(colors = c("blue","white","red"),values = values,returnColo
   plotPalette()
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
 
 `computeColorScaleFun` can also return a ggplot scale if
 `returnGGscale`.
@@ -518,7 +516,7 @@ sets = list(k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
 richUpset(sets, universe = rn(markerPerCluster))
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-20-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-20-1.png" width="100%" style="display: block; margin: auto;" />
 
 `volcanoPlot.DESeq2` is designed to show the result of differential
 expression analysis in the most meaningful way.
@@ -528,7 +526,7 @@ data("DEgenesPrime_Naive")
 volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
+<img src="D:/PostdocUnsync/myLibraries/oob/ReadMe_files/figure-gfm/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
 
 ## Other utilities functions:
 
