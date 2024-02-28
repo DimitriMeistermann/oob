@@ -965,3 +965,38 @@ proj3d <-
 				)
 		}
 	}
+
+
+#' Scree plot of explained variance per PC from a PCA
+#'
+#' @param pca PCA object created by `PCA` function.
+#' @param nPC Integer. Number of principal component to be plotted.
+#' @param returnGraph Logical. Print the ggplot object or return it.
+#'
+#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @export
+#'
+#' @examples
+#' data(iris)
+#' pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
+#' barplotPercentVar(pca)
+#' barplotPercentVar(pca, nPC = 2)
+barplotPercentVar <-
+	function(pca,
+					 nPC = length(pca$propExplVar),
+					 returnGraph = FALSE) {
+		g <-
+			qplotBarplot(pca$propExplVar[seq_len(nPC)] * 100, returnGraph = TRUE) + ylab("% variance explained") +
+			xlab("Principal component") +
+			scale_x_continuous(breaks = seq(1, nPC, by = 2)) +
+			theme(
+				panel.background = element_rect(fill = NA, colour = "black"),
+				panel.grid.major = element_line(colour = "grey"),
+				panel.grid.minor = element_line(colour = NA)
+			)
+		if (!returnGraph) {
+			print(g)
+		} else{
+			g
+		}
+	}

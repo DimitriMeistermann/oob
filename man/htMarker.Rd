@@ -58,3 +58,6 @@ htMarker(bulkLogCounts,  group=sampleAnnot$culture_media,
     markerData=extractFeatureMarkerData(markerData),
     colData=sampleAnnot[c("line","passage")])
 }
+\seealso{
+\code{\link[=heatmap.DM]{heatmap.DM()}}
+}

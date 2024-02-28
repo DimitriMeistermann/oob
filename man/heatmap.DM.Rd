@@ -170,17 +170,17 @@ name="Euclidean distance"
 colorScale=c("white","yellow","red","purple")
 center=FALSE
 scale=FALSE
-
-## preSet is `"vanilla"` (don't transform value, same as default ComplexHeatmap)
 }\if{html}{\out{</div>}}
+}
 
-clustering_distance_rows ="euclidean"
+\subsection{preSet is \code{"vanilla"} (don't transform value, same as default ComplexHeatmap)}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows ="euclidean"
 name="matrix"
 colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=FALSE
 scale=FALSE
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{}\if{html}{\out{</div>}}
+}\if{html}{\out{</div>}}
 }
 }
 
@@ -215,4 +215,7 @@ heatmap.DM(
     center = TRUE,
     colorScaleFun = circlize::colorRamp2(c(-0.2, 0, 0.2), c("blue", "white", "red"))
 )
+}
+\seealso{
+\code{\link[=genTopAnnot]{genTopAnnot()}}, \code{\link[=genRowAnnot]{genRowAnnot()}}
 }

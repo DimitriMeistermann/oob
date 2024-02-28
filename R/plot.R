@@ -582,120 +582,6 @@ ggBorderedFactors <- function(gg,
         )
 }
 
-
-#' Plot a density-based distribution of a feature.
-#'
-#' @param x A numeric vector.
-#' @param returnGraph Logical. Logical. Return the graph as a ggplot object instead of printing it.
-#' @param ... Parameters passed to `oobqplot`
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' qplotDensity(rnorm(10000))
-qplotDensity <- function(x, returnGraph = FALSE, ...) {
-    if (is.data.frame(x) | is.list(x))
-        x <- unlist(x)
-    if (inherits(x, "matrix"))
-        x <- as.vector(x)
-    g <- oobqplot(x, geom = "density", ...)
-    if (!returnGraph) {
-        print(g)
-    } else{
-        g
-    }
-}
-
-#' Quick simple barplot with heights provided in ggplot format.
-#'
-#' @param y Vector of numeric.
-#' @param returnGraph Logical. Print the ggplot object or return it.
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' qplotBarplot(seq_len(5))
-#' y<-seq_len(5)
-#' names(y)<-intToUtf8(65:69,multiple = TRUE)
-#' qplotBarplot(y)
-qplotBarplot <- function(y, returnGraph = FALSE) {
-    if (is.null(names(y))) {
-        aesX = seq_along(y)
-    } else{
-        aesX = names(y)
-    }
-    g <- ggplot(data.frame(x = aesX, y = y), aes(x = .data$x, y = .data$y)) +
-        geom_bar(stat = "identity")
-    if (!returnGraph) {
-        print(g)
-    } else{
-        g
-    }
-}
-
-#' Quick plot of values with x values corresponding to index.
-#'
-#' @param x Vector of numeric.
-#' @param returnGraph Logical. Print the ggplot object or return it.
-#' @param geom Geom to draw. Defaults to "point"
-#' @param ...  Parameters passed to `oobqplot`
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' qplotAutoX(seq_len(5))
-qplotAutoX <- function(x,
-                       returnGraph = FALSE,
-                       geom = "point",
-                       ...) {
-    g <- oobqplot(x = seq_along(x),
-               y = x,
-               geom = geom,
-               ...)
-    if (!returnGraph) {
-        print(g)
-    } else{
-        g
-    }
-}
-
-#' Scree plot of explained variance per PC from a PCA
-#'
-#' @param pca PCA object created by `PCA` function.
-#' @param nPC Integer. Number of principal component to be plotted.
-#' @param returnGraph Logical. Print the ggplot object or return it.
-#'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
-#' @export
-#'
-#' @examples
-#' data(iris)
-#' pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
-#' barplotPercentVar(pca)
-#' barplotPercentVar(pca, nPC = 2)
-barplotPercentVar <-
-    function(pca,
-             nPC = length(pca$propExplVar),
-             returnGraph = FALSE) {
-        g <-
-            qplotBarplot(pca$propExplVar[seq_len(nPC)] * 100, returnGraph = TRUE) + ylab("% variance explained") +
-            xlab("Principal component") +
-            scale_x_continuous(breaks = seq(1, nPC, by = 2)) +
-            theme(
-                panel.background = element_rect(fill = NA, colour = "black"),
-                panel.grid.major = element_line(colour = "grey"),
-                panel.grid.minor = element_line(colour = NA)
-            )
-        if (!returnGraph) {
-            print(g)
-        } else{
-            g
-        }
-    }
-
 #' Plot a double arrow in a grid plot.
 #'
 #' @param x Numeric. X coordinate of the arrow.
@@ -1120,236 +1006,6 @@ volcanoPlot.DESeq2 <-
         popViewport()
     }
 
-
-
-#' Upset plot with additional enrichment values.
-#'
-#' @param featurePerGroupList A list of sets (vector of character)
-#' @param universe NULL or vector of Character. The entire list of features (Universal set).
-#' @param returnEnrichDat Logical. If TRUE, the function returns a data.frame with the enrichment values.
-#' @param pvalThreshold Numeric. The threshold for the pvalue, represented by a horizontal red bar. Default is 0.01.
-#'
-#' @description
-#' In addition to Upset plot, this method computes and represents additional values useful for understanding the relationship between sets.
-#' The main ones are a p-value for each overlap, and a log ratio between  observed and expected overlap size, the *log2OE*.
-#'
-#'
-#' @return
-#' Plot in the current graphical device. In the pval bar graph, the red line indicates an adjusted pval of 0.01 (-log10 = 2).
-#' U indicates the universe size (total number of elements).
-#' @export
-#'
-#' @examples
-#' lt = list(set1 = sample(letters, 5),
-#'                     set2 = sample(letters, 10),
-#'                     set3 = sample(letters, 15)
-#'                     )
-#' lt$set4 <- unique(c(lt$set1,lt$set2))
-#'
-#' richUpset(lt, universe = letters)
-richUpset <-
-    function(featurePerGroupList,
-             universe = NULL,
-             pvalThreshold = 0.01 ,
-             returnEnrichDat = FALSE) {
-        if (is.null(universe))
-            universe <- unique(unlist(featurePerGroupList))
-        isInGroupMatrix <-
-            ComplexHeatmap::list_to_matrix(featurePerGroupList, universal_set = universe)
-        upsetMatrix <-
-            ComplexHeatmap::make_comb_mat(isInGroupMatrix, mode = "intersect")
-        upsetMatrix <-
-            upsetMatrix[ComplexHeatmap::comb_degree(upsetMatrix) > 1] # retain only intersections of sets
-
-        combsize = ComplexHeatmap::comb_size(upsetMatrix)
-        setsize = ComplexHeatmap::set_size(upsetMatrix)
-
-        #Are the intersections sets (or venn diagramm region) enriched or not ?
-        regionEnrich <-
-            lapply(ComplexHeatmap::comb_name(upsetMatrix), function(region) {
-                colOfcomp = which(strsplit(region, split = "")[[1]] == "1")
-                enrichSetIntersection(combsize[region], setsize[colOfcomp], length(universe))
-            })
-        regionEnrichRes <-
-            data.frame(row.names = ComplexHeatmap::comb_name(upsetMatrix))
-        for (el in names(regionEnrich[[1]]))
-            regionEnrichRes[[el]] <- sapply(regionEnrich, function(x)
-                x[[el]])
-        rm(regionEnrich)
-        regionEnrichRes$padj <-
-            p.adjust(regionEnrichRes$pval, method = "BH")
-        regionEnrichRes$log10padj <- -log10(regionEnrichRes$padj)
-        regionEnrichRes$log10padj[regionEnrichRes$log10padj == Inf] <-
-            384
-
-        if (returnEnrichDat)
-            return(regionEnrichRes)
-
-        enrich_ha = ComplexHeatmap::HeatmapAnnotation(
-            "pval" = ComplexHeatmap::anno_barplot(
-                regionEnrichRes$log10padj,
-                gp = grid::gpar(fill = "black"),
-                height = unit(3, "cm"),
-                axis_param = list(side = "left"),
-                ylim = c(0, max(
-                    max(regionEnrichRes$log10padj) * 1.1, 2
-                ))
-            ),
-            annotation_name_side = "left",
-            annotation_name_rot = 0,
-            annotation_name_gp = grid::gpar(fontface = "bold"),
-            annotation_label = c("-log10\nadj.\np-val")
-        )
-        intersect_ha = ComplexHeatmap::HeatmapAnnotation(
-            "intersection_size" = ComplexHeatmap::anno_barplot(
-                combsize,
-                gp = grid::gpar(fill = "black"),
-                height = unit(3, "cm"),
-                axis_param = list(side = "left"),
-                ylim = c(0, max(combsize) * 1.1)
-            ),
-            annotation_name_side = "left",
-            annotation_name_rot = 0,
-            annotation_name_gp = grid::gpar(fontface = "bold"),
-            annotation_label = "Observed \nintersection\nsize\n(expected)"
-        )
-        set_size_ha = ComplexHeatmap::rowAnnotation(
-            "set_size" = ComplexHeatmap::anno_barplot(
-                setsize,
-                gp = grid::gpar(fill = "black"),
-                width = unit(2, "cm"),
-                ylim = c(0, max(setsize) * 1.3)
-            ),
-            annotation_name_side = "bottom",
-            annotation_name_rot = 0,
-            annotation_name_gp = grid::gpar(fontface = "bold"),
-            annotation_label = paste0("Set\nsize\n(U=", length(universe), ")")
-        )
-
-        combDegree <- ComplexHeatmap::comb_degree(upsetMatrix)
-        combDegree <- paste0(combDegree, "\u00b0")
-
-        OEdevMatrix <- regionEnrichRes[, "OEdeviation", drop = FALSE] |> t()
-        rownames(OEdevMatrix) <- "Observed /\nExpexted\ndeviation"
-
-        ht = ComplexHeatmap::draw(
-            ComplexHeatmap::UpSet(
-                upsetMatrix,
-                top_annotation = intersect_ha,
-                bottom_annotation = enrich_ha,
-                right_annotation = set_size_ha,
-                border = TRUE,
-                column_split = combDegree,
-                row_names_gp = gpar(fontsize = min(1 / max(
-                    nchar(rownames(upsetMatrix))
-                ) * 260, 20))#automatic fontsize to avoid out of bound text
-            )
-            %v% ComplexHeatmap::Heatmap(
-                OEdevMatrix,
-                show_column_names = FALSE,
-                cell_fun = function(j, i, x, y, w, h, col) {
-                    if (colSums(col2rgb(col)) < 382.5)
-                        col = "white"
-                    else
-                        col = "black"
-                    grid::grid.text(as.character(signif(regionEnrichRes[j, "OEdeviation"], 2)), x, y, gp = gpar(col = col, fontface =
-                                                                                                                    2))
-                },
-                show_heatmap_legend = FALSE,
-                col = computeColorScaleFun(
-                    c("darkblue", "white", "red2"),
-                    regionEnrichRes$OEdeviation,
-                    returnColorFun = TRUE,
-                    midColorIs0 = TRUE
-                ),
-                rect_gp = gpar(col = "black"),
-                row_names_side = "left",
-                row_names_gp = grid::gpar(fontface = 2)
-            )
-        )
-
-        #Offset to counterbalance column split space
-        colPerSplit = sapply(column_order(ht), length)
-        offsetPerSplit = seq(0, length(colPerSplit) - 1)
-        offsets <-
-            unlist(lapply(seq_along(colPerSplit), function(i)
-                rep(offsetPerSplit[i], colPerSplit[i])), use.names = FALSE)
-
-        rowOrder = rev(row_order(ht)[[1]])
-        columnOrder = unlist(column_order(ht))
-        xCoordinatesColText <-
-            unit(seq_along(columnOrder), "native") + unit(offsets, "mm")
-
-        decorate_annotation("intersection_size", {
-            grid.text(
-                paste0(
-                    combsize[columnOrder],
-                    " (",
-                    round(regionEnrichRes$expected[columnOrder], 1),
-                    ")"
-                ),
-                x = xCoordinatesColText,
-                y = unit(combsize[columnOrder], "native") + unit(6, "pt"),
-                default.units = "native",
-                just = "center",
-                gp = gpar(fontsize = 8)
-            )
-        })
-        decorate_annotation("pval", {
-            grid.text(
-                round(regionEnrichRes$log10padj[columnOrder], 3),
-                x = xCoordinatesColText,
-                y = unit(regionEnrichRes$log10padj[columnOrder], "native") + unit(6, "pt"),
-                default.units = "native",
-                just = "center",
-                gp = gpar(fontsize = 8)
-            )
-        })
-
-
-        bestPval <- min(regionEnrichRes$padj)
-
-        decorate_annotation("pval",
-                            addHbarUpset(
-                                -log10(pvalThreshold),
-                                offsetPerSplit,
-                                colPerSplit,
-                                gp = gpar(alpha = .5, col = "red")
-                            ))
-
-        decorate_annotation("set_size", {
-            grid.text(
-                round(setsize[rowOrder], 2),
-                y = seq_along(setsize),
-                x = unit(setsize[rowOrder], "native") + unit(7, "pt"),
-                default.units = "native",
-                just = "center",
-                gp = gpar(fontsize = 10),
-                rot = -90
-            )
-        })
-    }
-
-addHbarUpset <- function(y, offsetPerSplit, colPerSplit, gp = NULL) {
-    return({
-        y = unit(y, "native")
-
-        x1 <- cumsum(colPerSplit) + 0.5
-        x0 <- c(0.5, x1[seq_len(length(x1) - 1)])
-
-        x0 <- unit(x0, "native") + unit(offsetPerSplit, "mm")
-        x1 <- unit(x1, "native") + unit(offsetPerSplit, "mm")
-
-        grid.segments(
-            x0 = x0,
-            x1 = x1,
-            y0 = y,
-            y1 = y,
-            gp = gp
-        )
-    })
-}
-
 #' Add or remove colors to an existing palette by interpolation
 #'
 #' @param n Number of returned colors.
@@ -1401,13 +1057,19 @@ extendColorPalette <- function(n,
     colorOut
 }
 
-#' Sort a vector if color by their similarity
+#' Sort a vector of color by their similarity
 #'
 #' @param colorVector Vector of colors.
 #' @param byDissimilarity Order by dissimilarity instead of similarity
 #'
 #' @return A vector of colors, sorted.
 #' @export
+#'
+#' @details
+#' The function proceeds as follows:
+#' 1. Convert the color vector to the Lab color space.
+#' 2. Compute the distance between each color.
+#' 3. Order the colors using a hierarchical clustering.
 #'
 #' @examples
 #' colors <- c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")
@@ -1487,9 +1149,12 @@ oobColors <- function(n = 20) {
 #'
 #' @examples
 #' data("DEgenesPrime_Naive")
-#' scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x),
+#' custom_scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x),
 #'     inverse = function(x) 10^(-x), domain = c(0, Inf))
-#' breaks <- ggplotBreak(DEgenesPrime_Naive$pvalue ,scale)
+#' breaks <- ggplotBreak(DEgenesPrime_Naive$pvalue, custom_scale)
+#' ggplot(DEgenesPrime_Naive, aes(x=log2FoldChange, y=pvalue)) +
+#'     geom_point() +
+#'     scale_y_continuous(trans = custom_scale, breaks = breaks)
 ggplotBreak <- function(x, scale, m = 5) {
     transValues <- scale$transform(x)
     breaks <-

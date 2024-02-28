@@ -297,13 +297,15 @@ getAdjMatfromUMAPWithNN <-
 
 
 
-#' Determine the best partition in a hierarchichal clustering
+#' Determine the best partition in a hierarchical clustering
 #'
 #' @param hc A hclust object.
 #' @param min Minimum number of class in the partition.
 #' @param max Maximum number of class in the partition
 #' @param loss Logical. Return the list of computed partition with their derivative loss.
 #' @param graph Logical. Plot a graph of computed partition with their derivative loss.
+#'
+#' @details Based on the higher relative loss of inertia, fucntion modified from the [JLutils](https://rdrr.io/github/larmarange/JLutils/src/R/clustering.R) package.
 #'
 #' @return A single integer (best partition) or print a graph if `graph` or a vector of numeric if `loss`.
 #' @export
@@ -379,15 +381,12 @@ hierarchicalClustering <-
 						bootstrap = FALSE,
 						nboot = 10,
 						PCAfirst = FALSE,
-						nDimPCA = NULL)
+						nDimPCA = 10)
 	{
 		if (transpose)
 			x <- t(x)
 		if (PCAfirst) {
-			x <- PCA(x, transpose = FALSE, scale = FALSE)$x
-			if (!is.null(nDimPCA)) {
-				x <- x[, seq_len(nDimPCA)]
-			}
+			x <- fastPCA(x, transpose = FALSE, scale = FALSE, nPC = 10)$x
 		}
 		if (bootstrap) {
 			resClust <-

@@ -10,8 +10,8 @@
 #' @examples
 #' rowScale(matrix(rnorm(100),ncol = 5))
 rowScale <- function(data,
-                                         center = TRUE,
-                                         scaled = FALSE) {
+                     center = TRUE,
+                     scaled = FALSE) {
     data <- t(data)
     data <- t(scale(data, center = center, scale = scaled))
     return(data)
@@ -306,38 +306,6 @@ formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
     }
     attr(annotDataFrame, "colorScales") <- colorScales
     annotDataFrame
-}
-
-
-#' Drawn samples from each population in a matrix where columns are samples.
-#'
-#' @param mat A matrix where each column a samples with features as rows.
-#' @param groupVector A vector of character or factor, same length as number of column in `mat`. Describe the population of each sample.
-#' @param n Integer or NULL. The number of samples to be draw in each population. If NULL, equal to the smallest population.
-#'
-#' @return A matrix of drawn samples.
-#' @export
-#'
-#' @examples
-#' mat<-matrix(rnorm(100),ncol=10,dimnames = list(paste0("feature",1:10),paste0("sample",1:10)))
-#' groups<-rep(c("A","B"),each=5)
-#' subSampleColumnPerGroup(mat,groups,n=3)
-subSampleColumnPerGroup <- function(mat, groupVector, n = NULL) {
-    lvlTable <- table(groupVector)
-    lvls <- names(lvlTable)
-    if (is.null(n)) {
-        n <- min(lvlTable)
-    } else {
-        if (n > min(lvlTable))
-            stop("n superior to minimum level freq")
-    }
-    subSampledData <- lapply(lvls, function(lvl) {
-        samples <- which(groupVector == lvl)
-        selected <- sample(samples, size = n)
-        mat[, selected, drop = FALSE]
-    })
-
-    do.call("cbind", subSampledData)
 }
 
 

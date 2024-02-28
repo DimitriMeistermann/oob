@@ -18,7 +18,7 @@ A list of values:
 \itemize{
 \item observed: observed number of elements in intersection (same value as \code{intersectionSize})
 \item expected: expected number of elements in intersection.
-\item OEdeviation: Effect size of the association observed - expected / sqrt(universeSize)
+\item OEdeviation: Effect size of the association \code{(observed - expected) / sqrt(universeSize)}
 \item pval: pvalue (upper tail) where NULL hypotheses is that observed intersection is from the distribution of intersection size with p = nExpected / nUniverse.
 }
 }

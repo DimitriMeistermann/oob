@@ -12,7 +12,7 @@ hierarchicalClustering(
   bootstrap = FALSE,
   nboot = 10,
   PCAfirst = FALSE,
-  nDimPCA = NULL
+  nDimPCA = 10
 )
 }
 \arguments{

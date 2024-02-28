@@ -179,56 +179,6 @@ getMarkerGLMnet <- function(expressionMatrix, group) {
 	cf
 }
 
-
-#' Test a linear model on each gene following an experimental design.
-#'
-#' @param exprData A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
-#' @param colData A dataframe of feature (numeric or factor) with rows as samples. Must have the same number of samples than exprData
-#' @param contrast A vector of 3 character.
-#' 1. Name of the experimental variable that have to be used for differential activation. Must be a column name of `colData`.
-#' 2. Condition considered as the reference.
-#' 3. Condition considered as the target group.
-#'
-#' @return
-#' A dataframe with the following columns:
-#' - baseMean: mean
-#' - log2FoldChange: Log(Log Fold Change)  between the two tested groups.
-#' - pval: an enrichment p-value
-#' - padj: a BH-adjusted p-value
-#'
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' res<-multiLinearModel(bulkLogCounts,colData = sampleAnnot,
-#'     contrast = c("culture_media","T2iLGO","KSR+FGF2"))
-multiLinearModel <-
-	function(exprData,
-					 colData ,
-					 contrast) {
-		samples <- colData[, contrast[1]] %in% contrast[2:3]
-		data <- exprData[, samples, drop = FALSE]
-		groups <-
-			droplevels(as.factor(colData[samples, contrast[1]]))
-		logicGroup <- rep(FALSE, len(groups))
-		logicGroup[groups == contrast[2]] <- TRUE
-		regTabList <- apply(data, 1, function(x) {
-			data.frame(data = x, group = logicGroup)
-		})
-		resList <- lapply(regTabList, function(regTab) {
-			summary(lm(data ~ group, data = regTab))$coefficients[2, c(1, 4)]
-		})
-		res <-
-			data.frame(do.call("rbind", resList))
-		colnames(res) <- c("log2FoldChange", "pval")
-		res <-
-			cbind(data.frame(baseMean = apply(exprData[, samples], 1, mean)), res)
-		res$padj <- p.adjust(res$pval, method = "BH")
-		return(res)
-	}
-
-
 #' Compute over dispersion values for each gene.
 #'
 #' @param counts Normalized count table with genes as rows.

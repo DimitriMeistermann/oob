@@ -34,6 +34,8 @@
 #' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
 #' @export
 #'
+#' @seealso [genTopAnnot()], [genRowAnnot()]
+#'
 #' @details
 #'
 #' A preSet attributes a list of default values for each argument. However, even if a preSet is selected, arguments precised by the user precede the preSet.
@@ -73,6 +75,7 @@
 #' colorScale=c("white","yellow","red","purple")
 #' center=FALSE
 #' scale=FALSE
+#' ```
 #'
 #' ## preSet is `"vanilla"` (don't transform value, same as default ComplexHeatmap)
 #' ```
@@ -376,6 +379,8 @@ heatmap.DM <-
 #'
 #' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the current graphical device.
 #' @export
+#'
+#' @seealso [heatmap.DM()]
 #'
 #' @examples
 #' data("bulkLogCounts")

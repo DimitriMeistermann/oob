@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{sortColorByDistance}
 \alias{sortColorByDistance}
-\title{Sort a vector if color by their similarity}
+\title{Sort a vector of color by their similarity}
 \usage{
 sortColorByDistance(colorVector, byDissimilarity = FALSE)
 }
@@ -15,7 +15,15 @@ sortColorByDistance(colorVector, byDissimilarity = FALSE)
 A vector of colors, sorted.
 }
 \description{
-Sort a vector if color by their similarity
+Sort a vector of color by their similarity
+}
+\details{
+The function proceeds as follows:
+\enumerate{
+\item Convert the color vector to the Lab color space.
+\item Compute the distance between each color.
+\item Order the colors using a hierarchical clustering.
+}
 }
 \examples{
 colors <- c("#000066","#660000","#006600","#0000FF","#FF0000","#00FF00")

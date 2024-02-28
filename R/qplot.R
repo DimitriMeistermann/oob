@@ -1,4 +1,86 @@
-#' GGplot2 quick plot
+
+
+#' Plot a density-based distribution of a feature.
+#'
+#' @param x A numeric vector.
+#' @param returnGraph Logical. Logical. Return the graph as a ggplot object instead of printing it.
+#' @param ... Parameters passed to `oobqplot`
+#'
+#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @export
+#'
+#' @examples
+#' qplotDensity(rnorm(10000))
+qplotDensity <- function(x, returnGraph = FALSE, ...) {
+	if (is.data.frame(x) | is.list(x))
+		x <- unlist(x)
+	if (inherits(x, "matrix"))
+		x <- as.vector(x)
+	g <- oobqplot(x, geom = "density", ...)
+	if (!returnGraph) {
+		print(g)
+	} else{
+		g
+	}
+}
+
+#' Quick simple barplot with heights provided in ggplot format.
+#'
+#' @param y Vector of numeric.
+#' @param returnGraph Logical. Print the ggplot object or return it.
+#'
+#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @export
+#'
+#' @examples
+#' qplotBarplot(seq_len(5))
+#' y<-seq_len(5)
+#' names(y)<-intToUtf8(65:69,multiple = TRUE)
+#' qplotBarplot(y)
+qplotBarplot <- function(y, returnGraph = FALSE) {
+	if (is.null(names(y))) {
+		aesX = seq_along(y)
+	} else{
+		aesX = names(y)
+	}
+	g <- ggplot(data.frame(x = aesX, y = y), aes(x = .data$x, y = .data$y)) +
+		geom_bar(stat = "identity")
+	if (!returnGraph) {
+		print(g)
+	} else{
+		g
+	}
+}
+
+#' Quick plot of values with x values corresponding to index.
+#'
+#' @param x Vector of numeric.
+#' @param returnGraph Logical. Print the ggplot object or return it.
+#' @param geom Geom to draw. Defaults to "point"
+#' @param ...  Parameters passed to `oobqplot`
+#'
+#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @export
+#'
+#' @examples
+#' qplotAutoX(seq_len(5))
+qplotAutoX <- function(x,
+											 returnGraph = FALSE,
+											 geom = "point",
+											 ...) {
+	g <- oobqplot(x = seq_along(x),
+								y = x,
+								geom = geom,
+								...)
+	if (!returnGraph) {
+		print(g)
+	} else{
+		g
+	}
+}
+
+
+#' This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.
 #'
 #' @param x,y,... Aesthetics passed into each layer
 #' @param data Data frame to use (optional).  If not specified, will create
@@ -15,7 +97,7 @@
 #'   x axis label, and y axis label respectively.
 #' @param asp The y/x aspect ratio
 #' @export
-#' @details This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.
+#'
 #' @examples
 #' # Use data from data.frame
 #' oobqplot(mpg, wt, data = mtcars)

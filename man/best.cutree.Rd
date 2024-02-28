@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{best.cutree}
 \alias{best.cutree}
-\title{Determine the best partition in a hierarchichal clustering}
+\title{Determine the best partition in a hierarchical clustering}
 \usage{
 best.cutree(hc, min = 2, max = 20, loss = FALSE, graph = FALSE)
 }
@@ -21,7 +21,10 @@ best.cutree(hc, min = 2, max = 20, loss = FALSE, graph = FALSE)
 A single integer (best partition) or print a graph if \code{graph} or a vector of numeric if \code{loss}.
 }
 \description{
-Determine the best partition in a hierarchichal clustering
+Determine the best partition in a hierarchical clustering
+}
+\details{
+Based on the higher relative loss of inertia, fucntion modified from the \href{https://rdrr.io/github/larmarange/JLutils/src/R/clustering.R}{JLutils} package.
 }
 \examples{
 data(iris)

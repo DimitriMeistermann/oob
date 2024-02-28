@@ -2,7 +2,7 @@
 % Please edit documentation in R/qplot.R
 \name{oobqplot}
 \alias{oobqplot}
-\title{GGplot2 quick plot}
+\title{This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.}
 \usage{
 oobqplot(
   x,
@@ -46,9 +46,6 @@ x axis label, and y axis label respectively.}
 \item{asp}{The y/x aspect ratio}
 }
 \description{
-GGplot2 quick plot
-}
-\details{
 This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.
 }
 \examples{
