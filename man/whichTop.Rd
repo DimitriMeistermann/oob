@@ -11,7 +11,8 @@ whichTop(x, top = 5, decreasing = TRUE)
 
 \item{top}{Integer. Number of element to be returned.}
 
-\item{decreasing}{Logical, return top element by decreasing or increasing order.}
+\item{decreasing}{Logical, return top element by decreasing or increasing
+order.}
 }
 \value{
 A vector of integer.

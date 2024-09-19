@@ -14,7 +14,8 @@ barplotPercentVar(pca, nPC = length(pca$propExplVar), returnGraph = FALSE)
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Scree plot of explained variance per PC from a PCA

@@ -20,17 +20,22 @@ TRIMAP(
 
 \item{n_dims}{Integer. Dimensions of the embedded space.}
 
-\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features
+are rows.}
 
-\item{n_inliers}{Number of nearest neighbors for forming the nearest neighbor triplets.}
+\item{n_inliers}{Number of nearest neighbors for forming the nearest neighbor
+triplets.}
 
-\item{n_outliers}{Number of outliers for forming the nearest neighbor triplets.}
+\item{n_outliers}{Number of outliers for forming the nearest neighbor
+triplets.}
 
-\item{apply_pca}{Reduce the number of dimensions of the data to 100 if necessary before applying the nearest-neighbor search.}
+\item{apply_pca}{Reduce the number of dimensions of the data to 100 if
+necessary before applying the nearest-neighbor search.}
 
 \item{n_iters}{Number of iterations.}
 
-\item{knn_tuple}{Use the precomputed nearest-neighbors information in form of a tuple (knn_nbrs, knn_distances).}
+\item{knn_tuple}{Use the precomputed nearest-neighbors information in form of
+a tuple (knn_nbrs, knn_distances).}
 }
 \value{
 A matrix of coordinates with samples as rows.

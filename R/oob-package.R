@@ -17,7 +17,7 @@
 #' @import stringr
 #' @import stats
 #' @importFrom BiocGenerics
-#'	colnames
+#'    colnames
 #'  rownames
 #'  intersect
 #'  union
@@ -53,13 +53,13 @@
 #' @importFrom lsa cosine
 #' @importFrom MASS bandwidth.nrd
 #' @importFrom Matrix image
-#' @importFrom methods as
-#' @importFrom methods is
+#' @importFrom methods as is
 #' @importFrom reticulate import
-#' @importFrom SingleCellExperiment colData
-#' @importFrom SingleCellExperiment sizeFactors
-#' @importFrom SummarizedExperiment assay
+#' @importFrom circlize colorRamp2
+#' @importFrom SummarizedExperiment colData assay
+#' @importFrom SingleCellExperiment SingleCellExperiment sizeFactors
 #' @importFrom utils write.table
+#' @importFrom basilisk BasiliskEnvironment
 #' @useDynLib oob, .registration=TRUE
 ## usethis namespace: end
 NULL
@@ -71,9 +71,8 @@ NULL
 #' @author Dimitri Meistermann
 #' @references \url{https://doi.org/10.1038/s41467-017-02107-w}
 #' @keywords data
-#' @description
-#' Sample Annotation sheet (often referred as colData) for 77 bulk RNA-Seq samples used in
-#' Kilens, Meistermann et al. 2018.
+#' @description Sample Annotation sheet (often referred as colData) for 77 bulk
+#' RNA-Seq samples used in Kilens, Meistermann et al. 2018.
 #'
 #'
 #' @format A data.frame containing 77 observations for 18 features.
@@ -86,9 +85,8 @@ NULL
 #' @author Dimitri Meistermann
 #' @references \url{https://doi.org/10.1038/s41467-017-02107-w}
 #' @keywords data
-#' @description
-#' Log-expression count table for 77 samples sequenced from a bulk 3'digital RNA-Seq
-#' protocol used in Kilens, Meistermann et al. 2018.
+#' @description Log-expression count table for 77 samples sequenced from a bulk
+#' 3'digital RNA-Seq protocol used in Kilens, Meistermann et al. 2018.
 #' @format A matrix containing 77 observations for 16959 features/genes
 NULL
 

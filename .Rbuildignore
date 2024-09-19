@@ -2,7 +2,6 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ReadMe*
-buildReadMe.R
 vignettes/test
 vignettes/*.html
 vignettes/*.md

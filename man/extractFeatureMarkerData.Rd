@@ -2,7 +2,8 @@
 % Please edit documentation in R/markers_diffExpr.R
 \name{extractFeatureMarkerData}
 \alias{extractFeatureMarkerData}
-\title{Extract a specific feature/metric (pval, logFC...) from a marker result dataframe}
+\title{Extract a specific feature/metric (pval, logFC...) from a marker result
+dataframe}
 \usage{
 extractFeatureMarkerData(markerData, feature = "score")
 }
@@ -15,7 +16,8 @@ extractFeatureMarkerData(markerData, feature = "score")
 A matrix containing only the wanted feature where each column is a group.
 }
 \description{
-Extract a specific feature/metric (pval, logFC...) from a marker result dataframe
+Extract a specific feature/metric (pval, logFC...) from a marker result
+dataframe
 }
 \examples{
 data("bulkLogCounts")

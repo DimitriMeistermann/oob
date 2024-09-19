@@ -7,7 +7,8 @@
 cosineDist(x)
 }
 \arguments{
-\item{x}{A matrix of numeric. The function will compute the distance between the rows (same as \code{dist}).}
+\item{x}{A matrix of numeric. The function will compute the distance between
+the rows (same as \code{dist}).}
 }
 \value{
 An object of class "dist".

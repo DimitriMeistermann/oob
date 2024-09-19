@@ -2,25 +2,31 @@
 % Please edit documentation in R/countMatrix.R
 \name{RPKM}
 \alias{RPKM}
-\title{Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.}
+\title{Reads Per Kilobase per Million (RPKM) normalization for full-length
+transcript, short read sequencing.}
 \usage{
 RPKM(data, gene.length)
 }
 \arguments{
 \item{data}{A raw count table with rows as genes}
 
-\item{gene.length}{A vector of numeric corresponding to gene length in base pair. Must be named by genes.}
+\item{gene.length}{A vector of numeric corresponding to gene length in base
+pair. Must be named by genes.}
 }
 \value{
 A normalized count table of RPKM.
 }
 \description{
-Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.
+Reads Per Kilobase per Million (RPKM) normalization for full-length
+transcript, short read sequencing.
 }
 \examples{
 data("geneLengthGRCh38")
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
+countMat <-
+    sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+        MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+                     mu = abs(rnorm(1, mean = 10, sd = 20)))
+    }) |> t()
+rownames(countMat)<-names(geneLengthGRCh38)
 chead(RPKM(countMat,geneLengthGRCh38))
 }

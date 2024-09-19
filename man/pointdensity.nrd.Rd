@@ -7,12 +7,15 @@
 pointdensity.nrd(mat, eps = 1)
 }
 \arguments{
-\item{mat}{numeric matrix of point coordinates. Each row is a point, 1st column = x, 2nd column=y.}
+\item{mat}{numeric matrix of point coordinates. Each row is a point, 1st
+column = x, 2nd column=y.}
 
-\item{eps}{radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel).}
+\item{eps}{radius of the eps-neighborhood, i.e., bandwidth of the uniform
+kernel).}
 }
 \value{
-A vector of numeric value of the length equal to the number of points representing the density
+A vector of numeric value of the length equal to the number of points
+representing the density
 }
 \description{
 Compute density value for the point of a a 2D-space

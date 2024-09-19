@@ -6,6 +6,18 @@
 \usage{
 getRandState()
 }
+\value{
+A vector of integers representing the random seed state
+}
 \description{
 Get the precise random seed state
+}
+\examples{
+randSate<-getRandState()
+rnorm(5)
+setRandState(randSate)
+rnorm(5)
+}
+\seealso{
+setRandState
 }

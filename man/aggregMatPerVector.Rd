@@ -9,14 +9,18 @@ aggregMatPerVector(x, by, FUN = mean, byRow = NULL)
 \arguments{
 \item{x}{A matrix of numeric.}
 
-\item{by}{A vector of factor. Same size as number of row in \code{x} if  \code{byRow}, otherwise same size as number of columns.}
+\item{by}{A vector of factor. Same size as number of row in \code{x} if  \code{byRow},
+otherwise same size as number of columns.}
 
-\item{FUN}{a function to compute the summary statistics which can be applied to all data subsets.}
+\item{FUN}{a function to compute the summary statistics which can be applied
+to all data subsets.}
 
-\item{byRow}{Logical. Do the aggregation by row or by column. If NULL, determines automatically based on the size of \code{by}.}
+\item{byRow}{Logical. Do the aggregation by row or by column. If NULL,
+determines automatically based on the size of \code{by}.}
 }
 \value{
-A matrix of numeric. Aggregated dimension names are changed to match the levels of \code{by}.
+A matrix of numeric. Aggregated dimension names are changed to match
+the levels of \code{by}.
 }
 \description{
 Aggregate columns or rows of a matrix by a vector of factor

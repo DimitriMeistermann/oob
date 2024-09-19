@@ -2,7 +2,8 @@
 % Please edit documentation in R/plot.R
 \name{ggBorderedFactors}
 \alias{ggBorderedFactors}
-\title{Add line break between factors and remove line in the middle if x axis is discrete.}
+\title{Add line break between factors and remove line in the middle if x axis is
+discrete.}
 \usage{
 ggBorderedFactors(gg, borderSize = 0.75, borderColor = "grey75")
 }
@@ -17,7 +18,8 @@ ggBorderedFactors(gg, borderSize = 0.75, borderColor = "grey75")
 A ggplot objet.
 }
 \description{
-Add line break between factors and remove line in the middle if x axis is discrete.
+Add line break between factors and remove line in the middle if x axis is
+discrete.
 }
 \examples{
 g<-ggplot(data.frame(x=c("A","A","B","B","B","C")),aes(x=x))+geom_bar()

@@ -16,45 +16,55 @@ leidenFromUMAP(
   n_iterations = -1,
   resolution_parameter = 0.5,
   seed = 666,
-  laplacian_init = TRUE,
   initial_membership = NULL,
-  max_comm_size = 0L,
-  ...
+  max_comm_size = 0L
 )
 }
 \arguments{
-\item{umapWithNN}{A list with the UMAP coordinates and the nearest neighbor data as returned by \code{UMAP} if \code{ret_nn = TRUE}.}
+\item{umapWithNN}{A list with the UMAP coordinates and the nearest neighbor
+data as returned by \code{UMAP} if \code{ret_nn = TRUE}.}
 
-\item{n_neighbors}{The size of local neighborhood (in terms of number of neighboring sample points) used for the Leiden clustering.}
+\item{n_neighbors}{The size of local neighborhood (in terms of number of
+neighboring sample points) used for the Leiden clustering.}
 
-\item{metric}{Character. One of the metric used for computing the UMAP model. If NULL take the first available one.}
+\item{metric}{Character. One of the metric used for computing the UMAP model.
+If NULL take the first available one.}
 
-\item{partition_type}{Type of partition to use. Defaults to RBConfigurationVertexPartition. Options include: ModularityVertexPartition, RBERVertexPartition, CPMVertexPartition, MutableVertexPartition, SignificanceVertexPartition, SurpriseVertexPartition, ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the Leiden python module documentation for more details)}
+\item{partition_type}{Type of partition to use. Defaults to
+RBConfigurationVertexPartition. Options include: ModularityVertexPartition,
+RBERVertexPartition, CPMVertexPartition, MutableVertexPartition,
+SignificanceVertexPartition, SurpriseVertexPartition,
+ModularityVertexPartition.Bipartite, CPMVertexPartition.Bipartite (see the
+Leiden python module documentation for more details)}
 
-\item{returnAsFactor}{If TRUE return the clusters attributions as a factor vector and not as characters.}
+\item{returnAsFactor}{If TRUE return the clusters attributions as a factor
+vector and not as characters.}
 
-\item{n_iterations}{Number of iterations. If the number of iterations is negative, the Leiden algorithm is run until an iteration in which there was no improvement.}
+\item{n_iterations}{Number of iterations. If the number of iterations is
+negative, the Leiden algorithm is run until an iteration in which there was
+no improvement.}
 
-\item{resolution_parameter}{A parameter controlling the coarseness of the clusters.}
+\item{resolution_parameter}{A parameter controlling the coarseness of the
+clusters.}
 
-\item{seed}{Seed for the random number generator. By default uses a random seed if nothing is specified.}
+\item{seed}{Seed for the random number generator. By default uses a random
+seed if nothing is specified.}
 
-\item{laplacian_init}{Derive edge weights from the Laplacian matrix, otherwise weights are derived from the distance between cells. Not used for the moment}
+\item{initial_membership}{Initial membership for the partition. If \code{NULL}
+then defaults to a singleton partition.}
 
-\item{initial_membership}{Initial membership for the partition. If MULL then defaults to a singleton partition.}
-
-\item{max_comm_size}{Maximal total size of nodes in a community. If zero (the default), then communities can be of any size.}
-
-\item{...}{Other parameters passed to \code{leidenFromPygraph}.}
+\item{max_comm_size}{Maximal total size of nodes in a community. If zero (the
+default), then communities can be of any size.}
 }
 \value{
-A vector of character or factor if \code{returnAsFactor}, same length as number of samples in the UMAP. Cluster attribution of samples.
+A vector of character or factor if \code{returnAsFactor}, same length as
+number of samples in the UMAP. Cluster attribution of samples.
 }
 \description{
 Compute a Leiden clustering from a UMAP model.
 }
 \examples{
 data("bulkLogCounts")
-umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
-proj2d(umapWithNN$embedding,colorBy = leidenFromUMAP(umapWithNN))
+umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
+proj2d(umapWithNN$embedding, colorBy = leidenFromUMAP(umapWithNN))
 }

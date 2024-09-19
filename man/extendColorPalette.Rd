@@ -20,7 +20,8 @@ extendColorPalette(
 
 \item{sortColorIn}{Order color vector by similarity before the interpolation.}
 
-\item{sortColorOut}{Order color vector by dissimilarity after the interpolation.}
+\item{sortColorOut}{Order color vector by dissimilarity after the
+interpolation.}
 }
 \value{
 Vector of colors.

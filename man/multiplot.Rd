@@ -9,17 +9,24 @@ multiplot(..., plotlist = NULL, cols = 1, layout = NULL)
 \arguments{
 \item{...}{Several plot from ggplot. Each given as an argument.}
 
-\item{plotlist}{Plots given as a list. Each element contains a plot from grid or inherited package.}
+\item{plotlist}{Plots given as a list. Each element contains a plot from grid
+or inherited package.}
 
-\item{cols}{Number of columns. If layout is NULL, then use 'cols' to determine layout}
+\item{cols}{Number of columns. If layout is NULL, then use 'cols' to
+determine layout}
 
-\item{layout}{A 2D matrix of numeric value (from one the the number of plot) indicating the layout to be plotted. Matrix()}
+\item{layout}{A 2D matrix of numeric value (from one the the number of plot)
+indicating the layout to be plotted. Matrix()}
+}
+\value{
+NULL, print the plots in the current device
 }
 \description{
 Multiple ggplot one one page
 }
 \examples{
-p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),aes(x=x,y=y))+geom_point()+ggtitle("p1")
+p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),
+    aes(x=x,y=y))+geom_point()+ggtitle("p1")
 p2<-oobqplot(c("a","a","b","b","b","c"))+ggtitle("p2")
 p3<-oobqplot(c("a","a","b","b","b"))+ggtitle("p3")
 p4<-oobqplot(c("a","b","c","d"))+ggtitle("p4")

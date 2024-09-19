@@ -12,10 +12,14 @@
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
-#' colnames(countMat)<-letters[seq_len(ncol(countMat))]
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)),
+#'         function(x) {
+#'             MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'             mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#' rownames(countMat) <- names(geneLengthGRCh38)
+#' colnames(countMat) <- letters[seq_len(ncol(countMat))]
 #' computeQCmetricSamples(countMat)
 computeQCmetricSamples <- function(x, uncenter = FALSE) {
     if (uncenter) {
@@ -29,7 +33,7 @@ computeQCmetricSamples <- function(x, uncenter = FALSE) {
     count <- colSums(x)
     CV <- apply(x, 2, cv)
     noGenEx <- rep(0, ncol(x))
-    for (i in 1:ncol(x))
+    for (i in seq_len(ncol(x)) )
         noGenEx[i] <- length(which(x[, i] > zero))
 
     return(data.frame(
@@ -73,7 +77,8 @@ merge0dist <- function(disMat) {
 #' Non-metric Multidimensional Scaling (dimension reduction)
 #'
 #' @param data A matrix of numeric (in the RNA-Seq context, log counts).
-#' @param transpose Logical. If `transpose`, samples are columns and features are rows.
+#' @param transpose Logical. If `transpose`, samples are columns and features
+#'   are rows.
 #' @param scale  Logical. Divide features by their standard deviation.
 #' @param center Logical. Subtract features by their average.
 #' @param metric A function that return a object of class "dist".
@@ -89,12 +94,12 @@ merge0dist <- function(disMat) {
 #' proj2d(NMDSproj)
 NMDS <-
     function(data,
-             transpose = TRUE,
-             scale = FALSE,
-             center = FALSE,
-             metric = dist,
-             ndim = 2,
-             maxit = 100) {
+            transpose = TRUE,
+            scale = FALSE,
+            center = FALSE,
+            metric = dist,
+            ndim = 2,
+            maxit = 100) {
         merged <- FALSE
         if (transpose)
             data <- t(data)
@@ -133,9 +138,12 @@ NMDS <-
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+#'         MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'                      mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#'     rownames(countMat)<-names(geneLengthGRCh38)
 #' head(CPM(countMat))
 CPM <- function(data) {
     #Normalisation CPM
@@ -145,19 +153,25 @@ CPM <- function(data) {
 }
 
 
-#' Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.
+#' Transcript per milion (TPM) normalization for full-length transcript, short
+#' read sequencing.
 #'
 #' @param data A raw count table with rows as genes
-#' @param gene.length A vector of numeric corresponding to gene length in base pair. Must be named by genes.
+#' @param gene.length A vector of numeric corresponding to gene length in base
+#'   pair. Must be named by genes.
 #'
-#' @return A normalized count table where 1 count is equal in theory to one transcript per milion.
+#' @return A normalized count table where 1 count is equal in theory to one
+#'   transcript per milion.
 #' @export
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+#'         MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'                      mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#'     rownames(countMat)<-names(geneLengthGRCh38)
 #' TPMfullLength(countMat,geneLengthGRCh38) |> chead()
 TPMfullLength <- function(data, gene.length) {
     gene.length.kb <- gene.length[rownames(data)] / 1000
@@ -165,19 +179,24 @@ TPMfullLength <- function(data, gene.length) {
     return(CPM(data))
 }
 
-#' Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.
+#' Reads Per Kilobase per Million (RPKM) normalization for full-length
+#' transcript, short read sequencing.
 #'
 #' @param data A raw count table with rows as genes
-#' @param gene.length A vector of numeric corresponding to gene length in base pair. Must be named by genes.
+#' @param gene.length A vector of numeric corresponding to gene length in base
+#'   pair. Must be named by genes.
 #'
 #' @return A normalized count table of RPKM.
 #' @export
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+#'         MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'                      mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#' rownames(countMat)<-names(geneLengthGRCh38)
 #' chead(RPKM(countMat,geneLengthGRCh38))
 RPKM <- function(data, gene.length) {
     gene.length.kb <- gene.length[rn(data)] / 1000
@@ -195,24 +214,32 @@ RPKM <- function(data, gene.length) {
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+#'         MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'         mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#' rownames(countMat)<-names(geneLengthGRCh38)
 #' normDeseq(countMat)
 normDeseq <-
     function(countMatrix) {
         #matrix where genes are rows and samples are columns
         # PS = pseudo reference sample
         PS <-
-            apply(countMatrix, 1, gmean, keepZero = TRUE) #get a vector which consist of the geometrical mean of each genes across all samples
+            apply(countMatrix, 1, gmean, keepZero = TRUE)
+        # get a vector which consist of the geometrical mean
+        # of each genes across all samples
         keptRow <-
             PS > 0 #get rid of genes containing one zero ore more
         PS <- PS[keptRow]
-        ratioMat <-
-            sweep(countMatrix[keptRow, ], 1, PS, "/") #get the ratio matrix (expression/expression from PS)
+        ratioMat <- sweep(countMatrix[keptRow,], 1, PS, "/")
+        # get the ratio matrix (expression/expression from PS)
         normFactors <-
-            apply(ratioMat, 2, median) #get the median of the ratios for each sample to get the normalization factors
-        sweep(countMatrix, 2, normFactors, "/") #divide each sample by the corresponding normalization factor
+            apply(ratioMat, 2, median)
+        # get the median of the ratios for each sample
+        # to get the normalization factors
+        sweep(countMatrix, 2, normFactors, "/")
+        #divide each sample by the corresponding normalization factor
     }
 
 # look at clusters <- quickCluster(sce)
@@ -220,7 +247,8 @@ normDeseq <-
 #'
 #' @param rawCounts RNA-Seq raw counts with rows as genes.
 #' @param returnLog Logical. Return log counts.
-#' @param sizeFactors NULL or a vector of numeric containing precomputed size factor, same size as number of cells in `rawCounts`.
+#' @param sizeFactors NULL or a vector of numeric containing precomputed size
+#'   factor, same size as number of cells in `rawCounts`.
 #' @param ... Other parameter passed to `computeSumFactors`.
 #'
 #' @return A normalized count table.
@@ -228,18 +256,21 @@ normDeseq <-
 #'
 #' @examples
 #' data("geneLengthGRCh38")
-#' countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-#'     MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-#' }));rownames(countMat)<-names(geneLengthGRCh38)
+#' countMat <-
+#'     sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+#'         MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+#'             mu = abs(rnorm(1, mean = 10, sd = 20)))
+#'     }) |> t()
+#' rownames(countMat)<-names(geneLengthGRCh38)
 #' quickSCnorm(countMat, returnLog=FALSE)
 #' quickSCnorm(countMat, returnLog=TRUE)
 quickSCnorm <-
     function(rawCounts,
-             returnLog = TRUE,
-             sizeFactors = NULL,
-             ...) {
+            returnLog = TRUE,
+            sizeFactors = NULL,
+            ...) {
         sce <-
-            SingleCellExperiment::SingleCellExperiment(assays = list(counts = rawCounts))
+            SingleCellExperiment(assays = list(counts = rawCounts))
         if (!is.null(sizeFactors)) {
             BiocGenerics::sizeFactors(sce) <- sizeFactors
         } else{
@@ -265,12 +296,15 @@ quickSCnorm <-
 
 #' Correlation from one gene to all others.
 #'
-#' @param gene A single charachter. The gene (or feature) name that will be used for correlating to all others.
-#' @param expression A matrix of numeric with rows as features (in the RNA-Seq context, log counts).
+#' @param gene A single charachter. The gene (or feature) name that will be used
+#'   for correlating to all others.
+#' @param expression A matrix of numeric with rows as features (in the RNA-Seq
+#'   context, log counts).
 #' @param corFun A function to compute a correlation between two feature.
 #' @param ... Parameters passed to `corFun`.
 #'
-#' @return A vector of numeric. Correlations values named by their corresponding gene.
+#' @return A vector of numeric. Correlations values named by their corresponding
+#'   gene.
 #' @export
 #'
 #' @examples
@@ -281,16 +315,17 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
     t(corFun(expression[gene, ], t(expression), ...))[, 1]
 }
 
-
-
 #' Execute a fastMNN and rescale the counts.
 #'
-#' @description
-#' Use fastMNN fron the package batchelor, but return a matrix. Rescale the counts so the range of each gene remains the same after the transformation.
+#' @description Use fastMNN fron the package batchelor, but return a matrix.
+#' Rescale the counts so the range of each gene remains the same after the
+#' transformation.
 #' @param logCounts A matrix of numeric (in the RNA-Seq context, log counts).
 #' @param batch A vector or factor specifying the batch of origin for all cells
-#' @param k An integer scalar specifying the number of nearest neighbors to consider when identifying MNNs.
-#' @param returnRescale Logical. Use reScale on the output so the dymaic range after bacth correction of genes is the same than before.
+#' @param k An integer scalar specifying the number of nearest neighbors to
+#'   consider when identifying MNNs.
+#' @param returnRescale Logical. Use reScale on the output so the dynamic range
+#'   after batch correction of genes is the same than before.
 #' @param ... Other parameters passed to fastMNN.
 #'
 #' @return A matrix of corrected count table.
@@ -299,7 +334,8 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 #' @examples
 #' data("geneLengthGRCh38")
 #' countMat<-sapply(vector("numeric",length = 100),function(x){
-#'      c(MASS::rnegbin(10,mu = 50,theta = 5), MASS::rnegbin(10,mu = 10,theta = 5))
+#'      c(MASS::rnegbin(10,mu = 50,theta = 5),
+#'        MASS::rnegbin(10,mu = 10,theta = 5))
 #' }) |> t(); countMat<-log2(countMat+1)
 #' heatmap.DM(countMat)
 #' #warning because of the small matrix

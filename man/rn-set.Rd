@@ -9,7 +9,8 @@ rn(x) <- value
 \arguments{
 \item{x}{A matrix-like object.}
 
-\item{value}{Either NULL or a character vector equal of length equal to the appropriate dimension.}
+\item{value}{Either NULL or a character vector equal of length equal to the
+appropriate dimension.}
 }
 \value{
 The modified object.

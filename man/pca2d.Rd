@@ -28,27 +28,35 @@ pca2d(
 
 \item{comp}{A vector of 2 integer. Principal Component to be plotted.}
 
-\item{colorBy}{A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.}
+\item{colorBy}{A vector of factor or numeric same size as number of samples
+in PCA. Color each point on the projection by its corresponding value.}
 
-\item{plotVars}{Logical. Plot variable loadings instead of coordinates of samples on PCs.}
+\item{plotVars}{Logical. Plot variable loadings instead of coordinates of
+samples on PCs.}
 
 \item{pointSize}{Single numeric. Size of points.}
 
 \item{plotText}{Logical. Plot sample/variable name instead of point.}
 
-\item{ratioPerPercentVar}{Logical. Ratio of the plot is corresponding to the percentage of explained variation from each PC.}
+\item{ratioPerPercentVar}{Logical. Ratio of the plot is corresponding to the
+percentage of explained variation from each PC.}
 
 \item{main}{Single character. Main title of the graph.}
 
-\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).}
+\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually
+several ellipses if colorBy is a factor).}
 
-\item{colorScale}{A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.}
+\item{colorScale}{A vector of colors. Equal to the desired number of breaks
+for continuous values or number of levels for factors.}
 
-\item{returnGraph}{Logical. Return the graph as a ggplot object instead of printing it.}
+\item{returnGraph}{Logical. Return the graph as a ggplot object instead of
+printing it.}
 
-\item{outlierLabel}{Logical. Add a \code{ggrepel} label for point in low-density area of the plot.}
+\item{outlierLabel}{Logical. Add a \code{ggrepel} label for point in low-density
+area of the plot.}
 
-\item{outlierLabelThres}{Numeric. Density value threshold below that the labelled is displayed if \code{outlierLabel=TRUE}.}
+\item{outlierLabelThres}{Numeric. Density value threshold below that the
+labelled is displayed if \code{outlierLabel=TRUE}.}
 
 \item{outlierLabelSize}{Numeric. Size of outlier labels.}
 
@@ -57,7 +65,8 @@ pca2d(
 \item{...}{Arguments passed to \code{proj2d}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Plot a PCA in 2D

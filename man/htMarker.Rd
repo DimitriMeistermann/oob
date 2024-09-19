@@ -19,13 +19,17 @@ htMarker(
 )
 }
 \arguments{
-\item{countTable}{A matrix of numeric with samples as columns (in the RNA-Seq context, log counts)}
+\item{countTable}{A matrix of numeric with samples as columns (in the RNA-Seq
+context, log counts)}
 
-\item{group}{A feature of factor/character, same length as number of sample. Describe group of each sample (for example clusters).}
+\item{group}{A feature of factor/character, same length as number of sample.
+Describe group of each sample (for example clusters).}
 
 \item{markerData}{A matrix describing marker scores for each group.}
 
-\item{colData}{A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.}
+\item{colData}{A vector of factor, character, numeric or logical. Or, a
+dataframe of any of these type of value. The annotation that will be
+displayed on the heatmap.}
 
 \item{topn}{Number of marker to plot, rankes from the best}
 
@@ -35,20 +39,24 @@ htMarker(
 
 \item{replace}{Logical. Should the sample be drawn with replacement.}
 
-\item{returnHeatmap}{Logical, return the plot as a Heatmap object or print it in the current graphical device.}
+\item{returnHeatmap}{Logical, return the plot as a Heatmap object or print it
+in the current graphical device.}
 
 \item{show_column_names}{Whether show column names.}
 
 \item{...}{Arguments passed to \code{heatmap.DM}}
 }
 \value{
-A Heatmap object if \code{returnHeatmap} or print the Heatmap in the current graphical device.
+A Heatmap object if \code{returnHeatmap} or print the Heatmap in the
+current graphical device.
 }
 \description{
 Plot best marker per group on a tidy Heatmap
 }
 \details{
-Draw the same number of observation from each condition/group, and take the top n marker per group. Heatmap is sliced by group for each gene and
+Draw the same number of observation from each condition/group, and
+take the top n marker per group. Heatmap is sliced by group for each gene
+and
 }
 \examples{
 data("bulkLogCounts")

@@ -9,9 +9,11 @@ getAdjMatfromUMAPWithNN(umapWithNN, n_neighbors = 10, metric = NULL)
 \arguments{
 \item{umapWithNN}{A UMAP model as returned by UMAP if \code{ret_nn = TRUE},}
 
-\item{n_neighbors}{The size of local neighborhood (in terms of number of neighboring sample points) used for the Leiden clustering.}
+\item{n_neighbors}{The size of local neighborhood (in terms of number of
+neighboring sample points) used for the Leiden clustering.}
 
-\item{metric}{Character. One of the metric used for computing the UMAP model. If NULL take the first available one.}
+\item{metric}{Character. One of the metric used for computing the UMAP
+model. If NULL take the first available one.}
 }
 \value{
 A sparse adjacency matrix from the class \code{dgTMatrix}.
@@ -21,6 +23,6 @@ Compute an adjacency matrix from the nearest neighbor matrix of a UMAP model
 }
 \examples{
 data("bulkLogCounts")
-umapWithNN<-UMAP(bulkLogCounts,ret_nn = TRUE)
+umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
 getAdjMatfromUMAPWithNN(umapWithNN)
 }

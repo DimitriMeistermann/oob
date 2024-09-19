@@ -32,8 +32,16 @@ fastWrite(
 
 \item{...}{Other parameters passed to data.table::fwrite.}
 }
+\value{
+NULL, write a file.
+}
 \description{
 Write quickly a text file from dataframe/matrix
+}
+\examples{
+data("bulkLogCounts")
+tf <- tempfile(fileext = ".tsv")
+fastWrite(bulkLogCounts,tf)
 }
 \seealso{
 fastRead

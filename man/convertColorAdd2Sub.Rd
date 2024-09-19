@@ -7,12 +7,15 @@
 convertColorAdd2Sub(color, returnHex = TRUE)
 }
 \arguments{
-\item{color}{A vector of 3 numeric containing rgb values (from 0 to 1), or a single character of the color name or hex code}
+\item{color}{A vector of 3 numeric containing rgb values (from 0 to 1), or a
+single character of the color name or hex code}
 
-\item{returnHex}{Logical value indicating if the color should be returned as a hex code or as a vector of rgb values.}
+\item{returnHex}{Logical value indicating if the color should be returned as
+a hex code or as a vector of rgb values.}
 }
 \value{
-a vector containing rgb values if returnHex=FALSE, otherwise a color as a character format.
+a vector containing rgb values if returnHex=FALSE, otherwise a color
+as a character format.
 }
 \description{
 Convert color from additive to subtracting mixing

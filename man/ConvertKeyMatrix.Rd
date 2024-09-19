@@ -15,19 +15,24 @@ ConvertKeyMatrix(
 )
 }
 \arguments{
-\item{tab}{A matrix or a dataframe. Rownames are corresponding to keys from an ID to be converted}
+\item{tab}{A matrix or a dataframe. Rownames are corresponding to keys from
+an ID to be converted}
 
-\item{tabKey}{A dataframe or a matrix of character. The database that contains correspondence between each key from each ID.}
+\item{tabKey}{A dataframe or a matrix of character. The database that
+contains correspondence between each key from each ID.}
 
-\item{colOldKey}{Integer. Column of \code{tabKey} that contains the old (same as keyList) IDs.}
+\item{colOldKey}{Integer. Column of \code{tabKey} that contains the old (same as
+keyList) IDs.}
 
 \item{colNewKey}{Integer. Column of \code{tabKey} that contains the new IDs.}
 
-\item{first}{If for given the old ID has several correspondence, take the first one as the new ID.}
+\item{first}{If for given the old ID has several correspondence, take the
+first one as the new ID.}
 
 \item{dim}{Interger, 1 or 2. If 1 convert rows, else columns.}
 
-\item{fun}{If \code{first=FALSE}, A function to compute the summary statistics which can be applied to all data that correspond to ther same ID.}
+\item{fun}{If \code{first=FALSE}, A function to compute the summary statistics
+which can be applied to all data that correspond to ther same ID.}
 }
 \value{
 A matrix or dataframe. Same format as tab.
@@ -38,6 +43,6 @@ Convert rownames from a matrix/df from one ID type to another.
 \examples{
 data("bulkLogCounts")
 data("humanGeneIDtable")
-bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,tabKey = humanGeneIDtable,
-    colOldKey = "SYMBOL",colNewKey = "ENTREZID")
+bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,
+    tabKey = humanGeneIDtable, colOldKey = "SYMBOL",colNewKey = "ENTREZID")
 }

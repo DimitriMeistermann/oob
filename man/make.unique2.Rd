@@ -4,18 +4,20 @@
 \alias{make.unique2}
 \title{Better make.unique}
 \usage{
-make.unique2(sample.name, sep = ".")
+make.unique2(sample.names, sep = ".")
 }
 \arguments{
-\item{sample.name}{Character vector}
+\item{sample.names}{Character vector}
 
-\item{sep}{A character string used to separate a duplicate name from its sequence number.}
+\item{sep}{A character string used to separate a duplicate name from its
+sequence number.}
 }
 \value{
 A character vector of same length as names with duplicates changed.
 }
 \description{
-Similar to make.unique, but also add a sequence member for the first encountered duplicated element.
+Similar to make.unique, but also add a sequence member for the
+first encountered duplicated element.
 }
 \examples{
 make.unique2(c("a", "a", "b"))

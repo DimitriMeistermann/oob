@@ -3,18 +3,23 @@ Type: Package
 Title: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box
 Version: 0.9.0
 Authors@R: person("Dimitri", "Meistermann", email = "dimitri.meistermann@helsinki.fi",role = c("aut", "cre"), comment=c(ORCID="0000-0001-6614-2325"))
-Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box. This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
+Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box by avoiding the use of complex objects.
+    This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
+    In addition of providing diverse wrappers and utilities to ease the use of R with large datsets, it contains several unique features.
+    Among them, the TRIMAP dimension reduction implementated with reticulate and tools for enriching intersection of gene lists.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
 biocViews:
 	Software,
 	ResearchField,
-	Transcriptomics
-RoxygenNote: 7.3.0
+	Transcriptomics,
+	Clustering,
+	DimensionReduction
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 4.2),
+    R (>= 4.4.0),
     ggplot2,
     stats,
     ComplexHeatmap
@@ -60,9 +65,10 @@ Suggests:
     rmarkdown,
     qualpalr,
     WGCNA
-VignetteBuilder:  knitr, rmarkdown
+VignetteBuilder:  knitr
 LinkingTo:
     Rcpp,
     RcppArmadillo
 URL: https://github.com/DimitriMeistermann/oob
 BugReports: https://github.com/DimitriMeistermann/oob/issues
+StagedInstall: no

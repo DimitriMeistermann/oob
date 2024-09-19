@@ -8,8 +8,8 @@
 A matrix containing 77 observations for 16959 features/genes
 }
 \description{
-Log-expression count table for 77 samples sequenced from a bulk 3'digital RNA-Seq
-protocol used in Kilens, Meistermann et al. 2018.
+Log-expression count table for 77 samples sequenced from a bulk
+3'digital RNA-Seq protocol used in Kilens, Meistermann et al. 2018.
 }
 \references{
 \url{https://doi.org/10.1038/s41467-017-02107-w}

@@ -2,20 +2,24 @@
 % Please edit documentation in R/markers_diffExpr.R
 \name{getMarkerGLMnet}
 \alias{getMarkerGLMnet}
-\title{Compute a matrix of coef describing best gene marker per group of samples from a GLM net regression}
+\title{Compute a matrix of coef describing best gene marker per group of samples
+from a GLM net regression}
 \usage{
 getMarkerGLMnet(expressionMatrix, group)
 }
 \arguments{
-\item{expressionMatrix}{A matrix of numeric with rows as features (in the RNA-Seq context, log counts).}
+\item{expressionMatrix}{A matrix of numeric with rows as features (in the
+RNA-Seq context, log counts).}
 
-\item{group}{A feature of factor/character, same length as number of sample. Describe group of each sample.}
+\item{group}{A feature of factor/character, same length as number of sample.
+Describe group of each sample.}
 }
 \value{
 A matrix containing each gene coefficient for each group.
 }
 \description{
-Compute a matrix of coef describing best gene marker per group of samples from a GLM net regression
+Compute a matrix of coef describing best gene marker per group of samples
+from a GLM net regression
 }
 \examples{
 data("bulkLogCounts")

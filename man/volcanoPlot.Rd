@@ -18,28 +18,39 @@ volcanoPlot(
 )
 }
 \arguments{
-\item{d}{A dataframe containing the data needed for the volcano plot. Must have column names. Can be \code{NULL} if \code{effectSizeCol}, \code{adjPvalCol} and \code{labelCol} are vectors.}
+\item{d}{A dataframe containing the data needed for the volcano plot. Must
+have column names. Can be \code{NULL} if \code{effectSizeCol}, \code{adjPvalCol} and
+\code{labelCol} are vectors.}
 
-\item{effectSizeCol}{Column name containing the effect size column (Log2FoldChange for example). Can also be a vector of numeric containing the effect size values.}
+\item{effectSizeCol}{Column name containing the effect size column
+(Log2FoldChange for example). Can also be a vector of numeric containing
+the effect size values.}
 
-\item{adjPvalCol}{Column name containing the adjusted pval column. Can also be a vector of numeric containing the padj values.}
+\item{adjPvalCol}{Column name containing the adjusted pval column. Can also
+be a vector of numeric containing the padj values.}
 
-\item{labelCol}{Column name containing the feature name column (gene name for example).  Can also be a vector of character containing the labels.}
+\item{labelCol}{Column name containing the feature name column (gene name for
+example).  Can also be a vector of character containing the labels.}
 
-\item{padjThres}{Significativity threshold of adjusted p-value for consider a feature significant.}
+\item{padjThres}{Significativity threshold of adjusted p-value for consider a
+feature significant.}
 
-\item{minEffectSize}{Absolute minimum effect size to consider a feature significant.}
+\item{minEffectSize}{Absolute minimum effect size to consider a feature
+significant.}
 
-\item{topShownPerSide}{Number of feature shown at the left and right side of the volcano plot.}
+\item{topShownPerSide}{Number of feature shown at the left and right side of
+the volcano plot.}
 
-\item{returnGraph}{Logical. Return the graph as a ggplot object instead of printing it.}
+\item{returnGraph}{Logical. Return the graph as a ggplot object instead of
+printing it.}
 
 \item{neutralVal}{Value considered as null effect size.}
 
 \item{...}{Parameters passed to geom_repel}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 General volcano plot

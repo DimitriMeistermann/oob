@@ -7,7 +7,8 @@
 VectorListToFactor(listOfVector)
 }
 \arguments{
-\item{listOfVector}{A named list. Each element must contain a character vector.}
+\item{listOfVector}{A named list. Each element must contain a character
+vector.}
 }
 \value{
 A named factor vector.

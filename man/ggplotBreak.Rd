@@ -21,7 +21,8 @@ Create breaks for a custom ggplot scale
 }
 \examples{
 data("DEgenesPrime_Naive")
-custom_scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x),
+custom_scale<-scales::trans_new(name = "invLog10",
+    transform = function(x) -log10(x),
     inverse = function(x) 10^(-x), domain = c(0, Inf))
 breaks <- ggplotBreak(DEgenesPrime_Naive$pvalue, custom_scale)
 ggplot(DEgenesPrime_Naive, aes(x=log2FoldChange, y=pvalue)) +

@@ -9,6 +9,18 @@ setRandState(state)
 \arguments{
 \item{state}{Object saved by getRandState}
 }
+\value{
+NULL, set the random seed state
+}
 \description{
 Set the precise random seed state
+}
+\examples{
+randSate<-getRandState()
+rnorm(5)
+setRandState(randSate)
+rnorm(5)
+}
+\seealso{
+getRandState
 }

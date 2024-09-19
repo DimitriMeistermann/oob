@@ -9,12 +9,17 @@ rowScale(data, center = TRUE, scaled = FALSE)
 \arguments{
 \item{data}{A matrix or dataframe of numerics.}
 
-\item{center}{either a logical value or numeric-alike vector of length equal to the number of columns of x, where ‘numeric-alike’ means that as.numeric(.) will be applied successfully if is.numeric(.) is not true.}
+\item{center}{either a logical value or numeric-alike vector of length equal
+to the number of columns of x, where ‘numeric-alike’ means that
+as.numeric(.) will be applied successfully if is.numeric(.) is not true.}
 
-\item{scaled}{either a logical value or a numeric-alike vector of length equal to the number of columns of x.}
+\item{scaled}{either a logical value or a numeric-alike vector of length
+equal to the number of columns of x.}
 }
 \value{
-For scale.default, the centered, scaled matrix. The numeric centering and scalings used (if any) are returned as attributes "scaled:center" and "scaled:scale"
+For scale.default, the centered, scaled matrix. The numeric centering
+and scalings used (if any) are returned as attributes "scaled:center" and
+"scaled:scale"
 }
 \description{
 Scale per row

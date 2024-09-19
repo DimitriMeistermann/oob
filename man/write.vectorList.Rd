@@ -23,9 +23,18 @@ write.vectorList(
 
 \item{vector.names}{Save value name vector in the row before the values.}
 }
+\value{
+NULL, write a file.
+}
 \description{
-Write a list in a text file with a specific separator. If list.names and vector.names are TRUE each element of the list is saved on a cycle of 3 rows.
-First row = element name, second = vector names, third = vector.
+Write a list in a text file with a specific separator. If
+list.names and vector.names are TRUE each element of the list is saved on a
+cycle of 3 rows. First row = element name, second = vector names, third =
+vector.
+}
+\examples{
+tf <- tempfile(fileext = ".tsv")
+write.vectorList(list(1:10,letters[1:10]),tf)
 }
 \seealso{
 read.vectorList

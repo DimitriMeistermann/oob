@@ -9,6 +9,12 @@ len(x)
 \arguments{
 \item{x}{A vector-like object.}
 }
+\value{
+An integer.
+}
 \description{
 length alias
+}
+\examples{
+len(1:10)
 }

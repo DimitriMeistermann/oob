@@ -25,9 +25,13 @@ Give QC metrics per sample
 }
 \examples{
 data("geneLengthGRCh38")
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
-colnames(countMat)<-letters[seq_len(ncol(countMat))]
+countMat <-
+    sapply(vector("numeric", length = length(geneLengthGRCh38)),
+        function(x) {
+            MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+            mu = abs(rnorm(1, mean = 10, sd = 20)))
+    }) |> t()
+rownames(countMat) <- names(geneLengthGRCh38)
+colnames(countMat) <- letters[seq_len(ncol(countMat))]
 computeQCmetricSamples(countMat)
 }

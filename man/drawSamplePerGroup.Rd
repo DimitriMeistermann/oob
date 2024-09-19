@@ -15,7 +15,8 @@ drawSamplePerGroup(
 \arguments{
 \item{sampleNames}{A character vector of the name of the samples.}
 
-\item{group}{A factor or a character vector of the same length as \code{sampleNames}. Describe the population of each sample.}
+\item{group}{A factor or a character vector of the same length as
+\code{sampleNames}. Describe the population of each sample.}
 
 \item{maxDrawSize}{Maximum number of observation to draw per group.}
 

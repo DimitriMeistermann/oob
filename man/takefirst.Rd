@@ -9,13 +9,15 @@ takefirst(x, returnIndex = FALSE)
 \arguments{
 \item{x}{Vector.}
 
-\item{returnIndex}{Logical. Should the index of first elements or vector of first elements.}
+\item{returnIndex}{Logical. Should the index of first elements or vector of
+first elements.}
 }
 \value{
 Vector of first elements or numeric vector of index.
 }
 \description{
-Similar to unique but conserve vector names or return index where you can find each first value of multiple element.
+Similar to unique but conserve vector names or return index
+where you can find each first value of multiple element.
 }
 \examples{
 a<-c(1,2,3,3,4,3)

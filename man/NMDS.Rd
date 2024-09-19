@@ -17,7 +17,8 @@ NMDS(
 \arguments{
 \item{data}{A matrix of numeric (in the RNA-Seq context, log counts).}
 
-\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features
+are rows.}
 
 \item{scale}{Logical. Divide features by their standard deviation.}
 

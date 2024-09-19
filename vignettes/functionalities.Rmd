@@ -1,14 +1,11 @@
 ---
-title: "oob: a toolbox for analyzing OMIC data Out Of Bounds"
-output: 
-  rmarkdown::html_vignette
+title: "oobFunctionalities"
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{oobFunctionalities}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  
 ---
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
 collapse = TRUE,
@@ -20,82 +17,88 @@ warning=FALSE
 )
 ```
 
-This package provide function for analyzing OMIC data, with a focus on plots, functional enrichment and bulk/single-cell RNA-Seq.
+# oob: A Toolbox for Analyzing OMIC Data Out Of Bounds
 
-## Installation
+This package provide function for analyzing OMIC data, with a focus on plots,
+functional enrichment and bulk/single-cell RNA-Seq.
 
-In a R console: 
+## Installation In a R console:
 
 ```
 install.packages("devtools")
-devtools::install_github("https://github.com/DimitriMeistermann/oob", build_vignettes = FALSE)
+devtools::install_github("https://github.com/DimitriMeistermann/oob",
+    build_vignettes = FALSE)
 ```
 For a manual installation of dependencies:
 
 ```
 install.packages("BiocManager")
 BiocManager::install(
-  c("ggplot2","basilisk","batchelor","BiocParallel","BiocGenerics","circlize","ComplexHeatmap","data.table","dbscan",
-  "ggbeeswarm","ggrepel","glmnet","grDevices","grid","irlba","labeling","lsa","MASS","Matrix","pvclust","reshape2",
-  "reticulate","rgl","Rcpp","RcppArmadillo","rlang","scales","scater","scattermore","scran","SingleCellExperiment",
-  "SummarizedExperiment","stringr","cli","uwot","graphics","methods","utils","knitr","rmarkdown","qualpalr","WGCNA")
+    c("ggplot2","basilisk","batchelor","BiocParallel","BiocGenerics","circlize",
+    "ComplexHeatmap","data.table","dbscan","ggbeeswarm","ggrepel","glmnet",
+    "grDevices","grid","irlba","labeling","lsa","MASS","Matrix","pvclust",
+    "reshape2","reticulate","rgl","Rcpp","RcppArmadillo","rlang","scales",
+    "scater","scattermore","scran","SingleCellExperiment",
+    "stringr","cli","uwot","graphics","methods","utils","knitr",
+    "rmarkdown","qualpalr","WGCNA","SummarizedExperiment")
 )
 ```
 
-
-
-*oob* needs also several python dependencies accessible in the environment used by *reticulate*, the R package for calling python functions. See <https://rstudio.github.io/reticulate/articles/python_packages.html> for more information on installation of python package via *reticulate*.  Those pythons dependencies should install themselves with the package, but if not, they can be installed manually.
-
-For doing so from R:
-
-```
-reticulate::py_install(c("numpy","leidenalg","trimap"))
-```
 The package is ready to load.
-  
+
 ```{r setup}
-  library(oob)
+library(oob)
 ```
 
 ## Data formatting
 
-Fast read and write of text files containing a dataframe or matrix with `fastRead` and `fastWrite`. Default format are tabulated separated value. `chead` is then useful for a quick view of first columns/rows. `rn`, `cn`, `len`, `inter` are respectively aliases for `rownames`, `colnames`, `length` and `intersect`.
+Fast read and write of text files containing a dataframe or matrix with
+`fastRead` and `fastWrite`. Default format are tabulated separated value.
+`chead` is then useful for a quick view of first columns/rows. `rn`, `cn`,
+`len`, `inter` are respectively aliases for `rownames`, `colnames`, `length` and
+`intersect`.
 
 ```{r}
-data("bulkLogCounts") #Bulk RNA-Seq log counts from from Kilens, Meistermann & al 2018
-
+#Bulk RNA-Seq log counts from from Kilens, Meistermann & al 2018
+data("bulkLogCounts") 
 dir.create("test", showWarnings = FALSE)
-
 fastWrite(bulkLogCounts, "test/bulkLogCounts.tsv")
 rm(bulkLogCounts)
 bulkLogCounts <- fastRead("test/bulkLogCounts.tsv")
 chead(bulkLogCounts, n = 10) #quick view of bulkLogCounts
-
 rn(bulkLogCounts)[1:10]
 cn(bulkLogCounts)[1:10]
 len(rn(bulkLogCounts))
 inter(rn(bulkLogCounts)[1:10], rn(bulkLogCounts)[5:15])
-
 ```
 
-List of vectors can be processed to factor via `VectorListToFactor` or reciprocally, `factorToVectorList` converts A factor to a list of vectors, where each level is an element and contains the observation names having this level. `read.vectorList` and `write.vectorList` are used to read or write list of vectors in text files.
+List of vectors can be processed to factor via `VectorListToFactor` or
+reciprocally, `factorToVectorList` converts A factor to a list of vectors, where
+each level is an element and contains the observation names having this level.
+`read.vectorList` and `write.vectorList` are used to read or write list of
+vectors in text files.
 
 ```{r}
-data("DEgenesPrime_Naive") #Differential expression (prime vs naive cell lines) from Kilens, Meistermann & al 2018
-genesPerSet <-
-  factorToVectorList(DEgenesPrime_Naive$isDE, factorNames = rn(DEgenesPrime_Naive))
+#Differential expression (prime vs naive cell lines)
+# from Kilens, Meistermann & al 2018
+data("DEgenesPrime_Naive")
+genesPerSet <- factorToVectorList(
+    DEgenesPrime_Naive$isDE, factorNames = rn(DEgenesPrime_Naive)
+)
 lapply(genesPerSet, head)
-
 write.vectorList(genesPerSet, "test/genesDE.tsv")
 read.vectorList("test/genesDE.tsv") |> lapply(head)
-
 #whichTop used here for retrieving top 10 genes in term of log2(Fold-Change)
 top10FC <-
-  rn(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$log2FoldChange, top = 10)]
+    rn(DEgenesPrime_Naive)[
+        whichTop(DEgenesPrime_Naive$log2FoldChange, top = 10)
+    ]
 copyReadyVector(top10FC) #Ready to be copied in a console !
 ```
 
-When set `set.seed` is used the Random Number Generator give a different result each time it is used. `getRandState`, `setRandState` are used for retrieving/setting this precise seed state.
+When set `set.seed` is used the Random Number Generator give a different result
+each time it is used. `getRandState`, `setRandState` are used for
+retrieving/setting this precise seed state.
 
 ```{r}
 set.seed(666)
@@ -109,10 +112,13 @@ setRandState(randState)
 rnorm(10)
 ```
 
-Data frames can be formatted using metadata with `formatAnnotFromMeta`. See `?formatAnnotFromMeta` for more information on the format of metadata.
+Data frames can be formatted using metadata with `formatAnnotFromMeta`. See
+`?formatAnnotFromMeta` for more information on the format of metadata.
 
 ```{r}
-df <- data.frame(numericVar = 1:12, factorVar = rep(c("1", "19", "2"), each = 4))
+df <- data.frame(
+    numericVar = 1:12, factorVar = rep(c("1", "19", "2"), each = 4)
+)
 metaDf <-
     data.frame(
         Type = c("numeric", "factor"),
@@ -121,10 +127,8 @@ metaDf <-
     )
 print(metaDf)
 res <- formatAnnotFromMeta(df, metaDf)
-
 print(res)
 colorScale<-attr(res, "colorScale")
-
 print(colorScale)
 ```
 
@@ -133,16 +137,20 @@ print(colorScale)
 The following functions can be applied to a vector of numeric values:
 
 - `Mode`: the mode of a distribution
-- `gmean`: geometrical mean $\sqrt[n]{\prod^n_ix_i}$ 
-- `cv`: coefficient of variation $\sigma/\mu$ 
-- `cv2`: coefficient of variation (squared standard deviation and mean) $\sigma^2/\mu^2$ 
-- `Mode` (most represented value in distribution) 
+- `gmean`: geometrical mean $\sqrt[n]{\prod^n_ix_i}$
+- `cv`: coefficient of variation $\sigma/\mu$
+- `cv2`: coefficient of variation (squared standard deviation and mean) 
+    $\sigma^2/\mu^2$
+- `Mode` (most represented value in distribution)
 - `se`: Standard mean error $\sigma/\sqrt{n}$
-- Alternative distance of $2-cor(x)$ type for returning a distance object usable by function of clustering as `hclust`, two can be used:
-  - `corrDist`: Correlation distance. Method used for computing correlation can be specified. See `method` argument from `cor`.
-  - `covDist`: Covariance distance
-  -  `cosineDist`: Cosine distance
-- `linearScale`: can returned a function able to map one set of value to another, for example to map a range of minutes to a range of frequency.
+- Alternative distance of $2-cor(x)$ type for returning a distance object usable
+    by function of clustering as `hclust`, two can be used:
+    - `corrDist`: Correlation distance. Method used for computing correlation 
+    can be specified. See `method` argument from `cor`.
+    - `covDist`: Covariance distance
+    -  `cosineDist`: Cosine distance
+- `linearScale`: can returned a function able to map one set of value to 
+    another, for example to map a range of minutes to a range of frequency.
 - `qauroc`: quick approximation of area under ROC curve implemented in C++.
 
 ```{r}
@@ -150,398 +158,437 @@ minutesTofreqScale<-linearScale(c(0,60),c(0,1))
 minutesTofreqScale(30)
 ```
 
-`reScale` extend the concept of scaling ranges to matrices. A typical use is to put the range of a batch corrected count table from RNA-Seq on the same range than the count table before correction.
+`reScale` extend the concept of scaling ranges to matrices. A typical use is to
+put the range of a batch corrected count table from RNA-Seq on the same range
+than the count table before correction.
 
 ```{r}
 m1 <- matrix(rnorm(100), ncol = 50)
-p1 <- qplotDensity(m1[1, ], returnGraph = TRUE) + 
-  ggtitle("Distribution of matrix to adjust")
+p1 <- qplotDensity(m1[1, ], returnGraph = TRUE) +
+    ggtitle("Distribution of matrix to adjust")
 m2 <- matrix(rnorm(100, 20), ncol = 50)
-p2 <-qplotDensity(m2[1, ], returnGraph = TRUE) + 
-  ggtitle("Distribution of matrix with target ranges")
+p2 <-qplotDensity(m2[1, ], returnGraph = TRUE) +
+    ggtitle("Distribution of matrix with target ranges")
 m1Rescale <- reScale(m1, m2)
-p3 <-qplotDensity(m1Rescale[1, ], returnGraph = TRUE) + 
-  ggtitle("Readjusted matrix")
-
-multiplot(p1, p2, p3, cols = 2) #multiplot for quick display of several plot at once
+p3 <-qplotDensity(m1Rescale[1, ], returnGraph = TRUE) +
+    ggtitle("Readjusted matrix")
+#multiplot for quick display of several plot at once
+multiplot(p1, p2, p3, cols = 2) 
 ```
 
-`qplotDensity` used here is a quick plotting function for visualizing distribution. *oob* contains several quick plot wrapper from *ggplot2*: 
-- `qplotAutoX`: Quick plot of a numeric vector with index as x-axis. 
+`qplotDensity` used here is a quick plotting function for visualizing
+distribution. *oob* contains several quick plot wrapper from *ggplot2*:
+
+- `qplotAutoX`: Quick plot of a numeric vector with index as x-axis.
 - `qplotBarplot`: Same but with bars instead of points.
-- `oobqplot`: copy of `ggplot2::quickplot`, as it is deprecated since ggplot2 >=3.4 but is still useful.
+- `oobqplot`: copy of `ggplot2::quickplot`, as it is deprecated since ggplot2
+    >=3.4 but is still useful.
 
-`uncenter` is similar to `reScale` but just shift the values of each feature so the new minimum is 0. `rowScale` scales a matrix in the same way than `scale`, but with rows as features, the common format for RNA-Seq.
-
-`aggregMatPerVector` is used to aggregate a matrix by a vector of factors. It is useful for example to aggregate gene expression by gene sets.
+`uncenter` is similar to `reScale` but just shift the values of each feature so
+the new minimum is 0. `rowScale` scales a matrix in the same way than `scale`,
+but with rows as features, the common format for RNA-Seq.
+`aggregMatPerVector` is used to aggregate a matrix by a vector of factors. It is
+useful for example to aggregate gene expression by gene sets.
 
 ```{r}
 data("sampleAnnot")
 aggregMatPerVector(bulkLogCounts[c(
-  'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
+    'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
 ),], sampleAnnot$culture_media)
-
 ```
-
 
 ## Normalization of RNA-Seq
 
-The package can perform several quick normalization methods. Let's simulate a fake count table and attribute real gene symbols as row names.
+The package can perform several quick normalization methods. Let's simulate a
+fake count table and attribute real gene symbols as row names.
 
 ```{r}
-data("geneLengthGRCh38") # vector of gene length for GRCh38 Human reference, named by gene symbols
+# vector of gene length for GRCh38 Human reference, named by gene symbols
+data("geneLengthGRCh38") 
 library(MASS)
 countMat <-
-  t(sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x) {
-    #generate a fake RNA-Seq dataset
-    rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)), mu = abs(rnorm(1, mean = 10, sd = 20)))
-  }))
+    t(sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x) {
+        #generate a fake RNA-Seq dataset
+        rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)), 
+            mu = abs(rnorm(1, mean = 10, sd = 20)))
+}))
 colnames(countMat) <-
-  letters[1:ncol(countMat)]
+    letters[1:ncol(countMat)]
 rownames(countMat) <- names(geneLengthGRCh38)
 chead(countMat)
-
 #Quality control
 computeQCmetricSamples(countMat)
-
 #Different kind of normalization
 CPM(countMat) |> chead() #Count Per Million normalization
 normDeseq(countMat) |> chead() #DESeq2 normalization
-quickSCnorm(countMat) |> chead() #Single-cell (scran) normalization (return log counts by default)
-RPKM(countMat, gene.length = geneLengthGRCh38) |> chead() #Reads Per Kilobase per Million (RPKM) normalization for full-length transcript, short read sequencing.
-TPMfullLength(countMat, gene.length = geneLengthGRCh38) |> chead() #Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.
-
+#Single-cell (scran) normalization (return log counts by default)
+quickSCnorm(countMat) |> chead()
+#Reads Per Kilobase per Million (RPKM) normalization for 
+#full-length transcript, short read sequencing.
+RPKM(countMat, gene.length = geneLengthGRCh38) |> chead()
+#Transcript per milion (TPM) normalization for full-length transcript,
+#short read sequencing.
+TPMfullLength(countMat, gene.length = geneLengthGRCh38) |> chead() 
 ```
-Eventually, `oobFastMNN` can be used to perform a quick batch correction with the simple *one matrix in, one matrix out* format.
 
+Eventually, `oobFastMNN` can be used to perform a quick batch correction with
+the simple *one matrix in, one matrix out* format.
 ## Principal Component Analysis tools
-
-Principal Component Analysis can be performed with `PCA` or approximated with `fastPCA` with parameters optimized by default for RNA-Seq. Result can be then plotted with `pca2d`.
+Principal Component Analysis can be performed with `PCA` or approximated with
+`fastPCA` with parameters optimized by default for RNA-Seq. Result can be then
+plotted with `pca2d`.
 
 ```{r out.width = "100%", fig.dim = c(16,16)}
 data("sampleAnnot") #colData of the count table
-
 PCAres <- PCA(bulkLogCounts)
+# /!\ for fastPCA percentage of explained var is on the total of computed PC 
+# (less PC -> increase percentage)
 PCAresQuick <-
-  fastPCA(bulkLogCounts, nPC = 2) # /!\ for fastPCA percentage of explained var is on the total of computed PC (less PC -> increase percentage)
+    fastPCA(bulkLogCounts, nPC = 2) 
 multiplot(
-  pca2d(
-    PCAres,
-    returnGraph = TRUE,
-    main = "PCA on bulkLogCounts",
-    colorBy = sampleAnnot$culture_media
-  ),
-  pca2d(
-    PCAresQuick,
-    returnGraph = TRUE,
-    main = "estimation with fastPCA",
-    colorBy = sampleAnnot$culture_media
-  ),
-  pca2d(
-    PCAres,
-    plotVars = TRUE,
-    outlierLabel = TRUE,
-    returnGraph = TRUE,
-    main = "Contribution of genes for PC 1 & 2"
-  ),
-  barplotPercentVar(PCAres, returnGraph = TRUE, nPC = 30) + ggtitle("Scree plot of explained variance per PC"),
-  cols = 2
+    pca2d(
+        PCAres,
+        returnGraph = TRUE,
+        main = "PCA on bulkLogCounts",
+        colorBy = sampleAnnot$culture_media
+    ),
+    pca2d(
+        PCAresQuick,
+        returnGraph = TRUE,
+        main = "estimation with fastPCA",
+        colorBy = sampleAnnot$culture_media
+    ),
+    pca2d(
+        PCAres,
+        plotVars = TRUE,
+        outlierLabel = TRUE,
+        returnGraph = TRUE,
+        main = "Contribution of genes for PC 1 & 2"
+    ),
+    barplotPercentVar(PCAres, returnGraph = TRUE, nPC = 30) + 
+        ggtitle("Scree plot of explained variance per PC"),
+    cols = 2
 )
-
-
 ```
 
-In the gene contribution plot, `pointdensity.nrd` is used for estimating the 2 density of points. `pcaAddSamples` is another PCA function than can be used to add new samples to the PCA.
-
-For linking experimental variable to principal components we can perform a Principal Component analysis of variance.
+In the gene contribution plot, `pointdensity.nrd` is used for estimating the 2
+density of points. `pcaAddSamples` is another PCA function than can be used to
+add new samples to the PCA.
+For linking experimental variable to principal components we can perform a
+Principal Component analysis of variance.
 
 ```{r}
 library(ggbeeswarm)
 resPC_aov <-
-  PCaov(PCAres, colData = sampleAnnot[, c("culture_media", "line", "passage")])
-
+    PCaov(
+        PCAres, colData = sampleAnnot[, c("culture_media", "line", "passage")]
+    )
 ggBorderedFactors(
-  ggplot(resPC_aov, aes(
-    x = PC, y = sumSqPercent, fill = feature
-  )) +
+    ggplot(resPC_aov, aes(
+        x = PC, y = sumSqPercent, fill = feature
+    )) +
     geom_beeswarm(pch = 21, size = 4, cex = 3) +
     xlab("Principal component") + ylab("% Sum of Squares") +
     scale_fill_manual(values = oobColors(nlevels(resPC_aov$feature))) +
     theme(
-      panel.grid.major.y = element_line(colour = "grey75"),
-      panel.grid.minor.y = element_line(colour = "grey75"),
-      panel.background = element_rect(fill = NA, colour = "black")
+        panel.grid.major.y = element_line(colour = "grey75"),
+        panel.grid.minor.y = element_line(colour = "grey75"),
+        panel.background = element_rect(fill = NA, colour = "black")
     )
 )
-
 ```
 
-The culture media seems to be linked here with PC 1 & 2. Note in the code the use of `mostDistantColor` for generating a color scale with maximum contrast and `ggBorderedFactors` for moving vertical line break between factors in a *ggplot2* function.
-
+The culture media seems to be linked here with PC 1 & 2. Note in the code the
+use of `mostDistantColor` for generating a color scale with maximum contrast and
+`ggBorderedFactors` for moving vertical line break between factors in a
+*ggplot2* function.
 ## Characterize features of RNA-Seq
-
-We can first filter the count table by computing an overdispersion score for each gene with `getMostVariableGenes`. This function must be executed on a normalized, not log transformed count table. We hence have to "unlog" it.
+We can first filter the count table by computing an overdispersion score for
+each gene with `getMostVariableGenes`. This function must be executed on a
+normalized, not log transformed count table. We hence have to "unlog" it.
 
 ```{r}
 normCount <- 2 ^ (bulkLogCounts - 1)
 dispData <- getMostVariableGenes(normCount, minCount = 1)
-
 overdispersedGenes <- rn(dispData)[dispData$residuals > 0]
 length(overdispersedGenes)
 ```
 
-We can then compute a PCA on these genes that will result in a reduced dimension space that will be used for downstream analyses.
+We can then compute a PCA on these genes that will result in a reduced dimension
+space that will be used for downstream analyses.
 
 ```{r}
 reducedSpace <- t(fastPCA(bulkLogCounts[overdispersedGenes, ], nPC = 30))
 ```
 
-For example, we can perform non linear dimension reductions. Several are provided with the package: `NMDS`, `UMAP` and `TRIMAP`. The result is plotted with `proj2d`.
+For example, we can perform non linear dimension reductions. Several are
+provided with the package: `NMDS`, `UMAP` and `TRIMAP`. The result is plotted
+with `proj2d`.
 
 ```{r out.width = "100%", fig.dim = c(16,16)}
 reducedSpace <-
-  t(fastPCA(bulkLogCounts[overdispersedGenes, ], nPC = 30)$x)
+    t(fastPCA(bulkLogCounts[overdispersedGenes, ], nPC = 30)$x)
 chead(reducedSpace)
 coordNMDS <- NMDS(reducedSpace)
 coordUMAP <- UMAP(reducedSpace, n_neighbors = ncol(reducedSpace))
 coordTRIMAP <- TRIMAP(reducedSpace)
-
 multiplot(
-  cols = 2,
-  pca2d(
-    PCAres,
-    colorBy = sampleAnnot$culture_media,
-    returnGraph = TRUE,
-    main = "PCA",
-    ratioPerPercentVar = TRUE
-  ),
-  proj2d(
-    coordNMDS,
-    colorBy = sampleAnnot$culture_media,
-    returnGraph = TRUE,
-    main = "NMDS",
-    fixedCoord = TRUE
-  ),
-  proj2d(
-    coordUMAP,
-    colorBy = sampleAnnot$culture_media,
-    returnGraph = TRUE,
-    main = "UMAP",
-    fixedCoord = TRUE
-  ),
-  proj2d(
-    coordTRIMAP,
-    colorBy = sampleAnnot$culture_media,
-    returnGraph = TRUE,
-    main = "TRIMAP",
-    fixedCoord = TRUE
-  )
+    cols = 2,
+    pca2d(
+        PCAres,
+        colorBy = sampleAnnot$culture_media,
+        returnGraph = TRUE,
+        main = "PCA",
+        ratioPerPercentVar = TRUE
+    ),
+        proj2d(
+        coordNMDS,
+        colorBy = sampleAnnot$culture_media,
+        returnGraph = TRUE,
+        main = "NMDS",
+        fixedCoord = TRUE
+    ),
+        proj2d(
+        coordUMAP,
+        colorBy = sampleAnnot$culture_media,
+        returnGraph = TRUE,
+        main = "UMAP",
+        fixedCoord = TRUE
+    ),
+    proj2d(
+        coordTRIMAP,
+        colorBy = sampleAnnot$culture_media,
+        returnGraph = TRUE,
+        main = "TRIMAP",
+        fixedCoord = TRUE
+    )
 )
-
 ```
 
-`proj1d` and `proj3d` are also available for 1D and 3D projections. Note that `proj3d` is using the `rgl` package.
-
-The knn graph used can also be saved when computing the UMAP, and used for a community detection (Leiden) clustering.
+`proj1d` and `proj3d` are also available for 1D and 3D projections. Note that
+`proj3d` is using the `rgl` package.
+The knn graph used can also be saved when computing the UMAP, and used for a
+community detection (Leiden) clustering.
 
 ```{r}
 UMAPwithNN <-
-  UMAP(reducedSpace,
-       n_neighbors = ncol(reducedSpace),
-       ret_nn = TRUE)
+    UMAP(reducedSpace,
+        n_neighbors = ncol(reducedSpace),
+        ret_nn = TRUE)
 sampleAnnot$leidenClusters <- leidenFromUMAP(UMAPwithNN)
-
 proj2d(
-  UMAPwithNN$embedding,
-  colorBy = sampleAnnot$leidenClusters,
-  plotFactorsCentroids = TRUE,
-  plotLabelRepel = TRUE,
-  fixedCoord = TRUE,
-  legendTitle = "Leiden cluster"
+    UMAPwithNN$embedding,
+    colorBy = sampleAnnot$leidenClusters,
+    plotFactorsCentroids = TRUE,
+    plotLabelRepel = TRUE,
+    fixedCoord = TRUE,
+    legendTitle = "Leiden cluster"
 )
-
 ```
 
-We now pick the best marker per cluster with `getMarkers`, which use the `auroc` function for computing marker scores, along with *log2Fold-Change* and *p-value*.
+We now pick the best marker per cluster with `getMarkers`, which use the `auroc`
+function for computing marker scores, along with *log2Fold-Change* and
+*p-value*.
 
 ```{r}
-markerPerCluster <-getMarkers(bulkLogCounts[overdispersedGenes, ], 
-                              group = sampleAnnot$leidenClusters)
+markerPerCluster <-getMarkers(bulkLogCounts[overdispersedGenes, ],
+    group = sampleAnnot$leidenClusters)
 chead(markerPerCluster)
 ```
 
-Now we pick up the best marker per cluster, and plot them. Note the $log_{10}(n+1)$ scale accessible as a scale for any ggplot with `log10plus1`.
-More generally, for any custom ggplot scale created with `scales::trans_new`,  `ggplotBreak` can be used to determine the axis breaks.
-
-`extractFeatureMarkerData` is used to extract one value per cluster per gene (by default the marker score).
+Now we pick up the best marker per cluster, and plot them. Note the
+$log_{10}(n+1)$ scale accessible as a scale for any ggplot with `log10plus1`.
+More generally, for any custom ggplot scale created with `scales::trans_new`,
+`ggplotBreak` can be used to determine the axis breaks.
+`extractFeatureMarkerData` is used to extract one value per cluster per gene (by
+default the marker score).
 
 ```{r}
 markerScorePerCluster <- extractFeatureMarkerData(markerPerCluster)
 head(markerScorePerCluster) #matrix of marker scores
-
 top20MarkerPerCluster <-
-  apply(markerScorePerCluster, 2, function(x)
-    rownames(markerPerCluster)[whichTop(x, top = 20)]) |> data.frame() |> as.list()
-
+    apply(markerScorePerCluster, 2, function(x)
+        rownames(markerPerCluster)[whichTop(x, top = 20)]) |> 
+        data.frame() |> as.list()
 topGenePerCluster <- sapply(top20MarkerPerCluster, function(x)
-  x[1])
-
+    x[1])
 plotExpr(normCount[topGenePerCluster, ],
-         group = sampleAnnot$leidenClusters,
-         legendTitle = "Leiden cluster")
-
+        group = sampleAnnot$leidenClusters,
+        legendTitle = "Leiden cluster")
 ```
 
-We then used those marker for plotting an heatmap with the dedicated function. 
+We then used those marker for plotting an heatmap with the dedicated function.
 
 ```{r out.width = "100%", fig.dim = c(14,14)}
 htMarker(
-  bulkLogCounts,
-  markerData = markerScorePerCluster,
-  topn = 20 ,
-  group = sampleAnnot$leidenClusters,
-  colData = sampleAnnot[c("culture_media", "line")]
+    bulkLogCounts,
+    markerData = markerScorePerCluster,
+    topn = 20 ,
+    group = sampleAnnot$leidenClusters,
+    colData = sampleAnnot[c("culture_media", "line")]
 )
 ```
-Note that we can obtain the same result with more struggles using the more general function `heatmap.DM`:
+
+Note that we can obtain the same result with more struggles using the more
+general function `heatmap.DM`:
 
 ```{r out.width = "100%", fig.dim = c(14,14)}
 #convert the list to a factor
 top20MarkerFactor <- VectorListToFactor(top20MarkerPerCluster)
-
-#We subsampled the matrix so each cluster give the same number of sample in the heatmap
-drawRes <- 
-  drawSamplePerGroup(
-    rn(sampleAnnot),
-    sampleAnnot$leidenClusters,
-  )
-
+#We subsampled the matrix so each cluster
+#give the same number of sample in the heatmap
+drawRes <-
+    drawSamplePerGroup(
+        rn(sampleAnnot),
+        sampleAnnot$leidenClusters,
+    )
 drawnSamples <- names(drawRes)
-
 heatmap.DM(
-  bulkLogCounts[names(top20MarkerFactor), drawnSamples],
-  colData = sampleAnnot[drawnSamples, c("culture_media", "line")],
-  column_split = drawRes,
-  row_split = top20MarkerFactor,
-  cluster_row_slices = FALSE,
-  cluster_column_slices = FALSE
+    bulkLogCounts[names(top20MarkerFactor), drawnSamples],
+    colData = sampleAnnot[drawnSamples, c("culture_media", "line")],
+    column_split = drawRes,
+    row_split = top20MarkerFactor,
+    cluster_row_slices = FALSE,
+    cluster_column_slices = FALSE
 )
-
 ```
 
-
-`autoGparFontSizeMatrix` is used by `heatmap.DM` to adjust row and column size to the number of samples / features. `heatmap.DM` is a wrapper for `ComplexHeatmap`. It uses `genColorsForAnnots` and `genTopAnnot` are for generating top annotations. The proper heatmap color scale is generated using `computeColorScaleFun` which is able to map colors to percentiles. 
-
+`autoGparFontSizeMatrix` is used by `heatmap.DM` to adjust row and column size
+to the number of samples / features. `heatmap.DM` is a wrapper for
+`ComplexHeatmap`. It uses `genColorsForAnnots` and `genTopAnnot` are for
+generating top annotations. The proper heatmap color scale is generated using
+`computeColorScaleFun` which is able to map colors to percentiles.
 Example:
 
 ```{r}
 values = sort(rnorm(100))
 computeColorScaleFun(
-  colors = c("blue", "white", "red"),
-  values = values,
-  returnColorFun = FALSE,
-  useProb = TRUE,
-  probs = c(.25, .5, .75)
+    colors = c("blue", "white", "red"),
+    values = values,
+    returnColorFun = FALSE,
+    useProb = TRUE,
+    probs = c(.25, .5, .75)
 ) |>
-  plotPalette()
+    plotPalette()
 ```
 
 `computeColorScaleFun` can also return a ggplot scale if `returnGGscale=TRUE`.
-`volcanoPlot.DESeq2` is designed to show the result of differential expression analysis in a meaningful way.
-See `volcanoPlot` for a more general function that works outside the context of differential expression analysis.
+`volcanoPlot.DESeq2` is designed to show the result of differential expression
+analysis in a meaningful way. See `volcanoPlot` for a more general function that
+works outside the context of differential expression analysis.
 
 ```{r}
 data("DEgenesPrime_Naive")
 volcanoPlot.DESeq2(
-  DEgenesPrime_Naive,
-  formula = "~culture_media+Run",
-  condColumn = "culture_media",
-  downLevel = "KSR+FGF2",
-  upLevel = "T2iLGO"
+    DEgenesPrime_Naive,
+    formula = "~culture_media+Run",
+    condColumn = "culture_media",
+    downLevel = "KSR+FGF2",
+    upLevel = "T2iLGO"
 )
 ```
 
-Finally, `richUpset` is used to compare intersection between gene set with an additional value of enrichment. Here we compare the marker of unsupervised cluster and differential expression results between naive and primed pluripotency.
+Finally, `richUpset` is used to compare intersection between gene set with an
+additional value of enrichment. Here we compare the marker of unsupervised
+cluster and differential expression results between naive and primed
+pluripotency.
 
 ```{r out.width = "100%", fig.dim = c(14,14)}
 sets = list(
-  k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
-  k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
-  k3 = rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
-  primeVSnaiveUP = rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE ==
-                                            "UPREG"],
-  primeVSnaiveDOWN = rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE ==
-                                              "DOWNREG"]
+    k1 = rn(markerPerCluster)[markerPerCluster$k1.padj < 0.05],
+    k2 = rn(markerPerCluster)[markerPerCluster$k2.padj < 0.05],
+    k3 = rn(markerPerCluster)[markerPerCluster$k3.padj < 0.05],
+    primeVSnaiveUP = rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE ==
+        "UPREG"],
+    primeVSnaiveDOWN = rn(DEgenesPrime_Naive)[DEgenesPrime_Naive$isDE ==
+        "DOWNREG"]
 )
-
 richUpset(sets, universe = rn(markerPerCluster))
 ```
-You can get the values computed for `richUpset` with `richUpsetStats`. The more general function `enrichSetIntersection` is used internally to compute the enrichment of an intersection of *n* set.
-The OE deviation is a metric designed for this package to measure an enrichment in a an over-representation analysis. It is computed as the difference between the observed and expected intersection size, 
-normalised by the square root of the universe size: $\Psi = \frac{O-E}{\sqrt{\Omega}}$ With $\Omega}$ the universe size, $O$ the observed intersection size and $E$ the expected intersection size. 
-$E$ can be computed in the context of intersection of $n$ set with the following formula:
-$E= \frac{\prod{^n_ix_i}}{\Omega^{n-1}}$ with $x_i$ the number of element in a set, $n$ the number of set and $\Omega$ the universe size.
+
+You can get the values computed for `richUpset` with `richUpsetStats`. The more
+general function `enrichSetIntersection` is used internally to compute the
+enrichment of an intersection of *n* set. The OE deviation is a metric designed
+for this package to measure an enrichment in a an over-representation analysis.
+It is computed as the difference between the observed and expected intersection
+size, normalised by the square root of the universe size: $\Psi =
+\frac{O-E}{\sqrt{\Omega}}$ With $\Omega}$ the universe size, $O$ the observed
+intersection size and $E$ the expected intersection size. $E$ can be computed in
+the context of intersection of $n$ set with the following formula: $E=
+\frac{\prod{^n_ix_i}}{\Omega^{n-1}}$ with $x_i$ the number of element in a set,
+$n$ the number of set and $\Omega$ the universe size.
 
 ## Hierarchical clustering
 
 `hierarchicalClustering` enhance `hclust` by several manners:
-- Use the `ward.D2` method by default.
-- It takes matrix as input and compute the distance matrix and the clustering in one step.
-- It is able to bootstrap the clustering to assess the robustness of the clustering with the `pvclust` method.
 
-Let's compute gene modules using `hierarchicalClustering`. For reducing the computation time we will use only the highly variable genes with enough counts. Correlation distance is used to compute the distance matrix.
+- Use the `ward.D2` method by default.
+- It takes matrix as input and compute the distance matrix 
+    and the clustering in one step.
+- It is able to bootstrap the clustering to assess the robustness of the 
+    clustering with the `pvclust` method.
+
+Let's compute gene modules using `hierarchicalClustering`. For reducing the
+computation time we will use only the highly variable genes with enough counts.
+Correlation distance is used to compute the distance matrix.
 
 ```{r}
-geneClustering <- hierarchicalClustering(bulkLogCounts[dispData$residuals > 1 & dispData$mu > 2,], 
-                                       transpose = FALSE, method.dist = "pearson")
-
+geneClustering <- hierarchicalClustering(
+    bulkLogCounts[dispData$residuals > 1 & dispData$mu > 2,],
+    transpose = FALSE, method.dist = "pearson"
+)
 plot(geneClustering, hang=-1, labels = FALSE)
 best.cutree(geneClustering, graph = TRUE)
-
 ```
 
-With the help of `best.cutree` and the shape of the plotted dendrogram, we can deduce that 3 clusters is a good choice for the number of clusters. We can extract the cluster membership with `cutree`:
+With the help of `best.cutree` and the shape of the plotted dendrogram, we can
+deduce that 3 clusters is a good choice for the number of clusters. We can
+extract the cluster membership with `cutree`:
 
 ```{r}
 geneClusters <- paste0("Module_",cutree(geneClustering, k = 3))
 names(geneClusters) <- geneClustering$labels
-
 heatmap.DM(
-  bulkLogCounts[names(geneClusters), drawnSamples],
-  row_split = geneClusters,
-  column_split = drawRes,
-  cluster_row_slices = FALSE,
-  cluster_column_slices = FALSE,
-  colData = sampleAnnot[drawnSamples, c("culture_media", "line")],
-  show_row_names = FALSE,
-  show_column_names = FALSE
+    bulkLogCounts[names(geneClusters), drawnSamples],
+    row_split = geneClusters,
+    column_split = drawRes,
+    cluster_row_slices = FALSE,
+    cluster_column_slices = FALSE,
+    colData = sampleAnnot[drawnSamples, c("culture_media", "line")],
+    show_row_names = FALSE,
+    show_column_names = FALSE
 )
-
 ```
 
 ## Other utilities functions:
 
-- `corGeneToOthers` : Compute the correlation of a gene to all other genes in a matrix.
+- `corGeneToOthers` : Compute the correlation of a gene to all other genes 
+    in a matrix.
 - `supprNAnames`: Delete row/column in a matrix/df with NA row/colnames
-- `takefirst`: Similar to unique but conserve vector names or return index where you can find each first value of multiple element.
-- `formatNumber2Character`: Convert numeric to string, potentially add "0" before the number after conversion to respect lexicographical order.
+- `takefirst`: Similar to unique but conserve vector names or return index 
+    where you can find each first value of multiple element.
+- `formatNumber2Character`: Convert numeric to string, potentially add "0" 
+    before the number after conversion to respect lexicographical order.
 - `strsplitNth`: Character split with chosen returned element, return a vector.
-- `make.unique2`: Similar to make.unique, but also add a sequence member for the first encountered duplicated element.
-- `matrixCoord1D_2D`: Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
-- `matrixFromDimnames`: Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
+- `make.unique2`: Similar to make.unique, but also add a sequence member for 
+    the first encountered duplicated element.
+- `matrixCoord1D_2D`: Return the row and column index (2D coordinate) 
+    from a 1D coordinate in a matrix.
+- `matrixFromDimnames`: Return the row and column index (2D coordinate) from a 
+    1D coordinate in a matrix.
 - `factorAsStrings` : Convert the factors of a data frame to strings.
 - *oob* features additional functions for dealing with colors:
-  - `oobColors`: Generate pretty and distinct values for a qualitative scale.
-  - `mostDistantColor `: Most distant theoretical color palette for a qualitative scale (wrapper for *qualpal* if installed).
-  - `ggplotColours`: generate the default colors of *ggplot2*  for a qualitative scale.
-  - `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
-  - `extendColorPalette`: Extend a color palette with new color by interpolation.
-  - `sortColorByDistance`: Sort a color palette by how close they are.
-  
+    - `oobColors`: Generate pretty and distinct values for a qualitative scale.
+    - `mostDistantColor `: Most distant theoretical color palette for a 
+    qualitative scale (wrapper for *qualpal* if installed).
+    - `ggplotColours`: generate the default colors of *ggplot2* 
+    for a qualitative scale.
+    - `convertColorAdd2Sub`: Convert color from additive to subtracting mixing.
+    - `extendColorPalette`: Extend a color palette with 
+    new color by interpolation.
+    - `sortColorByDistance`: Sort a color palette by how close they are.
 
 ## Session info
-
 ```{r}
 sessionInfo()
 ```
-

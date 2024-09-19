@@ -15,7 +15,13 @@ read.vectorList(fileName, sep = "\\t")
 A list.
 }
 \description{
-Currently works for file saved with parameters list.names=TRUE and vector.names=FALSE from write.vectorList.
+Currently works for file saved with parameters list.names=TRUE
+and vector.names=FALSE from write.vectorList.
+}
+\examples{
+tf <- tempfile(fileext = ".tsv")
+write.vectorList(list(1:10,letters[1:10]),tf)
+read.vectorList(tf)
 }
 \seealso{
 write.vectorList

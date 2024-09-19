@@ -6,7 +6,7 @@
 \alias{oob-package}
 \title{oob: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box}
 \description{
-A toolbox for analyzing OMIC data, Out Of Bounds from any black box. This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
+A toolbox for analyzing OMIC data, Out Of Bounds from any black box by avoiding the use of complex objects. This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq. In addition of providing diverse wrappers and utilities to ease the use of R with large datsets, it contains several unique features. Among them, the TRIMAP dimension reduction implementated with reticulate and tools for enriching intersection of gene lists.
 }
 \seealso{
 Useful links:

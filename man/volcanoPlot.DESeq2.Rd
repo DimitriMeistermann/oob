@@ -19,24 +19,29 @@ volcanoPlot.DESeq2(
 \item{DEresult}{Dataframe that contains at least those columns:
 \itemize{
 \item padj (adjusted p-value)
-\item isDE (a character vector equal to "NONE" if the gene is not DE, "DOWNREG" or "UPREG" if DE).
+\item isDE (a character vector equal to "NONE" if the gene is not DE,
+"DOWNREG" or "UPREG" if DE).
 \item log2FoldChange
 Row must be named by genes.
 }}
 
 \item{formula}{Character. Design formula given to DESeq2.}
 
-\item{downLevel}{Character. Condition considered as the reference. If a gene is more expressed in this condition, LFC < 0.}
+\item{downLevel}{Character. Condition considered as the reference. If a gene
+is more expressed in this condition, LFC < 0.}
 
-\item{upLevel}{Character. Condition considered as the target group. If a gene is more expressed in this condition, LFC > 0.}
+\item{upLevel}{Character. Condition considered as the target group. If a gene
+is more expressed in this condition, LFC > 0.}
 
-\item{condColumn}{Character. Name of the experimental variable that have been used for differential expression.}
+\item{condColumn}{Character. Name of the experimental variable that have been
+used for differential expression.}
 
 \item{padjThreshold}{Numeric. Significance threshold of the adjusted p-value.}
 
 \item{LFCthreshold}{Numeric. Significance threshold of the Log2 Fold-Change.}
 
-\item{topGene}{Integer. Number of gene name to be shown on the plot. Genes names are plotted from the most significant.}
+\item{topGene}{Integer. Number of gene name to be shown on the plot. Genes
+names are plotted from the most significant.}
 }
 \value{
 Plot in the current graphical device.

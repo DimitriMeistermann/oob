@@ -16,7 +16,8 @@ qplotAutoX(x, returnGraph = FALSE, geom = "point", ...)
 \item{...}{Parameters passed to \code{oobqplot}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Quick plot of values with x values corresponding to index.

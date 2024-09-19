@@ -9,12 +9,14 @@ qplotDensity(x, returnGraph = FALSE, ...)
 \arguments{
 \item{x}{A numeric vector.}
 
-\item{returnGraph}{Logical. Logical. Return the graph as a ggplot object instead of printing it.}
+\item{returnGraph}{Logical. Logical. Return the graph as a ggplot object
+instead of printing it.}
 
 \item{...}{Parameters passed to \code{oobqplot}}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Plot a density-based distribution of a feature.

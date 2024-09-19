@@ -2,34 +2,53 @@
 % Please edit documentation in R/markers_diffExpr.R
 \name{getMarkers}
 \alias{getMarkers}
-\title{Compute a dataframe with marker metrics describing best gene marker per group of samples.}
+\title{Compute a dataframe with marker metrics describing best gene marker per group
+of samples.}
 \usage{
-getMarkers(exprData, groups, BPPARAM = NULL, returnAsList = FALSE)
+getMarkers(
+  exprData,
+  groups,
+  transpose = FALSE,
+  BPPARAM = NULL,
+  returnAsList = FALSE
+)
 }
 \arguments{
 \item{exprData}{A dataframe with genes as rows and samples as columns.}
 
-\item{groups}{A vector of group names, same size as the number of columns in \code{exprData}.}
+\item{groups}{A vector of group names, same size as the number of columns in
+\code{exprData}.}
 
-\item{BPPARAM}{A BPPARAM object as return by \code{\link[BiocParallel:register]{BiocParallel::bpparam()}}. Used for multi-threading.}
+\item{transpose}{If TRUE, the input data is transposed before processing.
+Default is FALSE.}
 
-\item{returnAsList}{Return a list where each element is dataframe containing the marker metrics of a group.}
+\item{BPPARAM}{A BPPARAM object as return by \code{\link[BiocParallel:register]{BiocParallel::bpparam()}}. Used
+for multi-threading.}
+
+\item{returnAsList}{Return a list where each element is dataframe containing
+the marker metrics of a group.}
 }
 \value{
-A dataframe containing four column per group: Log2(Fold-Change), AUROC, marker score (see details), p-value and BH adjusted p-value.
+A dataframe containing four column per group: Log2(Fold-Change),
+AUROC, marker score (see details), p-value and BH adjusted p-value.
 }
 \description{
-Compute a dataframe with marker metrics describing best gene marker per group of samples.
+Compute a dataframe with marker metrics describing best gene marker per group
+of samples.
 }
 \details{
 LogFC and pvalues are computed from a linear modelling of the data.
 
-Score is consisting of the geometrical mean of absolute LogFC, absolute(auroc - 0.5), and -log10(pval), then signed by the logFC:
-score = sign(logFC) × gmean( abs(logFC), abs(aurocRes-0.5), -log10(pval) )
+Score is consisting of the geometrical mean of absolute LogFC, absolute(auroc
+\itemize{
+\item 0.5), and -log10(pval), then signed by the logFC: score = sign(logFC) ×
+gmean( abs(logFC), abs(aurocRes-0.5), -log10(pval) )
+}
 }
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
 markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+
 
 }

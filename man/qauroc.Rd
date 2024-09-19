@@ -7,12 +7,15 @@
 qauroc(score, boolVect)
 }
 \arguments{
-\item{score}{a vector of numeric representing the measure of a feature in a set of samples.}
+\item{score}{a vector of numeric representing the measure of a feature in a
+set of samples.}
 
-\item{boolVect}{a vector of logical, same size as score. Is the sample in the target group?}
+\item{boolVect}{a vector of logical, same size as score. Is the sample in the
+target group?}
 }
 \value{
-A numeric value. Close to 1 = perfect marker, around 0.5 = as good as random values, close to 0 = perfect anti-marker.
+A numeric value. Close to 1 = perfect marker, around 0.5 = as good as
+random values, close to 0 = perfect anti-marker.
 }
 \description{
 By Miron Kursa https://mbq.me

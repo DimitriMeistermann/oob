@@ -2,7 +2,8 @@
 % Please edit documentation in R/matrixDataframe.R
 \name{matrixCoord1D_2D}
 \alias{matrixCoord1D_2D}
-\title{Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.}
+\title{Return the row and column index (2D coordinate) from a 1D coordinate in a
+matrix.}
 \usage{
 matrixCoord1D_2D(x, Mat)
 }
@@ -15,7 +16,8 @@ matrixCoord1D_2D(x, Mat)
 A vector of 2 integer. Index of row and column.
 }
 \description{
-Return the row and column index (2D coordinate) from a 1D coordinate in a matrix.
+Return the row and column index (2D coordinate) from a 1D coordinate in a
+matrix.
 }
 \examples{
 test<-matrix(1:25,ncol=5)

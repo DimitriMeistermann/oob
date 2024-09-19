@@ -7,12 +7,14 @@
 factorToVectorList(factorValues, factorNames = NULL)
 }
 \arguments{
-\item{factorValues}{A vector of factor. It has to be named if \code{factorNames=NULL}.}
+\item{factorValues}{A vector of factor. It has to be named if
+\code{factorNames=NULL}.}
 
 \item{factorNames}{A character vector for providing the names separately.}
 }
 \value{
-A list. Each element is named by a factor level of \code{factorValues}, and contains the provided names that had this level has a value.
+A list. Each element is named by a factor level of \code{factorValues},
+and contains the provided names that had this level has a value.
 }
 \description{
 Convert a named factor vector to a list

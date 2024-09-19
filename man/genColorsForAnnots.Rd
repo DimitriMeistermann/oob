@@ -15,24 +15,32 @@ genColorsForAnnots(
 )
 }
 \arguments{
-\item{annots}{Dataframe. Can contain factors or numeric. Contains the values that has to be mapped.}
+\item{annots}{Dataframe. Can contain factors or numeric. Contains the values
+that has to be mapped.}
 
-\item{colorScales}{List or NULL. Precomputed color scales. Color scales will be only generated for the features not described.
-Must be in the format of a list named by columns of \code{annots}.
-Each element contains the colors at breaks for continuous values or a mapping function if \code{returnContinuousFun=TRUE} (a function that return a color for a given numeric value).
-In the case of factors, the colors are named to their corresponding level, or in the order of the levels.}
+\item{colorScales}{List or NULL. Precomputed color scales. Color scales will
+be only generated for the features not described. Must be in the format of
+a list named by columns of \code{annots}. Each element contains the colors at
+breaks for continuous values or a mapping function if
+\code{returnContinuousFun=TRUE} (a function that return a color for a given
+numeric value). In the case of factors, the colors are named to their
+corresponding level, or in the order of the levels.}
 
-\item{discreteFuns}{A list functions that take a single integer n and return n colors.
-If several functions are provided it will be used for each factor column successively.}
+\item{discreteFuns}{A list functions that take a single integer n and return
+n colors. If several functions are provided it will be used for each factor
+column successively.}
 
-\item{returnContinuousFun}{Logical. Return a mapping function for continuous values instead of a vector of colors.}
+\item{returnContinuousFun}{Logical. Return a mapping function for continuous
+values instead of a vector of colors.}
 
-\item{continuousPalettes}{A list of color vector. If several vector are provided it will be used for each numerical column successively.}
+\item{continuousPalettes}{A list of color vector. If several vector are
+provided it will be used for each numerical column successively.}
 
 \item{...}{Parameters passed to \code{computeColorScaleFun}.}
 }
 \value{
-A list describing the color scale of each column of \code{annots}, in the same format than the argument \code{colorScales}
+A list describing the color scale of each column of \code{annots}, in the
+same format than the argument \code{colorScales}
 }
 \description{
 Generate a list of value/color mapping
@@ -57,7 +65,10 @@ colorScales$Species
 
 library(ComplexHeatmap)
 Heatmap(
-    rowScale(t(iris[, c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]),
+    rowScale(t(
+        iris[, c("Sepal.Length", "Sepal.Width",
+            "Petal.Length", "Petal.Width")]
+    ),
     center = TRUE, scaled = TRUE),
     top_annotation = genTopAnnot(iris["Species"], colorScales =
                                      colorScales["Species"])

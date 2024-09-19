@@ -2,25 +2,32 @@
 % Please edit documentation in R/countMatrix.R
 \name{TPMfullLength}
 \alias{TPMfullLength}
-\title{Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.}
+\title{Transcript per milion (TPM) normalization for full-length transcript, short
+read sequencing.}
 \usage{
 TPMfullLength(data, gene.length)
 }
 \arguments{
 \item{data}{A raw count table with rows as genes}
 
-\item{gene.length}{A vector of numeric corresponding to gene length in base pair. Must be named by genes.}
+\item{gene.length}{A vector of numeric corresponding to gene length in base
+pair. Must be named by genes.}
 }
 \value{
-A normalized count table where 1 count is equal in theory to one transcript per milion.
+A normalized count table where 1 count is equal in theory to one
+transcript per milion.
 }
 \description{
-Transcript per milion (TPM) normalization for full-length transcript, short read sequencing.
+Transcript per milion (TPM) normalization for full-length transcript, short
+read sequencing.
 }
 \examples{
 data("geneLengthGRCh38")
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
+countMat <-
+    sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+        MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+                     mu = abs(rnorm(1, mean = 10, sd = 20)))
+    }) |> t()
+    rownames(countMat)<-names(geneLengthGRCh38)
 TPMfullLength(countMat,geneLengthGRCh38) |> chead()
 }

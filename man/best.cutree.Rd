@@ -13,24 +13,29 @@ best.cutree(hc, min = 2, max = 20, loss = FALSE, graph = FALSE)
 
 \item{max}{Maximum number of class in the partition}
 
-\item{loss}{Logical. Return the list of computed partition with their derivative loss.}
+\item{loss}{Logical. Return the list of computed partition with their
+derivative loss.}
 
-\item{graph}{Logical. Plot a graph of computed partition with their derivative loss.}
+\item{graph}{Logical. Plot a graph of computed partition with their
+derivative loss.}
 }
 \value{
-A single integer (best partition) or print a graph if \code{graph} or a vector of numeric if \code{loss}.
+A single integer (best partition) or print a graph if \code{graph} or a
+vector of numeric if \code{loss}.
 }
 \description{
 Determine the best partition in a hierarchical clustering
 }
 \details{
-Based on the higher relative loss of inertia, fucntion modified from the \href{https://rdrr.io/github/larmarange/JLutils/src/R/clustering.R}{JLutils} package.
+Based on the higher relative loss of inertia, fucntion modified from
+the \href{https://rdrr.io/github/larmarange/JLutils/src/R/clustering.R}{JLutils}
+package.
 }
 \examples{
 data(iris)
-resClust<-hierarchicalClustering(iris[,c(1, 2, 3)],transpose = FALSE)
-best.cutree(resClust,graph=TRUE)
+resClust <- hierarchicalClustering(iris[, c(1, 2, 3)], transpose = FALSE)
+best.cutree(resClust, graph = TRUE)
 best.cutree(resClust)
-best.cutree(resClust, loss=TRUE)
-cutree(resClust,k = best.cutree(resClust))
+best.cutree(resClust, loss = TRUE)
+cutree(resClust, k = best.cutree(resClust))
 }

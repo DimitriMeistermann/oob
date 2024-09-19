@@ -9,14 +9,18 @@ pcaAddSamples(pca, newSamplesMatrix, transpose = TRUE, returnPCA = TRUE)
 \arguments{
 \item{pca}{The existing PCA as an object returned by \code{PCA} or \code{fastPCA}.}
 
-\item{newSamplesMatrix}{The matrix of numeric of new samples. It must have the same features than the original PCA.}
+\item{newSamplesMatrix}{The matrix of numeric of new samples. It must have
+the same features than the original PCA.}
 
-\item{transpose}{Logical. If \code{transpose}, samples are columns and features are rows.}
+\item{transpose}{Logical. If \code{transpose}, samples are columns and features
+are rows.}
 
-\item{returnPCA}{Logical. Return the updated PCA. If false, just returned the coordinates of new samples on PCs.}
+\item{returnPCA}{Logical. Return the updated PCA. If false, just returned the
+coordinates of new samples on PCs.}
 }
 \value{
-A PCA list if \code{returnPCA} or a matrix of coordinates of samples on PCs.
+A PCA list if \code{returnPCA} or a matrix of coordinates of samples on
+PCs.
 }
 \description{
 Add new samples to an existing PCA.

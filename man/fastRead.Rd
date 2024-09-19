@@ -18,7 +18,8 @@ fastRead(
 
 \item{sep}{Separator ("\\t"=tab-separated values).}
 
-\item{row.names}{Column that contains the row names,set to NULL for not attributing row names.}
+\item{row.names}{Column that contains the row names,set to NULL for not
+attributing row names.}
 
 \item{as.matrix}{Return a dataframe if FALSE, a matrix if TRUE.}
 
@@ -31,6 +32,12 @@ A dataframe or a matrix.
 }
 \description{
 Load quickly a text file to a dataframe/matrix
+}
+\examples{
+data("bulkLogCounts")
+tf <- tempfile(fileext = ".tsv")
+fastWrite(bulkLogCounts,tf)
+fastRead(tf)
 }
 \seealso{
 fastWrite

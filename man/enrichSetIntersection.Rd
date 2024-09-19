@@ -16,17 +16,22 @@ enrichSetIntersection(intersectionSize, setSizes, universeSize)
 \value{
 A list of values:
 \itemize{
-\item observed: observed number of elements in intersection (same value as \code{intersectionSize})
+\item observed: observed number of elements in intersection
+same value as \code{intersectionSize})
 \item expected: expected number of elements in intersection.
-\item OEdeviation: Effect size of the association \code{(observed - expected) / sqrt(universeSize)}
-\item pval: pvalue (upper tail) where NULL hypotheses is that observed intersection is from the distribution of intersection size with p = nExpected / nUniverse.
+\item OEdeviation: Effect size of the association
+\code{(observed - expected) / sqrt(universeSize)}
+\item pval: pvalue (upper tail) where NULL hypotheses is that observed
+intersection is from the distribution of intersection size
+with p = nExpected / nUniverse.
 }
 }
 \description{
 Compute p-value and other metric for enrichment of set intersection.
 }
 \details{
-If two sets, perform an hypergeometric test, if more the p-value is computed from binomial distribution.
+If two sets, perform an hypergeometric test, if more the p-value is
+computed from binomial distribution.
 }
 \examples{
 setSizes<-c(150,200,250)

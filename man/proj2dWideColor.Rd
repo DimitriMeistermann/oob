@@ -24,11 +24,14 @@ proj2dWideColor(
 )
 }
 \arguments{
-\item{coord}{Matrix or dataframe containing at least two vectors of numeric corresponding to the x/y coordinates.}
+\item{coord}{Matrix or dataframe containing at least two vectors of numeric
+corresponding to the x/y coordinates.}
 
-\item{axis}{A vector of 2 integer. The column index of \code{coord} containing respectively the x and y coordinates.}
+\item{axis}{A vector of 2 integer. The column index of \code{coord} containing
+respectively the x and y coordinates.}
 
-\item{colorBy}{A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.}
+\item{colorBy}{A vector of factor or numeric same size as number of samples
+in PCA. Color each point on the projection by its corresponding value.}
 
 \item{pointSize}{Single numeric. Size of points.}
 
@@ -38,23 +41,31 @@ proj2dWideColor(
 
 \item{alpha}{Single numeric (from 0 to 1). Opacity of the points.}
 
-\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).}
+\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually
+several ellipses if colorBy is a factor).}
 
-\item{emph}{Single character or \code{NULL}. Must be a level of \code{colorBy} if it is a factor. Emphasize a particular value on the plot.}
+\item{emph}{Single character or \code{NULL}. Must be a level of \code{colorBy} if it is
+a factor. Emphasize a particular value on the plot.}
 
-\item{returnGraph}{Logical. Return the graph as a ggplot object instead of printing it.}
+\item{returnGraph}{Logical. Return the graph as a ggplot object instead of
+printing it.}
 
 \item{legendTitle}{Character. The legend title on the plot.}
 
-\item{axis.names}{Vector of two characters. Axis names (x, y) showed on the plot.}
+\item{axis.names}{Vector of two characters. Axis names (x, y) showed on the
+plot.}
 
 \item{na.color}{Character. Color of NA values if \code{ColorBy} is provided.}
 
 \item{na.bg}{Logical. Put the NA points behind the others in term of layers.}
 
-\item{funAutoColorScale}{A function that return n colors with n as a first argument. Responsible for color mapping of the levels.}
+\item{funAutoColorScale}{A function that return n colors with n as a first
+argument. Responsible for color mapping of the levels.}
 
 \item{...}{additional arguments passed to \code{oob::proj2d}}
+}
+\value{
+a ggplot object
 }
 \description{
 Wrapper for proj2d with highly contrasted color scale.

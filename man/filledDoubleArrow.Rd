@@ -23,9 +23,15 @@ filledDoubleArrow(
 
 \item{height}{Numeric. X coordinate of the arrow.}
 
-\item{just}{A string or numeric vector specifying the justification of the viewport relative to its (x, y) location. If there are two values, the first value specifies horizontal justification and the second value specifies vertical justification. Possible string values are: "left", "right", "centre", "center", "bottom", and "top". For numeric values, 0 means left alignment and 1 means right alignment.}
+\item{just}{A string or numeric vector specifying the justification of the
+viewport relative to its (x, y) location. If there are two values, the
+first value specifies horizontal justification and the second value
+specifies vertical justification. Possible string values are: "left",
+"right", "centre", "center", "bottom", and "top". For numeric values, 0
+means left alignment and 1 means right alignment.}
 
-\item{gp}{An object of class "gpar", typically the output from a call to the function gpar. This is basically a list of graphical parameter settings}
+\item{gp}{An object of class "gpar", typically the output from a call to the
+function gpar. This is basically a list of graphical parameter settings}
 
 \item{...}{Other parameters passed to pushViewport.}
 }

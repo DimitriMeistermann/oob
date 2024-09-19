@@ -2,7 +2,8 @@
 % Please edit documentation in R/qplot.R
 \name{oobqplot}
 \alias{oobqplot}
-\title{This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.}
+\title{This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2
+3.4 but is still useful.}
 \usage{
 oobqplot(
   x,
@@ -24,29 +25,32 @@ oobqplot(
 \arguments{
 \item{x, y, ...}{Aesthetics passed into each layer}
 
-\item{data}{Data frame to use (optional).  If not specified, will create
-one, extracting vectors from the current environment.}
+\item{data}{Data frame to use (optional).  If not specified, will create one,
+extracting vectors from the current environment.}
 
-\item{facets}{faceting formula to use. Picks \code{\link[=facet_wrap]{facet_wrap()}} or
-\code{\link[=facet_grid]{facet_grid()}} depending on whether the formula is one-
-or two-sided}
+\item{facets}{faceting formula to use. Picks \code{\link[=facet_wrap]{facet_wrap()}} or \code{\link[=facet_grid]{facet_grid()}}
+depending on whether the formula is one- or two-sided}
 
 \item{margins}{See \code{facet_grid()}: display marginal facets?}
 
-\item{geom}{Character vector specifying geom(s) to draw. Defaults to
-"point" if x and y are specified, and "histogram" if only x is specified.}
+\item{geom}{Character vector specifying geom(s) to draw. Defaults to "point"
+if x and y are specified, and "histogram" if only x is specified.}
 
 \item{xlim, ylim}{X and y axis limits}
 
 \item{log}{Which variables to log transform ("x", "y", or "xy")}
 
-\item{main, xlab, ylab}{Character vector (or expression) giving plot title,
-x axis label, and y axis label respectively.}
+\item{main, xlab, ylab}{Character vector (or expression) giving plot title, x
+axis label, and y axis label respectively.}
 
 \item{asp}{The y/x aspect ratio}
 }
+\value{
+A ggplot object
+}
 \description{
-This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2 >=3.4 but is still useful.
+This function is a copy of ggplot2::qplot, as it is deprecated since ggplot2
+3.4 but is still useful.
 }
 \examples{
 # Use data from data.frame

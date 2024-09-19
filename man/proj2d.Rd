@@ -36,11 +36,14 @@ proj2d(
 )
 }
 \arguments{
-\item{coord}{Matrix or dataframe containing at least two vectors of numeric corresponding to the x/y coordinates.}
+\item{coord}{Matrix or dataframe containing at least two vectors of numeric
+corresponding to the x/y coordinates.}
 
-\item{colorBy}{A vector of factor or numeric same size as number of samples in PCA. Color each point on the projection by its corresponding value.}
+\item{colorBy}{A vector of factor or numeric same size as number of samples
+in PCA. Color each point on the projection by its corresponding value.}
 
-\item{axis}{A vector of 2 integer. The column index of \code{coord} containing respectively the x and y coordinates.}
+\item{axis}{A vector of 2 integer. The column index of \code{coord} containing
+respectively the x and y coordinates.}
 
 \item{pointSize}{Single numeric. Size of points.}
 
@@ -50,50 +53,67 @@ proj2d(
 
 \item{alpha}{Single numeric (from 0 to 1). Opacity of the points.}
 
-\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually several ellipses if colorBy is a factor).}
+\item{ellipse}{Logical. Add stat_ellipse to the projection (eventually
+several ellipses if colorBy is a factor).}
 
-\item{emph}{Single character or \code{NULL}. Must be a level of \code{colorBy} if it is a factor. Emphasize a particular value on the plot.}
+\item{emph}{Single character or \code{NULL}. Must be a level of \code{colorBy} if it is
+a factor. Emphasize a particular value on the plot.}
 
-\item{colorScale}{A vector of colors. Equal to the desired number of breaks for continuous values or number of levels for factors.}
+\item{colorScale}{A vector of colors. Equal to the desired number of breaks
+for continuous values or number of levels for factors.}
 
-\item{returnGraph}{Logical. Return the graph as a ggplot object instead of printing it.}
+\item{returnGraph}{Logical. Return the graph as a ggplot object instead of
+printing it.}
 
 \item{legendTitle}{Character. The legend title on the plot.}
 
-\item{axis.names}{Vector of two characters. Axis names (x, y) showed on the plot.}
+\item{axis.names}{Vector of two characters. Axis names (x, y) showed on the
+plot.}
 
 \item{na.color}{Character. Color of NA values if \code{ColorBy} is provided.}
 
 \item{na.bg}{Logical. Put the NA points behind the others in term of layers.}
 
-\item{plotFactorsCentroids}{Logical. If \code{ColorBy} is a factor Display the name of the factor at the centroid of its points.}
+\item{plotFactorsCentroids}{Logical. If \code{ColorBy} is a factor Display the
+name of the factor at the centroid of its points.}
 
 \item{pointStroke}{Numeric. Width of points border.}
 
 \item{strokeColor}{Character. Color of points border.}
 
-\item{funAutoColorScale}{A function that return n colors with n as a first argument. Responsible for color mapping of the levels.}
+\item{funAutoColorScale}{A function that return n colors with n as a first
+argument. Responsible for color mapping of the levels.}
 
-\item{fixedCoord}{Logical. The ratio of the plot is representative of the ratio between x and y values.}
+\item{fixedCoord}{Logical. The ratio of the plot is representative of the
+ratio between x and y values.}
 
-\item{plotLabelRepel}{Logical. Plot the rownames of the coordinates as a ggrepel label of each point.}
+\item{plotLabelRepel}{Logical. Plot the rownames of the coordinates as a
+ggrepel label of each point.}
 
 \item{labelSize}{Numeric. Size of the labels if \code{plotLabelRepel=TRUE}.}
 
-\item{sizeProp2Dens}{Logical. Size of point is inversely proportional to the 2D density of its area.}
+\item{sizeProp2Dens}{Logical. Size of point is inversely proportional to the
+2D density of its area.}
 
-\item{densEps}{Numeric. Radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel). Used if \code{sizeProp2Dens=TRUE}.}
+\item{densEps}{Numeric. Radius of the eps-neighborhood, i.e., bandwidth of
+the uniform kernel). Used if \code{sizeProp2Dens=TRUE}.}
 
-\item{nnMatrix}{A matrix of integer, number of row equal to the number of points, as returned by \code{make.umap(..., ,ret_nn = TRUE)}. Plot segments between the neighbors.}
+\item{nnMatrix}{A matrix of integer, number of row equal to the number of
+points, as returned by \code{make.umap(..., ,ret_nn = TRUE)}. Plot segments
+between the neighbors.}
 
-\item{nnSegmentParam}{List of arguments for customizing the nn segments. Passed to \code{geom_segment}.}
+\item{nnSegmentParam}{List of arguments for customizing the nn segments.
+Passed to \code{geom_segment}.}
 
-\item{useScatterMore}{Logical. Use \code{geom_scatter} for making the plot. Render the points as a pixel image, difficult to modify afterward but quicker plotting for very large datasets.}
+\item{useScatterMore}{Logical. Use \code{geom_scatter} for making the plot. Render
+the points as a pixel image, difficult to modify afterward but quicker
+plotting for very large datasets.}
 
 \item{customRatio}{Single numeric. Custom ratio for the plot.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Plot a 2D projection.

@@ -11,7 +11,8 @@ quickSCnorm(rawCounts, returnLog = TRUE, sizeFactors = NULL, ...)
 
 \item{returnLog}{Logical. Return log counts.}
 
-\item{sizeFactors}{NULL or a vector of numeric containing precomputed size factor, same size as number of cells in \code{rawCounts}.}
+\item{sizeFactors}{NULL or a vector of numeric containing precomputed size
+factor, same size as number of cells in \code{rawCounts}.}
 
 \item{...}{Other parameter passed to \code{computeSumFactors}.}
 }
@@ -23,9 +24,12 @@ Quick single cell normalization (scran method).
 }
 \examples{
 data("geneLengthGRCh38")
-countMat<-t(sapply(vector("numeric",length = length(geneLengthGRCh38)),function(x){
-    MASS::rnegbin(10,theta = abs(rnorm(1,mean = 10,sd = 20)),mu = abs(rnorm(1,mean = 10,sd = 20)))
-}));rownames(countMat)<-names(geneLengthGRCh38)
+countMat <-
+    sapply(vector("numeric", length = length(geneLengthGRCh38)), function(x){
+        MASS::rnegbin(10, theta = abs(rnorm(1, mean = 10, sd = 20)),
+            mu = abs(rnorm(1, mean = 10, sd = 20)))
+    }) |> t()
+rownames(countMat)<-names(geneLengthGRCh38)
 quickSCnorm(countMat, returnLog=FALSE)
 quickSCnorm(countMat, returnLog=TRUE)
 }

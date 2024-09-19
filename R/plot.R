@@ -9,24 +9,27 @@
 #' @examples
 #' autoGparFontSizeMatrix(5)
 autoGparFontSizeMatrix <- function(n, ...) {
-    n = max(n, 50)
-    n = min(n, 1000)
+    n <- max(n, 50)
+    n <- min(n, 1000)
     return(gpar(fontsize = 1 / n * 600, ...))
 }
 
 #' Multiple ggplot one one page
 #'
-#'
 #' @param ... Several plot from ggplot. Each given as an argument.
-#' @param plotlist Plots given as a list. Each element contains a plot from grid or inherited package.
-#' @param cols Number of columns. If layout is NULL, then use 'cols' to determine layout
-#' @param layout A 2D matrix of numeric value (from one the the number of plot) indicating the layout to be plotted. Matrix()
+#' @param plotlist Plots given as a list. Each element contains a plot from grid
+#'   or inherited package.
+#' @param cols Number of columns. If layout is NULL, then use 'cols' to
+#'   determine layout
+#' @param layout A 2D matrix of numeric value (from one the the number of plot)
+#'   indicating the layout to be plotted. Matrix()
 #'
-#' @return NULL
+#' @return NULL, print the plots in the current device
 #' @export
 #'
 #' @examples
-#' p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),aes(x=x,y=y))+geom_point()+ggtitle("p1")
+#' p1<-ggplot(data = data.frame(x=seq_len(5),y=seq_len(5)),
+#'     aes(x=x,y=y))+geom_point()+ggtitle("p1")
 #' p2<-oobqplot(c("a","a","b","b","b","c"))+ggtitle("p2")
 #' p3<-oobqplot(c("a","a","b","b","b"))+ggtitle("p3")
 #' p4<-oobqplot(c("a","b","c","d"))+ggtitle("p4")
@@ -48,13 +51,13 @@ autoGparFontSizeMatrix <- function(n, ...) {
 #' multiplot(plotlist = plotList,layout = layout)
 
 multiplot <- function(...,
-                      plotlist = NULL,
-                      cols = 1,
-                      layout = NULL) {
+                    plotlist = NULL,
+                    cols = 1,
+                    layout = NULL) {
     # Make a list from the ... arguments and plotlist
     plots <- c(list(...), plotlist)
 
-    numPlots = length(plots)
+    numPlots <- length(plots)
 
     # If layout is NULL, then use 'cols' to determine layout
     if (is.null(layout)) {
@@ -62,20 +65,19 @@ multiplot <- function(...,
         # ncol: Number of columns of plots
         # nrow: Number of rows needed, calculated from # of cols
         layout <- matrix(seq(1, cols * ceiling(numPlots / cols)),
-                         ncol = cols,
-                         nrow = ceiling(numPlots / cols))
+                        ncol = cols,
+                        nrow = ceiling(numPlots / cols))
     }
     if (numPlots == 1) {
         print(plots[[1]])
-
     } else {
         # Set up the page
         grid.newpage()
         pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
         # Make each plot, in the correct location
         for (i in seq_len(numPlots)) {
-            # Get the i,j matrix positions of the regions that contain this subplot
+            # Get the i,j matrix positions of
+            # the regions that contain this subplot
             matchidx <-
                 as.data.frame(which(layout == i, arr.ind = TRUE))
 
@@ -112,10 +114,13 @@ ggplotColours <- function(n = 6, h = c(0, 360) + 15) {
 
 #' Convert color from additive to subtracting mixing
 #'
-#' @param color A vector of 3 numeric containing rgb values (from 0 to 1), or a single character of the color name or hex code
-#' @param returnHex Logical value indicating if the color should be returned as a hex code or as a vector of rgb values.
+#' @param color A vector of 3 numeric containing rgb values (from 0 to 1), or a
+#'   single character of the color name or hex code
+#' @param returnHex Logical value indicating if the color should be returned as
+#'   a hex code or as a vector of rgb values.
 #'
-#' @return a vector containing rgb values if returnHex=FALSE, otherwise a color as a character format.
+#' @return a vector containing rgb values if returnHex=FALSE, otherwise a color
+#'   as a character format.
 #' @export
 #'
 #' @examples
@@ -131,14 +136,15 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
         color <- col2rgb(color)[, 1] / 255
     }
     if (length(color) < 3)
-        stop("if blue or green is null, the color argument must contain 3 numeric values.")
+        stop("if blue or green is null, the color argument must contain ",
+            "3 numeric values.")
     red <- color[1]
     green <- color[2]
     blue <- color[3]
 
-    newRed = mean(c(1 - green, 1 - blue))
-    newGreen = mean(c(1 - red, 1 - blue))
-    newBlue = mean(c(1 - red, 1 - green))
+    newRed <- mean(c(1 - green, 1 - blue))
+    newGreen <- mean(c(1 - red, 1 - blue))
+    newBlue <- mean(c(1 - red, 1 - green))
     if (returnHex) {
         return(rgb(newRed, newGreen, newBlue))
     } else{
@@ -154,9 +160,14 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 #' Best theoretical color palette (wrapper for qualpal)
 #'
 #' @param n The number of colors to generate.
-#' @param colorspace A color space to generate colors from. See ?qualpalr::qualpal. If NULL computed regarding the number of asked color.
-#' @param cvd Color vision deficiency adaptation. Use cvd_severity to set the severity of color vision deficiency to adapt to. Permissible values are "protan", "deutan", and "tritan".
-#' @param cvd_severity Severity of color vision deficiency to adapt to. Can take any value from 0, for normal vision (the default), and 1, for dichromatic vision.
+#' @param colorspace A color space to generate colors from. See
+#'   ?qualpalr::qualpal. If NULL computed regarding the number of asked color.
+#' @param cvd Color vision deficiency adaptation. Use cvd_severity to set the
+#'   severity of color vision deficiency to adapt to. Permissible values are
+#'   "protan", "deutan", and "tritan".
+#' @param cvd_severity Severity of color vision deficiency to adapt to. Can take
+#'   any value from 0, for normal vision (the default), and 1, for dichromatic
+#'   vision.
 #'
 #' @return Colors in hex format.
 #' @export
@@ -166,14 +177,15 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 #'
 mostDistantColor <-
     function(n,
-             colorspace = NULL,
-             cvd = c("protan", "deutan", "tritan"),
-             cvd_severity = 0) {
+            colorspace = NULL,
+            cvd = c("protan", "deutan", "tritan"),
+            cvd_severity = 0) {
         if (n == 1)
             return("#000000")
         # test if qualpalr is installed
         if (!requireNamespace("qualpalr", quietly = TRUE)) {
-            warning("qualpalr is not installed, please install for getting better colors.")
+            warning("qualpalr is not installed, ",
+                    "please install for getting better colors.")
             return(ggplotColours(n))
         } else{
             if (is.null(colorspace)) {
@@ -196,10 +208,13 @@ mostDistantColor <-
 
 #' Compute density value for the point of a a 2D-space
 #'
-#' @param mat numeric matrix of point coordinates. Each row is a point, 1st column = x, 2nd column=y.
-#' @param eps radius of the eps-neighborhood, i.e., bandwidth of the uniform kernel).
+#' @param mat numeric matrix of point coordinates. Each row is a point, 1st
+#'   column = x, 2nd column=y.
+#' @param eps radius of the eps-neighborhood, i.e., bandwidth of the uniform
+#'   kernel).
 #'
-#' @return A vector of numeric value of the length equal to the number of points representing the density
+#' @return A vector of numeric value of the length equal to the number of points
+#'   representing the density
 #' @export
 #'
 #' @examples
@@ -238,7 +253,8 @@ log10plus1 <- function() {
 #' Plot colors
 #'
 #' @param colorScale Character vector, Colors to plot.
-#' @param continuousStep Number of plotted color with intermediate between the given colors.
+#' @param continuousStep Number of plotted color with intermediate between the
+#'   given colors.
 #'
 #' @return NULL, draw in current graphic device.
 #' @export
@@ -262,8 +278,9 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
         if (!is.null(names(colorScale)))
             axis(1, seq_along(colorScale), names(colorScale))
     } else{
-        br = round(seq(1, continuousStep, length.out = length(colorScale)))
-        cols = circlize::colorRamp2(breaks = br, colors = colorScale)(seq_len(continuousStep))
+        br <- round(seq(1, continuousStep, length.out = length(colorScale)))
+        cols <- colorRamp2(breaks = br,
+                        colors = colorScale)(seq_len(continuousStep))
         image(
             seq_len(continuousStep),
             1,
@@ -283,17 +300,25 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
 #'
 #' @param colors A character vector containing the colors.
 #' @param values A numeric vector of the value to has to be mapped to colors.
-#' @param useProb Logical. Use quantile probability to map the colors. Else the min and max of values will be mapped to first and last color and interpolated continuously.
-#' @param probs A numeric vector (between 0 and 1) same length as color or NULL. Quantile probability of the values that will be mapped to colors.
-#' @param minProb A numeric value (between 0 and 1). If `useProb=TRUE` and `probs=NULL` this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.
+#' @param useProb Logical. Use quantile probability to map the colors. Else the
+#'   min and max of values will be mapped to first and last color and
+#'   interpolated continuously.
+#' @param probs A numeric vector (between 0 and 1) same length as color or NULL.
+#'   Quantile probability of the values that will be mapped to colors.
+#' @param minProb A numeric value (between 0 and 1). If `useProb=TRUE` and
+#'   `probs=NULL` this will be the quantile of the value for the first color,
+#'   quantile will be mapped continuously as to the maxProb.
 #' @param maxProb A numeric value (between 0 and 1).
 #' @param midColorIs0 Logical. Force that 0 return the midColor.
-#' @param returnColorFun Logical.Return converted values to colors or the scale function.
+#' @param returnColorFun Logical.Return converted values to colors or the scale
+#'   function.
 #' @param returnGGscale Logical. Return a ggplot2 gradiantn scale.
 #' @param geomAes "fill" or "color". Ggplot layer that will receive the scale.
-#' @param geomArgument list of additional argument to pass to the ggplot2 gradiantn scale.
+#' @param geomArgument list of additional argument to pass to the ggplot2
+#'   gradiantn scale.
 #'
-#' @return A vector of colors, or a function if `returnColorFun=TRUE` or a ggplot scale if `returnGGscale=TRUE`.
+#' @return A vector of colors, or a function if `returnColorFun=TRUE` or a
+#'   ggplot scale if `returnGGscale=TRUE`.
 #' @export
 #'
 #' @examples
@@ -335,34 +360,46 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
 #'     )
 #' )
 #'
-#' colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,
-#'                                returnColorFun = TRUE,useProb = TRUE)
-#' plotPalette(c(colorFun(-1),colorFun(0),colorFun(1)))
+#' colorFun <-
+#'     computeColorScaleFun(
+#'         colors = c("blue", "white", "red"),
+#'         values = values,
+#'         returnColorFun = TRUE,
+#'         useProb = TRUE
+#'     )
+#' plotPalette(c(colorFun(-1), colorFun(0), colorFun(1)))
 #'
-#' dat<-data.frame(x=rnorm(10),y=rnorm(10),expr=rnorm(10))
-#' ggplot(dat,aes(x=x,y=y,fill=expr))+
-#'     geom_point(size=5,shape=21)+theme_bw()+
-#'     computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,
-#'                        useProb = TRUE,geomAes = "fill")
+#' dat <- data.frame(x = rnorm(10),
+#'                   y = rnorm(10),
+#'                   expr = rnorm(10))
+#' ggplot(dat, aes(x = x, y = y, fill = expr)) +
+#'     geom_point(size = 5, shape = 21) + theme_bw() +
+#'     computeColorScaleFun(
+#'         colors = c("blue", "white", "red"),
+#'         values = dat$expr,
+#'         returnGGscale = TRUE,
+#'         useProb = TRUE,
+#'         geomAes = "fill"
+#'     )
 computeColorScaleFun <-
     function(colors,
-             values,
-             useProb = FALSE,
-             probs = NULL,
-             minProb = 0.05,
-             maxProb = 0.95,
-             midColorIs0 = FALSE,
-             returnColorFun = TRUE,
-             returnGGscale = FALSE,
-             geomAes = "fill",
-             geomArgument = list()) {
+            values,
+            useProb = FALSE,
+            probs = NULL,
+            minProb = 0.05,
+            maxProb = 0.95,
+            midColorIs0 = FALSE,
+            returnColorFun = TRUE,
+            returnGGscale = FALSE,
+            geomAes = "fill",
+            geomArgument = list()) {
         if (is.null(values))
             stop("values cannot be NULL")
         if (!useProb) {
-            breaks = seq(min(values), max(values), length.out = length(colors))
+            breaks <- seq(min(values), max(values), length.out = length(colors))
         } else{
             if (is.null(probs)) {
-                probs = seq(minProb, maxProb, length.out = length(colors))
+                probs <- seq(minProb, maxProb, length.out = length(colors))
             }
             breaks <- quantile(values, probs = probs)
         }
@@ -385,7 +422,8 @@ computeColorScaleFun <-
 
             geomArgument$values <- scaledBreaks
             geomArgument$colors <- colors
-            return(do.call(paste0("scale_", geomAes, "_gradientn"), geomArgument))
+            return(do.call(paste0("scale_", geomAes, "_gradientn"),
+                        geomArgument))
         }
         if (returnColorFun) {
             return(colorFun)
@@ -398,19 +436,26 @@ computeColorScaleFun <-
 
 #' Generate a list of value/color mapping
 #'
-#' @param annots Dataframe. Can contain factors or numeric. Contains the values that has to be mapped.
-#' @param colorScales
-#' List or NULL. Precomputed color scales. Color scales will be only generated for the features not described.
-#' Must be in the format of a list named by columns of `annots`.
-#' Each element contains the colors at breaks for continuous values or a mapping function if `returnContinuousFun=TRUE` (a function that return a color for a given numeric value).
-#' In the case of factors, the colors are named to their corresponding level, or in the order of the levels.
-#' @param discreteFuns A list functions that take a single integer n and return n colors.
-#' If several functions are provided it will be used for each factor column successively.
-#' @param returnContinuousFun Logical. Return a mapping function for continuous values instead of a vector of colors.
-#' @param continuousPalettes A list of color vector. If several vector are provided it will be used for each numerical column successively.
+#' @param annots Dataframe. Can contain factors or numeric. Contains the values
+#'   that has to be mapped.
+#' @param colorScales List or NULL. Precomputed color scales. Color scales will
+#'   be only generated for the features not described. Must be in the format of
+#'   a list named by columns of `annots`. Each element contains the colors at
+#'   breaks for continuous values or a mapping function if
+#'   `returnContinuousFun=TRUE` (a function that return a color for a given
+#'   numeric value). In the case of factors, the colors are named to their
+#'   corresponding level, or in the order of the levels.
+#' @param discreteFuns A list functions that take a single integer n and return
+#'   n colors. If several functions are provided it will be used for each factor
+#'   column successively.
+#' @param returnContinuousFun Logical. Return a mapping function for continuous
+#'   values instead of a vector of colors.
+#' @param continuousPalettes A list of color vector. If several vector are
+#'   provided it will be used for each numerical column successively.
 #' @param ... Parameters passed to `computeColorScaleFun`.
 #'
-#' @return A list describing the color scale of each column of `annots`, in the same format than the argument `colorScales`
+#' @return A list describing the color scale of each column of `annots`, in the
+#'   same format than the argument `colorScales`
 #' @export
 #'
 #' @examples
@@ -433,7 +478,10 @@ computeColorScaleFun <-
 #'
 #' library(ComplexHeatmap)
 #' Heatmap(
-#'     rowScale(t(iris[, c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]),
+#'     rowScale(t(
+#'         iris[, c("Sepal.Length", "Sepal.Width",
+#'             "Petal.Length", "Petal.Width")]
+#'     ),
 #'     center = TRUE, scaled = TRUE),
 #'     top_annotation = genTopAnnot(iris["Species"], colorScales =
 #'                                      colorScales["Species"])
@@ -441,20 +489,19 @@ computeColorScaleFun <-
 
 genColorsForAnnots <-
     function(annots,
-             colorScales = NULL,
-             discreteFuns = list(oobColors, mostDistantColor, mostDistantColor),
-             returnContinuousFun = FALSE ,
-             continuousPalettes = list(
-                 c("#440154", "#6BA75B", "#FDE725"),
-                 c("#2EB538", "#1D1D1B", "#DC0900"),
-                 c("#FFFFC6", "#FF821B", "#950961")
-             ),
-             ...) {
+            colorScales = NULL,
+            discreteFuns = list(oobColors, mostDistantColor, mostDistantColor),
+            returnContinuousFun = FALSE ,
+            continuousPalettes = list(
+                c("#440154", "#6BA75B", "#FDE725"),
+                c("#2EB538", "#1D1D1B", "#DC0900"),
+                c("#FFFFC6", "#FF821B", "#950961")
+            ),
+            ...) {
         if (is.null(colnames(annots)))
             stop("annots must have colnames.")
         annotNames <- colorScalesToGen <- colnames(annots)
         newColorScales <- list()
-
         if (!is.null(colorScales)) {
             for (colorScaleName in names(colorScales)) {
                 if (!colorScaleName %in% colorScalesToGen)
@@ -470,7 +517,8 @@ genColorsForAnnots <-
                     if (is.numeric(annotVect)) {
                         warning(
                             colorScaleName,
-                            " is numeric but encoded as factors (color vector has names). It will be converted to factors."
+                            " is numeric but encoded as factors (color vector ",
+                            "has names). It will be converted to factors."
                         )
                         annots[, colorScaleName] <-
                             as.factor(as.character(colData[, colorScaleName]))
@@ -478,14 +526,16 @@ genColorsForAnnots <-
                     } else if (!is.factor(annotVect)) {
                         stop(
                             colorScaleName,
-                            " is not factors or numeric, please check the sample annotation table."
+                            " is not factors or numeric, please check the ",
+                            "sample annotation table."
                         )
                     }
                     if (sum(!levels(annotVect) %in% names(colorScale)) > 0)
                         stop(
                             "Levels of ",
                             colorScaleName,
-                            " are existing in sample annotation table but not in provided color scale."
+                            " are existing in sample annotation table but ",
+                            "not in provided color scale."
                         )
                     newColorScales[[colorScaleName]] <-
                         colorScale[levels(annotVect)]
@@ -494,24 +544,25 @@ genColorsForAnnots <-
                     if (!is.numeric(annotVect))
                         stop(
                             colorScaleName,
-                            " is not numeric but encoded as numeric (color vector has no names)"
+                            " is not numeric but encoded as numeric ",
+                            "(color vector has no names)"
                         )
                     if (is.function(colorScale) &
                         !returnContinuousFun)
                         stop(
-                            "You must not provide function in colorScales if returnContinuousFun=FALSE"
+                            "You must not provide function in colorScales ",
+                            "if returnContinuousFun=FALSE"
                         )
                     if (!is.function(colorScale) &
                         returnContinuousFun) {
                         newColorScales[[colorScaleName]] <-
                             computeColorScaleFun(colorScale,
-                                                 values = annotVect,
-                                                 returnColorFun = TRUE,
-                                                 ...)
+                                values = annotVect,
+                                returnColorFun = TRUE,
+                                ...)
                     } else{
                         newColorScales[[colorScaleName]] <- colorScale
                     }
-
                 }
             }
             colorScalesToGen <-
@@ -552,7 +603,8 @@ genColorsForAnnots <-
         newColorScales
     }
 
-#' Add line break between factors and remove line in the middle if x axis is discrete.
+#' Add line break between factors and remove line in the middle if x axis is
+#' discrete.
 #'
 #' @param gg ggplot object
 #' @param borderSize Single numeric value. Size width of the line.
@@ -567,8 +619,8 @@ genColorsForAnnots <-
 #' ggBorderedFactors(g)
 #' ggBorderedFactors(g,borderColor="white",borderSize=1.5)
 ggBorderedFactors <- function(gg,
-                              borderSize = .75,
-                              borderColor = "grey75") {
+                            borderSize = .75,
+                            borderColor = "grey75") {
     nX <- nlevels(as.factor(gg$data[, quo_name(gg$mapping$x)]))
     gg + geom_vline(
         xintercept = seq(1.5, nX - 0.5, 1),
@@ -588,8 +640,14 @@ ggBorderedFactors <- function(gg,
 #' @param y Numeric. Y coordinate of the arrow.
 #' @param width Numeric. X coordinate of the arrow.
 #' @param height Numeric. X coordinate of the arrow.
-#' @param just A string or numeric vector specifying the justification of the viewport relative to its (x, y) location. If there are two values, the first value specifies horizontal justification and the second value specifies vertical justification. Possible string values are: "left", "right", "centre", "center", "bottom", and "top". For numeric values, 0 means left alignment and 1 means right alignment.
-#' @param gp An object of class "gpar", typically the output from a call to the function gpar. This is basically a list of graphical parameter settings
+#' @param just A string or numeric vector specifying the justification of the
+#'   viewport relative to its (x, y) location. If there are two values, the
+#'   first value specifies horizontal justification and the second value
+#'   specifies vertical justification. Possible string values are: "left",
+#'   "right", "centre", "center", "bottom", and "top". For numeric values, 0
+#'   means left alignment and 1 means right alignment.
+#' @param gp An object of class "gpar", typically the output from a call to the
+#'   function gpar. This is basically a list of graphical parameter settings
 #' @param ... Other parameters passed to pushViewport.
 #'
 #' @return Plot in the current graphical device.
@@ -601,12 +659,12 @@ ggBorderedFactors <- function(gg,
 #' filledDoubleArrow()
 filledDoubleArrow <-
     function(x = 0,
-             y = 0,
-             width = 1,
-             height = 1,
-             just = c("left", "bottom"),
-             gp = gpar(col = "black"),
-             ...) {
+            y = 0,
+            width = 1,
+            height = 1,
+            just = c("left", "bottom"),
+            gp = gpar(col = "black"),
+            ...) {
         pushViewport(viewport(
             x = x,
             y = y,
@@ -626,21 +684,27 @@ filledDoubleArrow <-
 
 #' Plot the expression of one or several genes
 #'
-#' @param expr Numeric 2D matrix. Each row is gene and each column a sample. Row must be named by genes.
-#' @param group Factor vector, same length as number of column in expr. Experimental group attributed to each sample.
-#' @param log10Plus1yScale Logical or NULL. Use a `log10(x+1)` scale. By default `FALSE` if one gene and `TRUE` if several.
+#' @param expr Numeric 2D matrix. Each row is gene and each column a sample. Row
+#'   must be named by genes.
+#' @param group Factor vector, same length as number of column in expr.
+#'   Experimental group attributed to each sample.
+#' @param log10Plus1yScale Logical or NULL. Use a `log10(x+1)` scale. By default
+#'   `FALSE` if one gene and `TRUE` if several.
 #' @param violin Logical. Plot violin plots.
 #' @param boxplot Logical. Plot violin plots.
 #' @param dotplot Logical. Plot dot plots.
 #' @param violinArgs List. Additional arguments given to `geom_violin`.
 #' @param boxplotArgs List. Additional arguments given to `geom_boxplot`.
 #' @param dotplotArgs List. Additional arguments given to `geom_beeswarm`.
-#' @param colorScale A list of color. Must be the same length as number of levels in group.
+#' @param colorScale A list of color. Must be the same length as number of
+#'   levels in group.
 #' @param legendTitle Character. Displayed in legend title.
-#' @param dodge.width Numeric. Width of individual distribution element (violin/boxplot/dotplot).
+#' @param dodge.width Numeric. Width of individual distribution element
+#'   (violin/boxplot/dotplot).
 #' @param returnGraph Logical. Print the ggplot object or return it.
 #'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @return Plot in the current graphical device or a ggplot object if
+#'   `returnGraph=TRUE`.
 #' @export
 #'
 #' @examples
@@ -669,24 +733,24 @@ filledDoubleArrow <-
 
 plotExpr <-
     function(expr,
-             group = NULL,
-             log10Plus1yScale = NULL,
-             violin = TRUE,
-             boxplot = TRUE,
-             dotplot = FALSE,
-             violinArgs = list(),
-             boxplotArgs = list(),
-             dotplotArgs = list(),
-             colorScale = mostDistantColor,
-             legendTitle = "group",
-             dodge.width = .9,
-             returnGraph = FALSE) {
-        barplotGraph = greyGraph = coloredGraph = FALSE
+            group = NULL,
+            log10Plus1yScale = NULL,
+            violin = TRUE,
+            boxplot = TRUE,
+            dotplot = FALSE,
+            violinArgs = list(),
+            boxplotArgs = list(),
+            dotplotArgs = list(),
+            colorScale = mostDistantColor,
+            legendTitle = "group",
+            dodge.width = .9,
+            returnGraph = FALSE) {
+        barplotGraph <- greyGraph <- coloredGraph <- FALSE
 
         if (is.vector(expr))
             expr <- t(as.matrix(expr))
         if (is.vector(group) | is.factor(group)) {
-            group = data.frame(group = group, stringsAsFactors = TRUE)
+            group <- data.frame(group = group, stringsAsFactors = TRUE)
             rownames(group) <- colnames(expr)
         }
 
@@ -694,7 +758,8 @@ plotExpr <-
             expr <- as.matrix(expr)
         if (is.null(log10Plus1yScale))
             log10Plus1yScale <-
-                nrow(expr) > 1 #if more than one gene log10Plus1yScale is turned on
+                nrow(expr) > 1
+        #if more than one gene log10Plus1yScale is turned on
 
         if (is.null(group)) {
             if (nrow(expr) < 2) {
@@ -704,11 +769,17 @@ plotExpr <-
                 ggData <-
                     data.frame(
                         expression = expr[1,],
-                        sample = factor(colnames(expr), levels = colnames(expr)[order(expr[1,], decreasing = TRUE)])
+                        sample = factor(
+                            colnames(expr), levels =
+                                colnames(expr)[order(expr[1,],
+                                    decreasing = TRUE)]
+                        )
                     )
                 ggData$sample <- factor(ggData$sample)
                 g <-
-                    ggplot(ggData, mapping = aes(x = .data$sample, y = .data$expression)) + geom_bar(stat = "identity") +
+                    ggplot(ggData, mapping =
+                            aes(x = .data$sample, y = .data$expression)) +
+                    geom_bar(stat = "identity") +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -718,12 +789,15 @@ plotExpr <-
             } else{
                 ggData <-
                     reshape2::melt(expr,
-                                   value.name = "expression",
-                                   varnames = c("gene", "sample"))
+                                value.name = "expression",
+                                varnames = c("gene", "sample"))
                 ggData$gene <-
                     factor(ggData$gene, levels = rownames(expr))
                 g <-
-                    ggplot(ggData, mapping = aes(x = .data$gene, y = .data$expression)) +
+                    ggplot(ggData, mapping = aes(
+                        x = .data$gene,
+                        y = .data$expression)
+                        ) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -742,7 +816,8 @@ plotExpr <-
             if (nrow(expr) == 1) {
                 ggData <- data.frame(expression = expr[1,], group)
                 g <-
-                    ggplot(ggData, mapping = aes(x = .data[[groupName]], y = .data$expression)) +
+                    ggplot(ggData, mapping = aes(x = .data[[groupName]],
+                                            y = .data$expression)) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
@@ -751,7 +826,7 @@ plotExpr <-
                     ))
                 greyGraph <- TRUE
             } else{
-                coloredGraph = TRUE
+                coloredGraph <- TRUE
                 ggData <-
                     reshape2::melt(
                         data.frame(t(expr), group),
@@ -766,11 +841,13 @@ plotExpr <-
                     if (length(factor2drop) > 1)
                         warning(
                             paste0(factor2drop, collapse = " "),
-                            " were dropped (n<3 is not compatible with violin plot). You can deactivate violin layer by setting violin argument to FALSE"
+                            " were dropped (n<3 is not compatible with violin",
+                            " plot). You can deactivate violin layer by ",
+                            "setting violin argument to FALSE"
                         )
                     ggData <-
-                        ggData[!ggData[, groupName] %in% factor2drop,] #drop levels where n < 3
-
+                        ggData[!ggData[, groupName] %in% factor2drop,]
+                    #drop levels where n < 3
                 }
                 colors <-
                     if (is.function(colorScale))
@@ -779,19 +856,21 @@ plotExpr <-
                     colorScale
                 g <-
                     ggplot(ggData,
-                           mapping = aes(
-                               x = .data$gene,
-                               y = .data$expression,
-                               fill = .data[[groupName]]
-                           )) +
+                        mapping = aes(
+                            x = .data$gene,
+                            y = .data$expression,
+                            fill = .data[[groupName]]
+                        )) +
                     theme_bw() + theme(axis.text.x = element_text(
                         angle = 90,
                         hjust = 1,
                         vjust = .3,
                         face = "bold.italic"
                     )) +
-                    scale_fill_manual(values = colors[!levels(group[, 1]) %in% factor2drop], name =
-                                          legendTitle)
+                    scale_fill_manual(
+                        values = colors[!levels(group[, 1]) %in% factor2drop],
+                        name =legendTitle
+                    )
             }
         }
         if (greyGraph) {
@@ -818,8 +897,8 @@ plotExpr <-
         }
         if (!barplotGraph) {
             g <- ggBorderedFactors(g,
-                                   borderColor = "black",
-                                   borderSize = .5)
+                        borderColor = "black",
+                        borderSize = .5)
             if (violin)
                 g <- g + do.call("geom_violin", violinArgs)
             if (boxplot)
@@ -833,7 +912,8 @@ plotExpr <-
             breaks <- c(0, 2, round(10 ^ (seq(
                 1, ncharMaxExpr, 0.5
             ))))
-            #breaks<-c(0,rbind(breaks/2,breaks)) #intelacing 1,10,100... and 5,50,500...
+            #breaks<-c(0,rbind(breaks/2,breaks))
+            #intelacing 1,10,100... and 5,50,500...
             if (maxExpr < breaks[length(breaks) - 1])
                 breaks <- breaks[seq_along(breaks) - 1]
             g <-
@@ -856,16 +936,21 @@ plotExpr <-
 #'
 #' @param DEresult Dataframe that contains at least those columns:
 #' - padj (adjusted p-value)
-#' - isDE (a character vector equal to "NONE" if the gene is not DE, "DOWNREG" or "UPREG" if DE).
+#' - isDE (a character vector equal to "NONE" if the gene is not DE,
+#'  "DOWNREG" or "UPREG" if DE).
 #' - log2FoldChange
-#' Row must be named by genes.
+#'   Row must be named by genes.
 #' @param formula Character. Design formula given to DESeq2.
-#' @param downLevel Character. Condition considered as the reference. If a gene is more expressed in this condition, LFC < 0.
-#' @param upLevel Character. Condition considered as the target group. If a gene is more expressed in this condition, LFC > 0.
-#' @param condColumn Character. Name of the experimental variable that have been used for differential expression.
+#' @param downLevel Character. Condition considered as the reference. If a gene
+#'   is more expressed in this condition, LFC < 0.
+#' @param upLevel Character. Condition considered as the target group. If a gene
+#'   is more expressed in this condition, LFC > 0.
+#' @param condColumn Character. Name of the experimental variable that have been
+#'   used for differential expression.
 #' @param padjThreshold Numeric. Significance threshold of the adjusted p-value.
 #' @param LFCthreshold Numeric. Significance threshold of the Log2 Fold-Change.
-#' @param topGene Integer. Number of gene name to be shown on the plot. Genes names are plotted from the most significant.
+#' @param topGene Integer. Number of gene name to be shown on the plot. Genes
+#'   names are plotted from the most significant.
 #'
 #' @return Plot in the current graphical device.
 #' @export
@@ -874,16 +959,15 @@ plotExpr <-
 #' data("DEgenesPrime_Naive")
 #' volcanoPlot.DESeq2(DEgenesPrime_Naive,formula = "~culture_media+Run",
 #'     condColumn = "culture_media",downLevel = "KSR+FGF2",upLevel = "T2iLGO")
-
 volcanoPlot.DESeq2 <-
     function(DEresult,
-             formula,
-             downLevel,
-             upLevel,
-             condColumn,
-             padjThreshold = 0.05,
-             LFCthreshold = 1,
-             topGene = 30) {
+            formula,
+            downLevel,
+            upLevel,
+            condColumn,
+            padjThreshold = 0.05,
+            LFCthreshold = 1,
+            topGene = 30) {
         DEresult <- DEresult[!is.na(DEresult$padj),]
         gene2Plot <- order(DEresult$padj)
         gene2Plot <-
@@ -892,12 +976,13 @@ volcanoPlot.DESeq2 <-
             gene2Plot[seq_len(min(topGene, length(gene2Plot)))]
         g <-
             ggplot(DEresult,
-                   aes(
-                       x = .data$log2FoldChange,
-                       y = -log10(.data$padj),
-                       color = .data$isDE
-                   )) +
-            geom_point(size = 1) + theme_bw() + scale_color_manual(values = c("#3AAA35", "grey75", "#E40429")) +
+                aes(
+                    x = .data$log2FoldChange,
+                    y = -log10(.data$padj),
+                    color = .data$isDE
+                )) +
+            geom_point(size = 1) + theme_bw() +
+            scale_color_manual(values = c("#3AAA35", "grey75", "#E40429")) +
             geom_text_repel(
                 data = DEresult[gene2Plot,],
                 aes(
@@ -912,7 +997,8 @@ volcanoPlot.DESeq2 <-
             ) +
             ylab("-log10(adjusted pvalue)") + xlab(NULL) +
             geom_vline(xintercept = c(-LFCthreshold, LFCthreshold)) +
-            geom_hline(yintercept = -log10(padjThreshold)) + guides(color = "none") +
+            geom_hline(yintercept = -log10(padjThreshold)) +
+            guides(color = "none") +
             ggtitle("Volcano plot")
 
         grid.newpage()
@@ -967,7 +1053,8 @@ volcanoPlot.DESeq2 <-
             just = c("left", "center")
         )
         grid.text(
-            label = paste0("Results for\n", condColumn, ":\n", downLevel, " vs ", upLevel),
+            label = paste0("Results for\n", condColumn, ":\n",
+                        downLevel, " vs ", upLevel),
             x = .0,
             y = .8,
             just = c("left", "center")
@@ -979,7 +1066,6 @@ volcanoPlot.DESeq2 <-
             just = c("left", "center"),
             gp = gpar(col = "#3AAA35", fontface = "bold")
         )
-
         grid.text(
             label = paste0(sum(DEresult$isDE == "UPREG"), " upreg. genes"),
             x = .0,
@@ -1011,7 +1097,8 @@ volcanoPlot.DESeq2 <-
 #' @param n Number of returned colors.
 #' @param colors Vector of colors.
 #' @param sortColorIn Order color vector by similarity before the interpolation.
-#' @param sortColorOut Order color vector by dissimilarity after the interpolation.
+#' @param sortColorOut Order color vector by dissimilarity after the
+#'   interpolation.
 #'
 #' @return Vector of colors.
 #' @export
@@ -1021,35 +1108,35 @@ volcanoPlot.DESeq2 <-
 #' extendColorPalette(9,  colors=c("red","green","blue"),
 #'     sortColorIn=TRUE, sortColorOut=TRUE) |> plotPalette()
 extendColorPalette <- function(n,
-                               colors = c(
-                                   "#E52421",
-                                   "#66B32E",
-                                   "#2A4B9B",
-                                   "#6EC6D9",
-                                   "#F3E600",
-                                   "#A6529A",
-                                   "#7C1623",
-                                   "#006633",
-                                   "#29235C",
-                                   "#0084BC",
-                                   "#E6007E",
-                                   "#F49600",
-                                   "#E3E3E3",
-                                   "#626F72",
-                                   "#040505",
-                                   "#E74B65",
-                                   "#95B37F",
-                                   "#683C11",
-                                   "#F8BAA0",
-                                   "#DD8144"
-                               ),
-                               sortColorIn = FALSE,
-                               sortColorOut = FALSE) {
+                            colors = c(
+                                "#E52421",
+                                "#66B32E",
+                                "#2A4B9B",
+                                "#6EC6D9",
+                                "#F3E600",
+                                "#A6529A",
+                                "#7C1623",
+                                "#006633",
+                                "#29235C",
+                                "#0084BC",
+                                "#E6007E",
+                                "#F49600",
+                                "#E3E3E3",
+                                "#626F72",
+                                "#040505",
+                                "#E74B65",
+                                "#95B37F",
+                                "#683C11",
+                                "#F8BAA0",
+                                "#DD8144"
+                            ),
+                            sortColorIn = FALSE,
+                            sortColorOut = FALSE) {
     if (sortColorIn)
         colors <- sortColorByDistance(colors)
     colorFun <-
         circlize::colorRamp2(breaks = seq(0, 1, length.out = length(colors)),
-                             colors = colors)
+                            colors = colors)
     colorOut <- colorFun(seq(0, 1, length.out = n))
     if (sortColorOut)
         colorOut <-
@@ -1080,7 +1167,8 @@ sortColorByDistance <-
     function(colorVector, byDissimilarity = FALSE) {
         d <- col2rgb(colorVector) |> t()
         d <-
-            grDevices::convertColor(d, from = "sRGB", to = "Lab") |> dist(method = "manhattan")
+            grDevices::convertColor(d, from = "sRGB", to = "Lab") |>
+            dist(method = "manhattan")
         if (byDissimilarity)
             d <- max(d) - d
         colorVector[hclust(d)$order]
@@ -1149,7 +1237,8 @@ oobColors <- function(n = 20) {
 #'
 #' @examples
 #' data("DEgenesPrime_Naive")
-#' custom_scale<-scales::trans_new(name = "invLog10", transform = function(x) -log10(x),
+#' custom_scale<-scales::trans_new(name = "invLog10",
+#'     transform = function(x) -log10(x),
 #'     inverse = function(x) 10^(-x), domain = c(0, Inf))
 #' breaks <- ggplotBreak(DEgenesPrime_Naive$pvalue, custom_scale)
 #' ggplot(DEgenesPrime_Naive, aes(x=log2FoldChange, y=pvalue)) +
@@ -1165,18 +1254,29 @@ ggplotBreak <- function(x, scale, m = 5) {
 
 #' General volcano plot
 #'
-#' @param d A dataframe containing the data needed for the volcano plot. Must have column names. Can be `NULL` if `effectSizeCol`, `adjPvalCol` and `labelCol` are vectors.
-#' @param effectSizeCol Column name containing the effect size column (Log2FoldChange for example). Can also be a vector of numeric containing the effect size values.
-#' @param adjPvalCol Column name containing the adjusted pval column. Can also be a vector of numeric containing the padj values.
-#' @param labelCol Column name containing the feature name column (gene name for example).  Can also be a vector of character containing the labels.
-#' @param padjThres Significativity threshold of adjusted p-value for consider a feature significant.
-#' @param minEffectSize Absolute minimum effect size to consider a feature significant.
-#' @param topShownPerSide Number of feature shown at the left and right side of the volcano plot.
-#' @param returnGraph Logical. Return the graph as a ggplot object instead of printing it.
+#' @param d A dataframe containing the data needed for the volcano plot. Must
+#'   have column names. Can be `NULL` if `effectSizeCol`, `adjPvalCol` and
+#'   `labelCol` are vectors.
+#' @param effectSizeCol Column name containing the effect size column
+#'   (Log2FoldChange for example). Can also be a vector of numeric containing
+#'   the effect size values.
+#' @param adjPvalCol Column name containing the adjusted pval column. Can also
+#'   be a vector of numeric containing the padj values.
+#' @param labelCol Column name containing the feature name column (gene name for
+#'   example).  Can also be a vector of character containing the labels.
+#' @param padjThres Significativity threshold of adjusted p-value for consider a
+#'   feature significant.
+#' @param minEffectSize Absolute minimum effect size to consider a feature
+#'   significant.
+#' @param topShownPerSide Number of feature shown at the left and right side of
+#'   the volcano plot.
+#' @param returnGraph Logical. Return the graph as a ggplot object instead of
+#'   printing it.
 #' @param neutralVal Value considered as null effect size.
 #' @param ... Parameters passed to geom_repel
 #'
-#' @return Plot in the current graphical device or a ggplot object if `returnGraph=TRUE`.
+#' @return Plot in the current graphical device or a ggplot object if
+#'   `returnGraph=TRUE`.
 #' @export
 #'
 #' @examples
@@ -1188,27 +1288,28 @@ ggplotBreak <- function(x, scale, m = 5) {
 #'
 volcanoPlot <-
     function(d = NULL,
-             effectSizeCol,
-             adjPvalCol,
-             labelCol,
-             padjThres = 0.05,
-             minEffectSize = 0,
-             topShownPerSide = 15,
-             returnGraph = FALSE,
-             neutralVal = 0,
-             ...) {
+            effectSizeCol,
+            adjPvalCol,
+            labelCol,
+            padjThres = 0.05,
+            minEffectSize = 0,
+            topShownPerSide = 15,
+            returnGraph = FALSE,
+            neutralVal = 0,
+            ...) {
         if (is.null(d)) {
             if (!(is.numeric(effectSizeCol) &
-                  is.numeric(adjPvalCol) &
-                  length(labelCol) > 1))
-                stop("If d is null, other parameters must be vector of the same size")
+                is.numeric(adjPvalCol) &
+                length(labelCol) > 1))
+                stop("If d is null, other parameters must be vector ",
+                    "of the same size")
             d <-
                 data.frame(effectSize = effectSizeCol,
-                           adjPval = adjPvalCol,
-                           label = labelCol)
+                        adjPval = adjPvalCol,
+                        label = labelCol)
             effectSizeCol <- "effectSize"
             adjPvalCol <- "adjPval"
-            labelCol = "label"
+            labelCol <- "label"
 
         } else{
             d <- data.frame(d)
@@ -1233,10 +1334,8 @@ volcanoPlot <-
             if (!labelCol %in% colnames(d))
                 stop(labelCol, "is not a colname of d")
         }
-
         d <-
             d[, c(effectSizeCol, adjPvalCol, labelCol)] |> na.omit()
-
         scale <-
             scales::trans_new(
                 name = "invLog10",
@@ -1247,34 +1346,39 @@ volcanoPlot <-
                 domain = c(0, Inf)
             )
         breaks <- ggplotBreak(d[, adjPvalCol], scale)
-
         xlims <- max(abs(d[, effectSizeCol] - neutralVal))
         xlims <- c(neutralVal - xlims, neutralVal + xlims)
-
         isNegEffectSize <- d[, effectSizeCol] < neutralVal
-
         shownLabel <-
-            c(d[isNegEffectSize, labelCol][whichTop(d[isNegEffectSize, adjPvalCol], top = topShownPerSide, decreasing = FALSE)],
-              d[!isNegEffectSize, labelCol][whichTop(d[!isNegEffectSize, adjPvalCol], top = topShownPerSide, decreasing = FALSE)])
-
+            c(
+                d[isNegEffectSize, labelCol][whichTop(
+                    d[isNegEffectSize, adjPvalCol],
+                    top = topShownPerSide, decreasing = FALSE
+                )],
+                d[!isNegEffectSize, labelCol][whichTop(
+                    d[!isNegEffectSize, adjPvalCol],
+                    top = topShownPerSide, decreasing = FALSE
+                )]
+            )
         d$significant <-
             d[, adjPvalCol] < padjThres &
             abs(d[, effectSizeCol] - neutralVal) > minEffectSize
-
         g <-
             ggplot(d,
-                   aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]], color = .data$significant)) +
+                aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]],
+                    color = .data$significant)) +
             scale_y_continuous(trans = scale, breaks = breaks) +
-            geom_point() + theme_bw() + scale_color_manual(values = c("grey75", "black")) +
+            geom_point() + theme_bw() +
+            scale_color_manual(values = c("grey75", "black")) +
             xlim(xlims) +
             ggrepel::geom_text_repel(
                 data = d[d[, labelCol] %in% shownLabel,],
-                aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]], label = .data[[labelCol]]),
+                aes(x = .data[[effectSizeCol]], y = .data[[adjPvalCol]],
+                    label = .data[[labelCol]]),
                 inherit.aes = FALSE,
                 color = "grey50",
                 ...
             )
-
         if (returnGraph) {
             return(g)
         } else{

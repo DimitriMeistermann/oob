@@ -23,26 +23,34 @@ computeColorScaleFun(
 
 \item{values}{A numeric vector of the value to has to be mapped to colors.}
 
-\item{useProb}{Logical. Use quantile probability to map the colors. Else the min and max of values will be mapped to first and last color and interpolated continuously.}
+\item{useProb}{Logical. Use quantile probability to map the colors. Else the
+min and max of values will be mapped to first and last color and
+interpolated continuously.}
 
-\item{probs}{A numeric vector (between 0 and 1) same length as color or NULL. Quantile probability of the values that will be mapped to colors.}
+\item{probs}{A numeric vector (between 0 and 1) same length as color or NULL.
+Quantile probability of the values that will be mapped to colors.}
 
-\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and \code{probs=NULL} this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
+\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and
+\code{probs=NULL} this will be the quantile of the value for the first color,
+quantile will be mapped continuously as to the maxProb.}
 
 \item{maxProb}{A numeric value (between 0 and 1).}
 
 \item{midColorIs0}{Logical. Force that 0 return the midColor.}
 
-\item{returnColorFun}{Logical.Return converted values to colors or the scale function.}
+\item{returnColorFun}{Logical.Return converted values to colors or the scale
+function.}
 
 \item{returnGGscale}{Logical. Return a ggplot2 gradiantn scale.}
 
 \item{geomAes}{"fill" or "color". Ggplot layer that will receive the scale.}
 
-\item{geomArgument}{list of additional argument to pass to the ggplot2 gradiantn scale.}
+\item{geomArgument}{list of additional argument to pass to the ggplot2
+gradiantn scale.}
 }
 \value{
-A vector of colors, or a function if \code{returnColorFun=TRUE} or a ggplot scale if \code{returnGGscale=TRUE}.
+A vector of colors, or a function if \code{returnColorFun=TRUE} or a
+ggplot scale if \code{returnGGscale=TRUE}.
 }
 \description{
 Compute a color scale function from numeric values by interpolation
@@ -86,13 +94,25 @@ plotPalette(
     )
 )
 
-colorFun<-computeColorScaleFun(colors = c("blue","white","red"),values = values,
-                               returnColorFun = TRUE,useProb = TRUE)
-plotPalette(c(colorFun(-1),colorFun(0),colorFun(1)))
+colorFun <-
+    computeColorScaleFun(
+        colors = c("blue", "white", "red"),
+        values = values,
+        returnColorFun = TRUE,
+        useProb = TRUE
+    )
+plotPalette(c(colorFun(-1), colorFun(0), colorFun(1)))
 
-dat<-data.frame(x=rnorm(10),y=rnorm(10),expr=rnorm(10))
-ggplot(dat,aes(x=x,y=y,fill=expr))+
-    geom_point(size=5,shape=21)+theme_bw()+
-    computeColorScaleFun(colors = c("blue","white","red"),values = dat$expr,returnGGscale = TRUE,
-                       useProb = TRUE,geomAes = "fill")
+dat <- data.frame(x = rnorm(10),
+                  y = rnorm(10),
+                  expr = rnorm(10))
+ggplot(dat, aes(x = x, y = y, fill = expr)) +
+    geom_point(size = 5, shape = 21) + theme_bw() +
+    computeColorScaleFun(
+        colors = c("blue", "white", "red"),
+        values = dat$expr,
+        returnGGscale = TRUE,
+        useProb = TRUE,
+        geomAes = "fill"
+    )
 }

@@ -11,9 +11,11 @@ oobFastMNN(logCounts, batch, k, returnRescale = TRUE, ...)
 
 \item{batch}{A vector or factor specifying the batch of origin for all cells}
 
-\item{k}{An integer scalar specifying the number of nearest neighbors to consider when identifying MNNs.}
+\item{k}{An integer scalar specifying the number of nearest neighbors to
+consider when identifying MNNs.}
 
-\item{returnRescale}{Logical. Use reScale on the output so the dymaic range after bacth correction of genes is the same than before.}
+\item{returnRescale}{Logical. Use reScale on the output so the dynamic range
+after batch correction of genes is the same than before.}
 
 \item{...}{Other parameters passed to fastMNN.}
 }
@@ -21,12 +23,15 @@ oobFastMNN(logCounts, batch, k, returnRescale = TRUE, ...)
 A matrix of corrected count table.
 }
 \description{
-Use fastMNN fron the package batchelor, but return a matrix. Rescale the counts so the range of each gene remains the same after the transformation.
+Use fastMNN fron the package batchelor, but return a matrix.
+Rescale the counts so the range of each gene remains the same after the
+transformation.
 }
 \examples{
 data("geneLengthGRCh38")
 countMat<-sapply(vector("numeric",length = 100),function(x){
-     c(MASS::rnegbin(10,mu = 50,theta = 5), MASS::rnegbin(10,mu = 10,theta = 5))
+     c(MASS::rnegbin(10,mu = 50,theta = 5),
+       MASS::rnegbin(10,mu = 10,theta = 5))
 }) |> t(); countMat<-log2(countMat+1)
 heatmap.DM(countMat)
 #warning because of the small matrix

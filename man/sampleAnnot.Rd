@@ -8,8 +8,8 @@
 A data.frame containing 77 observations for 18 features.
 }
 \description{
-Sample Annotation sheet (often referred as colData) for 77 bulk RNA-Seq samples used in
-Kilens, Meistermann et al. 2018.
+Sample Annotation sheet (often referred as colData) for 77 bulk
+RNA-Seq samples used in Kilens, Meistermann et al. 2018.
 }
 \references{
 \url{https://doi.org/10.1038/s41467-017-02107-w}

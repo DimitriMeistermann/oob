@@ -9,12 +9,14 @@ PCaov(pca, colData, nComponent = 10)
 \arguments{
 \item{pca}{A PCA as an object returned by \code{PCA} or \code{fastPCA}.}
 
-\item{colData}{A dataframe of feature (numeric or factor) with rows as samples.}
+\item{colData}{A dataframe of feature (numeric or factor) with rows as
+samples.}
 
 \item{nComponent}{Integer, number of PC used for the analysis.}
 }
 \value{
-A dataframe with the PC, percentage of sum of square and the corresponding p-value.
+A dataframe with the PC, percentage of sum of square and the
+corresponding p-value.
 }
 \description{
 Principal Component analysis of variance

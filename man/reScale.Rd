@@ -4,15 +4,17 @@
 \alias{reScale}
 \title{Put rows of a matrix on the same range than another.}
 \usage{
-reScale(matToAdjust, matGoodRange.)
+reScale(matToAdjust, matGoodRange)
 }
 \arguments{
-\item{matToAdjust}{Matrix of numeric where the range of each row has to be adjusted.}
+\item{matToAdjust}{Matrix of numeric where the range of each row has to be
+adjusted.}
 
-\item{matGoodRange.}{Matrix of numeric, same dimension as \code{matToAdjust}.}
+\item{matGoodRange}{Matrix of numeric, same dimension as \code{matToAdjust}.}
 }
 \value{
-Return \code{matToAdjust} but the each row has now same minimum and maximum to its corresponding row in matGoodRange.
+Return \code{matToAdjust} but the each row has now same minimum and
+maximum to its corresponding row in matGoodRange
 }
 \description{
 Put rows of a matrix on the same range than another.

@@ -13,6 +13,13 @@ inter(x, y, ...)
 
 \item{...}{Additional arguments passed to \code{intersect}.}
 }
+\value{
+A vector-like object.
+}
 \description{
 intersect alias
+}
+\examples{
+inter(1:10,5:15)
+
 }

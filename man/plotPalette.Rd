@@ -9,7 +9,8 @@ plotPalette(colorScale, continuousStep = NULL)
 \arguments{
 \item{colorScale}{Character vector, Colors to plot.}
 
-\item{continuousStep}{Number of plotted color with intermediate between the given colors.}
+\item{continuousStep}{Number of plotted color with intermediate between the
+given colors.}
 }
 \value{
 NULL, draw in current graphic device.

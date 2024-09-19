@@ -14,11 +14,16 @@ mostDistantColor(
 \arguments{
 \item{n}{The number of colors to generate.}
 
-\item{colorspace}{A color space to generate colors from. See ?qualpalr::qualpal. If NULL computed regarding the number of asked color.}
+\item{colorspace}{A color space to generate colors from. See
+?qualpalr::qualpal. If NULL computed regarding the number of asked color.}
 
-\item{cvd}{Color vision deficiency adaptation. Use cvd_severity to set the severity of color vision deficiency to adapt to. Permissible values are "protan", "deutan", and "tritan".}
+\item{cvd}{Color vision deficiency adaptation. Use cvd_severity to set the
+severity of color vision deficiency to adapt to. Permissible values are
+"protan", "deutan", and "tritan".}
 
-\item{cvd_severity}{Severity of color vision deficiency to adapt to. Can take any value from 0, for normal vision (the default), and 1, for dichromatic vision.}
+\item{cvd_severity}{Severity of color vision deficiency to adapt to. Can take
+any value from 0, for normal vision (the default), and 1, for dichromatic
+vision.}
 }
 \value{
 Colors in hex format.

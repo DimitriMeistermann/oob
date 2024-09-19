@@ -21,11 +21,14 @@ plotExpr(
 )
 }
 \arguments{
-\item{expr}{Numeric 2D matrix. Each row is gene and each column a sample. Row must be named by genes.}
+\item{expr}{Numeric 2D matrix. Each row is gene and each column a sample. Row
+must be named by genes.}
 
-\item{group}{Factor vector, same length as number of column in expr. Experimental group attributed to each sample.}
+\item{group}{Factor vector, same length as number of column in expr.
+Experimental group attributed to each sample.}
 
-\item{log10Plus1yScale}{Logical or NULL. Use a \code{log10(x+1)} scale. By default \code{FALSE} if one gene and \code{TRUE} if several.}
+\item{log10Plus1yScale}{Logical or NULL. Use a \code{log10(x+1)} scale. By default
+\code{FALSE} if one gene and \code{TRUE} if several.}
 
 \item{violin}{Logical. Plot violin plots.}
 
@@ -39,16 +42,19 @@ plotExpr(
 
 \item{dotplotArgs}{List. Additional arguments given to \code{geom_beeswarm}.}
 
-\item{colorScale}{A list of color. Must be the same length as number of levels in group.}
+\item{colorScale}{A list of color. Must be the same length as number of
+levels in group.}
 
 \item{legendTitle}{Character. Displayed in legend title.}
 
-\item{dodge.width}{Numeric. Width of individual distribution element (violin/boxplot/dotplot).}
+\item{dodge.width}{Numeric. Width of individual distribution element
+(violin/boxplot/dotplot).}
 
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
 }
 \value{
-Plot in the current graphical device or a ggplot object if \code{returnGraph=TRUE}.
+Plot in the current graphical device or a ggplot object if
+\code{returnGraph=TRUE}.
 }
 \description{
 Plot the expression of one or several genes

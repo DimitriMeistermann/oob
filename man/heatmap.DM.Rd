@@ -46,7 +46,8 @@ heatmap.DM(
 \arguments{
 \item{matrix}{A matrix. Either numeric or character. If it is a simple vector, it will be converted to a one-column matrix.}
 
-\item{preSet}{A value from \code{"expr"}, \code{"cor"}, \code{"dist"} or \code{NULL}. Change other arguments given a specific preset (default preSet if NULL).}
+\item{preSet}{A value from \code{"expr"}, \code{"cor"}, \code{"dist"} or \code{NULL}. Change
+other arguments given a specific preset (default preSet if NULL).}
 
 \item{clustering_distance_rows}{It can be a pre-defined character which is in  ("euclidean", "maximum", "manhattan", "canberra", "binary",  "minkowski", "pearson", "spearman", "kendall"). It can also be a function. If the function has one argument, the input argument should be a matrix and  the returned value should be a \code{\link[stats]{dist}} object. If the function has two arguments, the input arguments are two vectors and the function calculates distance between these two vectors.}
 
@@ -56,35 +57,52 @@ heatmap.DM(
 
 \item{clustering_method_rows}{Method to perform hierarchical clustering, pass to \code{\link[stats]{hclust}}.}
 
-\item{autoFontSizeRow}{Logical, should row names font size automatically adjusted to the number of row?}
+\item{autoFontSizeRow}{Logical, should row names font size automatically
+adjusted to the number of row?}
 
-\item{autoFontSizeColumn}{Logical, should column names font size automatically adjusted to the number of columns?}
+\item{autoFontSizeColumn}{Logical, should column names font size
+automatically adjusted to the number of columns?}
 
-\item{scale}{Logical. Divide rows of \code{matrix} by their standard deviation. If NULL determined by preSet.}
+\item{scale}{Logical. Divide rows of \code{matrix} by their standard deviation. If
+NULL determined by preSet.}
 
-\item{center}{Logical. Subtract rows of \code{matrix} by their average. If NULL determined by preSet.}
+\item{center}{Logical. Subtract rows of \code{matrix} by their average. If NULL
+determined by preSet.}
 
-\item{returnHeatmap}{Logical, return the plot as a Heatmap object or print it in the current graphical device.}
+\item{returnHeatmap}{Logical, return the plot as a Heatmap object or print it
+in the current graphical device.}
 
 \item{name}{Name of the heatmap. By default the heatmap name is used as the title of the heatmap legend.}
 
-\item{additionnalRowNamesGpar}{List. Additional parameter passed to \code{gpar} for row names.}
+\item{additionnalRowNamesGpar}{List. Additional parameter passed to \code{gpar}
+for row names.}
 
-\item{additionnalColNamesGpar}{List. Additional parameter passed to \code{gpar} for column names.}
+\item{additionnalColNamesGpar}{List. Additional parameter passed to \code{gpar}
+for column names.}
 
-\item{border}{Logical. Whether draw border. The value can be logical or a string of color.}
+\item{border}{Logical. Whether draw border. The value can be logical or a
+string of color.}
 
-\item{colorScale}{A vector of colors that will be used for mapping colors to the main heatmap.}
+\item{colorScale}{A vector of colors that will be used for mapping colors to
+the main heatmap.}
 
-\item{colorScaleFun}{A function that map values to colors. Used for the main heatmap. If not NULL this will supersede the use of the \code{colorScale} argument.}
+\item{colorScaleFun}{A function that map values to colors. Used for the main
+heatmap. If not NULL this will supersede the use of the \code{colorScale}
+argument.}
 
-\item{midColorIs0}{Logical. Force that 0 is the midColor.  If NULL turned on if the matr.}
+\item{midColorIs0}{Logical. Force that 0 is the midColor.  If NULL turned on
+if the matr.}
 
-\item{probs}{A numeric vector (between 0 and 1) same length as color or NULL. Quantile probability of the values that will be mapped to colors.}
+\item{probs}{A numeric vector (between 0 and 1) same length as color or NULL.
+Quantile probability of the values that will be mapped to colors.}
 
-\item{useProb}{Logical. Use quantile probability to map the colors. Else the min and max of values will be mapped to first and last color and interpolated continuously.}
+\item{useProb}{Logical. Use quantile probability to map the colors. Else the
+min and max of values will be mapped to first and last color and
+interpolated continuously.}
 
-\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and \code{probs=NULL} this will be the quantile of the value for the first color, quantile will be mapped continuously as to the maxProb.}
+\item{minProb}{A numeric value (between 0 and 1). If \code{useProb=TRUE} and
+\code{probs=NULL} this will be the quantile of the value for the first color,
+quantile will be mapped continuously as to the maxProb.}
 
 \item{maxProb}{A numeric value (between 0 and 1).}
 
@@ -92,18 +110,24 @@ heatmap.DM(
 
 \item{cluster_columns}{Whether make cluster on columns? Same settings as \code{cluster_rows}.}
 
-\item{colData}{A vector of factor, character, numeric or logical. Or, a dataframe of any of these type of value. The annotation that will be displayed on the heatmap.}
+\item{colData}{A vector of factor, character, numeric or logical. Or, a
+dataframe of any of these type of value. The annotation that will be
+displayed on the heatmap.}
 
-\item{colorAnnot}{List or NULL. Precomputed color scales for the \code{colData}. Color scales will be only generated for the features not described.
-Must be in the format of a list named by columns of \code{annots}.
-Each element contains the colors at breaks for continuous values.
-In the case of factors, the colors are named to their corresponding level or in the order of the levels.}
+\item{colorAnnot}{List or NULL. Precomputed color scales for the \code{colData}.
+Color scales will be only generated for the features not described. Must be
+in the format of a list named by columns of \code{annots}. Each element contains
+the colors at breaks for continuous values. In the case of factors, the
+colors are named to their corresponding level or in the order of the
+levels.}
 
-\item{showGrid}{Logical. Draw a border of each individual square on the heatmap. If NULL automatically true if number of values < 500.}
+\item{showGrid}{Logical. Draw a border of each individual square on the
+heatmap. If NULL automatically true if number of values < 500.}
 
 \item{gparGrid}{Gpar object of the heatmap grid if \code{showGrid}.}
 
-\item{showValues}{Logical. Show values from the matrix in the middle of each square of the heatmap.}
+\item{showValues}{Logical. Show values from the matrix in the middle of each
+square of the heatmap.}
 
 \item{Nsignif}{Integer. Number of significant digits showed if \code{showValues}.}
 
@@ -111,7 +135,8 @@ In the case of factors, the colors are named to their corresponding level or in 
 
 \item{row_dend_reorder}{Apply reordering on row dendrograms. The value can be a logical value or a vector which contains weight  which is used to reorder rows. The reordering is applied by \code{\link[stats]{reorder.dendrogram}}.}
 
-\item{squareHt}{Logical or NULL. Apply clustering columns on rows. If NULL automatically turned TRUE if \code{ncol==nrow} and col/rownames are the same.}
+\item{squareHt}{Logical or NULL. Apply clustering columns on rows. If NULL
+automatically turned TRUE if \code{ncol==nrow} and col/rownames are the same.}
 
 \item{row_split}{Same as \code{split}.}
 
@@ -120,16 +145,16 @@ In the case of factors, the colors are named to their corresponding level or in 
 \item{...}{Other parameters passed to \code{Heatmap}.}
 }
 \value{
-A Heatmap object if \code{returnHeatmap} or print the Heatmap in the current graphical device.
+A Heatmap object if \code{returnHeatmap} or print the Heatmap in the
+current graphical device.
 }
 \description{
 Complex Heatmap wrapper optimized for RNA-Seq analyses...
 }
 \details{
-A preSet attributes a list of default values for each argument. However, even if a preSet is selected, arguments precised by the user precede the preSet.
-}
-\section{Default arguments}{
-\subsection{preSet is \code{NULL}}{
+A preSet attributes a list of default values for each argument. However, even
+if a preSet is selected, arguments precised by the user precede the preSet. #
+Default arguments ## preSet is \code{NULL}
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows = covDist #see covDist for more details
 clustering_distance_columns = covDist
@@ -138,8 +163,6 @@ colorScale=c("#2E3672","#4B9AD5","white","#FAB517","#E5261D")
 center=TRUE
 scale=FALSE
 }\if{html}{\out{</div>}}
-}
-
 \subsection{preSet is \code{"expr"} (expression)}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows = covDist
@@ -173,7 +196,9 @@ scale=FALSE
 }\if{html}{\out{</div>}}
 }
 
-\subsection{preSet is \code{"vanilla"} (don't transform value, same as default ComplexHeatmap)}{
+\subsection{preSet is \code{"vanilla"} (don't transform value, same as default}{
+
+ComplexHeatmap)
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{clustering_distance_rows ="euclidean"
 name="matrix"
@@ -183,7 +208,6 @@ scale=FALSE
 }\if{html}{\out{</div>}}
 }
 }
-
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
@@ -191,8 +215,7 @@ data("DEgenesPrime_Naive")
 
 library(ComplexHeatmap)
 
-bestDE <-
-    rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,
+bestDE <- rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,
                                           decreasing = FALSE,
                                           top = 50)]
 heatmap.DM(
@@ -202,10 +225,15 @@ heatmap.DM(
     Nsignif = 2
 )
 
-heatmap.DM(bulkLogCounts[bestDE, ], colData = sampleAnnot[, c("culture_media", "line")])
-heatmap.DM(bulkLogCounts[bestDE[seq_len(5)],
-    rownames(sampleAnnot)[sampleAnnot$culture_media \%in\% c("T2iLGO","KSR+FGF2")],
-    ])
+heatmap.DM(bulkLogCounts[bestDE, ],
+  colData = sampleAnnot[, c("culture_media", "line")])
+heatmap.DM(
+  bulkLogCounts[
+    bestDE[seq_len(5)],
+    rownames(sampleAnnot)[sampleAnnot$culture_media \%in\%
+      c("T2iLGO","KSR+FGF2")],
+  ]
+)
 
 corDat <- cor(bulkLogCounts)
 heatmap.DM(corDat, preSet = "cor")
@@ -213,7 +241,8 @@ heatmap.DM(
     corDat,
     preSet = "cor",
     center = TRUE,
-    colorScaleFun = circlize::colorRamp2(c(-0.2, 0, 0.2), c("blue", "white", "red"))
+    colorScaleFun = circlize::colorRamp2(c(-0.2, 0, 0.2),
+      c("blue", "white", "red"))
 )
 }
 \seealso{

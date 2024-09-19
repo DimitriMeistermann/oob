@@ -2,7 +2,6 @@
 #'
 #' @param x numeric vector
 #' @param keepZero get rid of 0 before computing.
-#'
 #' @return A single numeric value.
 #' @export
 #' @examples
@@ -24,6 +23,14 @@ gmean <- function(x, keepZero = TRUE) {
 
 #' Get the precise random seed state
 #' @export
+#' @return A vector of integers representing the random seed state
+#' @export
+#' @seealso setRandState
+#' @examples
+#' randSate<-getRandState()
+#' rnorm(5)
+#' setRandState(randSate)
+#' rnorm(5)
 getRandState <- function() {
     # Using `get0()` here to have `NULL` output in case object doesn't exist.
     # Also using `inherits = FALSE` to get value exactly from global environment
@@ -34,13 +41,20 @@ getRandState <- function() {
 #' Set the precise random seed state
 #' @param state Object saved by getRandState
 #' @export
+#' @seealso getRandState
+#' @return NULL, set the random seed state
+#' @examples
+#' randSate<-getRandState()
+#' rnorm(5)
+#' setRandState(randSate)
+#' rnorm(5)
 setRandState <- function(state) {
     # Assigning `NULL` state might lead to unwanted consequences
     if (!is.null(state)) {
         assign(".Random.seed",
-               state,
-               envir = .GlobalEnv,
-               inherits = FALSE)
+            state,
+            envir = .GlobalEnv,
+            inherits = FALSE)
     }
 }
 
@@ -102,11 +116,12 @@ uncenter <- function(x) {
 
 #' Take first element of multiple values in a vector
 #'
-#' @description
-#' Similar to unique but conserve vector names or return index where you can find each first value of multiple element.
+#' @description Similar to unique but conserve vector names or return index
+#' where you can find each first value of multiple element.
 #'
 #' @param x Vector.
-#' @param returnIndex Logical. Should the index of first elements or vector of first elements.
+#' @param returnIndex Logical. Should the index of first elements or vector of
+#'   first elements.
 #'
 #' @return Vector of first elements or numeric vector of index.
 #' @export
@@ -174,55 +189,83 @@ copyReadyVector <- function(x) {
 
 #' Better make.unique
 #'
-#' @description
-#' Similar to make.unique, but also add a sequence member for the first encountered duplicated element.
+#' @description Similar to make.unique, but also add a sequence member for the
+#' first encountered duplicated element.
 #'
-#' @param sample.name Character vector
-#' @param sep A character string used to separate a duplicate name from its sequence number.
+#' @param sample.names Character vector
+#' @param sep A character string used to separate a duplicate name from its
+#'   sequence number.
 #'
 #' @return A character vector of same length as names with duplicates changed.
 #' @export
 #' @examples
 #' make.unique2(c("a", "a", "b"))
-make.unique2 <- function(sample.name, sep = ".") {
-    counts = table(as.factor(sample.name))
-    nmRep <- sapply(as.list(counts), function(x)
-        seq_len(x))
-    paste0(rep(names(nmRep), counts), sep, as.character(unlist(nmRep, use.names = F)))[order(sample.name)[order(sample.name)]]
+make.unique2 <- function(sample.names, sep = ".") {
+    # Create a table of occurrences for each name
+    tab <- table(sample.names)
+
+    # Initialize a vector to store the new sample names
+    newSampleNames <- character(length(sample.names))
+
+    # Loop through each unique name only once
+    for (name in names(tab)) {
+        indices <- which(sample.names == name)
+        # For names that occur more than once, append a suffix
+        if (tab[name] > 1) {
+            suffixes <- paste0(sep, seq_len(tab[name]))
+            newSampleNames[indices] <- paste0(name, suffixes)
+        } else {
+            newSampleNames[indices] <- paste0(name,sep,1)
+        }
+    }
+
+    newSampleNames
 }
 
 #' String split with chosen returned element
 #'
-#' @param x character vector, each element of which is to be split. Other inputs, including a factor, will give an error.
-#' @param split character vector (or object which can be coerced to such) containing regular expression(s) (unless fixed = TRUE) to use for splitting. If empty matches occur, in particular if split has length 0, x is split into single characters. If split has length greater than 1, it is re-cycled along x.
+#' @param x character vector, each element of which is to be split. Other
+#'   inputs, including a factor, will give an error.
+#' @param split character vector (or object which can be coerced to such)
+#'   containing regular expression(s) (unless fixed = TRUE) to use for
+#'   splitting. If empty matches occur, in particular if split has length 0, x
+#'   is split into single characters. If split has length greater than 1, it is
+#'   re-cycled along x.
 #' @param n Single integer, the element index to be returned
-#' @param fixed logical. If TRUE match split exactly, otherwise use regular expressions. Has priority over perl.
+#' @param fixed logical. If TRUE match split exactly, otherwise use regular
+#'   expressions. Has priority over perl.
 #' @param perl logical. Should Perl-compatible regexps be used?
-#' @param useBytes logical. If TRUE the matching is done byte-by-byte rather than character-by-character, and inputs with marked encodings are not converted. This is forced (with a warning) if any input is found which is marked as "bytes" (see Encoding).
+#' @param useBytes logical. If TRUE the matching is done byte-by-byte rather
+#'   than character-by-character, and inputs with marked encoding are not
+#'   converted. This is forced (with a warning) if any input is found which is
+#'   marked as "bytes" (see Encoding).
 #'
-#' @return A vector of the same length than x, with the n-th element for the split of each value.
+#' @return A vector of the same length than x, with the n-th element for the
+#'   split of each value.
 #' @export
 #' @examples
 #' strsplitNth(c("ax1","bx2"), "x",1)
 #' strsplitNth(c("ax1","bx2"), "x",2)
 strsplitNth <-
     function(x,
-             split,
-             n = 1,
-             fixed = FALSE,
-             perl = FALSE,
-             useBytes = FALSE) {
+            split,
+            n = 1,
+            fixed = FALSE,
+            perl = FALSE,
+            useBytes = FALSE) {
         res <- strsplit(x, split, fixed, perl, useBytes)
-        sapply(res, function(el) {
+        vapply(res, function(el) {
             el[n]
-        })
+        }, character(1))
     }
 
 
-#' Convert numeric to string, add 0 to the number to respect lexicographical order.
+#' Convert numeric to string, add 0 to the number to respect lexicographical
+#' order.
 #'
 #' @param x A numeric vector.
-#' @param digit A single integer value. The maximum number of digits in the number sequence. It will determine the number of 0 to add.
+#' @param digit A single integer value. The maximum number of digits in the
+#'   number sequence. It will determine the number of 0 to add.
 #'
 #' @return A charactervector.
 #' @export
@@ -231,19 +274,20 @@ strsplitNth <-
 #' formatNumber2Character(seq_len(10),digit = 4)
 formatNumber2Character <-
     function(x, digit = max(nchar(as.character(x)))) {
-        x <- as.character(x)
-        sapply(as.list(x), function(el) {
+        x <- format(x, scientific = FALSE, trim = TRUE)
+        vapply(as.list(x), function(el) {
             paste0(paste0(rep("0", digit - nchar(el)), collapse = ""), el)
-        })
+        }, character(1))
     }
-
 
 #' Convert a named factor vector to a list
 #'
-#' @param factorValues A vector of factor. It has to be named if `factorNames=NULL`.
+#' @param factorValues A vector of factor. It has to be named if
+#'   `factorNames=NULL`.
 #' @param factorNames A character vector for providing the names separately.
 #'
-#' @return A list. Each element is named by a factor level of `factorValues`, and contains the provided names that had this level has a value.
+#' @return A list. Each element is named by a factor level of `factorValues`,
+#'   and contains the provided names that had this level has a value.
 #' @export
 #' @examples
 #' x<-factor(c("a","a","b","b","c","c","c"))
@@ -263,9 +307,10 @@ factorToVectorList <- function(factorValues, factorNames = NULL) {
     res
 }
 
-#'  Convert a list to a named factor vector
+#' Convert a list to a named factor vector
 #'
-#' @param listOfVector A named list. Each element must contain a character vector.
+#' @param listOfVector A named list. Each element must contain a character
+#'   vector.
 #'
 #' @return A named factor vector.
 #' @export
@@ -286,12 +331,14 @@ VectorListToFactor <- function(listOfVector) {
 
 #' Transform a range of value to another by a linear relationship.
 #'
-#' @description
-#' Similar to the javascript function `d3.scaleLinear()`.
+#' @description Similar to the javascript function `d3.scaleLinear()`.
 #'
 #' @param vals A numeric vector. Values to be transposed in the new range.
 #' @param newRange A vector of two numeric values: the new minimum and maximum.
-#' @param returnFunction Logical. Return the linear scale as a function instead of the transposed values in a new scale. If set to `TRUE`, `vals` argument can be also a vector of 2 numeric corresponding to the minimum and maximum of the old range.
+#' @param returnFunction Logical. Return the linear scale as a function instead
+#'   of the transposed values in a new scale. If set to `TRUE`, `vals` argument
+#'   can be also a vector of 2 numeric corresponding to the minimum and maximum
+#'   of the old range.
 #' @return A vector of value or a function if `returnFunction=TRUE`.
 #' @export
 #'
@@ -327,7 +374,8 @@ linearScale <- function(vals, newRange, returnFunction = TRUE) {
 #'
 #' @param x Numeric vector.
 #' @param top Integer. Number of element to be returned.
-#' @param decreasing Logical, return top element by decreasing or increasing order.
+#' @param decreasing Logical, return top element by decreasing or increasing
+#'   order.
 #'
 #' @return A vector of integer.
 #' @export
@@ -362,7 +410,8 @@ cn <-
 #' colnames alias (setter)
 #'
 #' @param x A matrix-like object.
-#' @param value Either NULL or a character vector equal of length equal to the appropriate dimension.
+#' @param value Either NULL or a character vector equal of length equal to the
+#'   appropriate dimension.
 #'
 #' @return The modified object.
 #' @export
@@ -394,7 +443,8 @@ rn <-
 #' rownames alias (setter)
 #'
 #' @param x A matrix-like object.
-#' @param value Either NULL or a character vector equal of length equal to the appropriate dimension.
+#' @param value Either NULL or a character vector equal of length equal to the
+#'   appropriate dimension.
 #'
 #' @return The modified object.
 #' @export
@@ -411,7 +461,8 @@ rn <-
 #' length alias
 #'
 #' @param x A vector-like object.
-#'
+#' @return An integer.
+#' @examples len(1:10)
 #' @export
 len <- function(x){
     length(x)
@@ -423,6 +474,8 @@ len <- function(x){
 #' @param x A vector-like object.
 #' @param y A vector-like object.
 #' @param ... Additional arguments passed to `intersect`.
+#' @return A vector-like object.
+#' @examples inter(1:10,5:15)
 #'
 #' @export
 inter <- function(x, y, ...){
