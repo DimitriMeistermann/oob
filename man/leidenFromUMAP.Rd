@@ -22,7 +22,9 @@ leidenFromUMAP(
 }
 \arguments{
 \item{umapWithNN}{A list with the UMAP coordinates and the nearest neighbor
-data as returned by \code{UMAP} if \code{ret_nn = TRUE}.}
+data as returned by \code{UMAP} if \code{ret_nn = TRUE}.
+This can also be a \code{SingleCellExperiment} object with where the UMAP
+function has been run with \code{ret_nn = TRUE}.}
 
 \item{n_neighbors}{The size of local neighborhood (in terms of number of
 neighboring sample points) used for the Leiden clustering.}
@@ -59,6 +61,8 @@ default), then communities can be of any size.}
 \value{
 A vector of character or factor if \code{returnAsFactor}, same length as
 number of samples in the UMAP. Cluster attribution of samples.
+If \code{umapWithNN} is a \code{SingleCellExperiment} object, the function will add
+the cluster attribution to the colData of the object and return the object.
 }
 \description{
 Compute a Leiden clustering from a UMAP model.
@@ -67,4 +71,8 @@ Compute a Leiden clustering from a UMAP model.
 data("bulkLogCounts")
 umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
 proj2d(umapWithNN$embedding, colorBy = leidenFromUMAP(umapWithNN))
+sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+sce <- UMAP(sce, ret_nn = TRUE)
+sce<-leidenFromUMAP(sce)
+proj2d(sce, colorBy = "leiden_cluster")
 }

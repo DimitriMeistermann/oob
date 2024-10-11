@@ -32,15 +32,19 @@ proj2d(
   nnMatrix = NULL,
   nnSegmentParam = list(alpha = 0.75, size = 0.1),
   useScatterMore = FALSE,
-  customRatio = NULL
+  customRatio = NULL,
+  reducedDimSlot = 1
 )
 }
 \arguments{
 \item{coord}{Matrix or dataframe containing at least two vectors of numeric
-corresponding to the x/y coordinates.}
+corresponding to the x/y coordinates.
+Can also be a \code{SingleCellExperiment} object.}
 
 \item{colorBy}{A vector of factor or numeric same size as number of samples
-in PCA. Color each point on the projection by its corresponding value.}
+in PCA. Color each point on the projection by its corresponding value.
+If coord is a \code{SingleCellExperiment} object, colorBy must be the name of a
+column in its \code{colData}.}
 
 \item{axis}{A vector of 2 integer. The column index of \code{coord} containing
 respectively the x and y coordinates.}
@@ -110,6 +114,9 @@ the points as a pixel image, difficult to modify afterward but quicker
 plotting for very large datasets.}
 
 \item{customRatio}{Single numeric. Custom ratio for the plot.}
+
+\item{reducedDimSlot}{Character or integer. If \code{coord} is a
+\code{SingleCellExperiment} object, slot to use from \code{reducedDim}.}
 }
 \value{
 Plot in the current graphical device or a ggplot object if
@@ -194,4 +201,11 @@ proj2d(
     useScatterMore = TRUE,
     pointSize = 5
 )
+
+irisSCE <- SingleCellExperiment::SingleCellExperiment(
+        assays = list(counts = t(iris[, -5])),
+        colData = iris[5],
+        reducedDims = SimpleList(UMAP = as.matrix(umap$embedding))
+)
+proj2d(irisSCE,reducedDimSlot = "UMAP", colorBy = "Species")
 }

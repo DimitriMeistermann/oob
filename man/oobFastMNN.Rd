@@ -4,10 +4,11 @@
 \alias{oobFastMNN}
 \title{Execute a fastMNN and rescale the counts.}
 \usage{
-oobFastMNN(logCounts, batch, k, returnRescale = TRUE, ...)
+oobFastMNN(logCounts, batch, k, returnRescale = TRUE, sce_assay = 1, ...)
 }
 \arguments{
-\item{logCounts}{A matrix of numeric (in the RNA-Seq context, log counts).}
+\item{logCounts}{A matrix of numeric (in the RNA-Seq context, log counts).
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{batch}{A vector or factor specifying the batch of origin for all cells}
 
@@ -16,6 +17,9 @@ consider when identifying MNNs.}
 
 \item{returnRescale}{Logical. Use reScale on the output so the dynamic range
 after batch correction of genes is the same than before.}
+
+\item{sce_assay}{Integer or character, if \code{data}
+is a \code{SummarizedExperiment} related object, the assay name to use.}
 
 \item{...}{Other parameters passed to fastMNN.}
 }

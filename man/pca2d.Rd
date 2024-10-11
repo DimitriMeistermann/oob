@@ -24,7 +24,9 @@ pca2d(
 )
 }
 \arguments{
-\item{pca}{PCA object created by \code{PCA} function.}
+\item{pca}{PCA object created by \code{PCA} function.
+Can also be a \code{SingleCellExperiment} object. Where one of these functions
+have been performed.}
 
 \item{comp}{A vector of 2 integer. Principal Component to be plotted.}
 
@@ -110,4 +112,9 @@ pca2d(
     outlierLabelThres = .2,
     returnGraph = TRUE
 ) + theme_dark()
+
+iris_sce <- SingleCellExperiment(assays =
+    list(counts = as.matrix(iris[, seq_len(4)])))
+iris_sce <- PCA(iris_sce, scale = TRUE, center = TRUE)
+pca2d(iris_sce)
 }

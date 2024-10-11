@@ -5,17 +5,26 @@
 \title{Compute a matrix of coef describing best gene marker per group of samples
 from a GLM net regression}
 \usage{
-getMarkerGLMnet(expressionMatrix, group)
+getMarkerGLMnet(data, group, transpose = TRUE, sce_assay = 1)
 }
 \arguments{
-\item{expressionMatrix}{A matrix of numeric with rows as features (in the
-RNA-Seq context, log counts).}
+\item{data}{A matrix of numeric with rows as features (in the
+RNA-Seq context, log data).
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{group}{A feature of factor/character, same length as number of sample.
 Describe group of each sample.}
+
+\item{transpose}{If TRUE, the input data is transposed before processing.
+Default is TRUE (feature as rows, samples as columns).}
+
+\item{sce_assay}{Integer or character, if \code{data} is a
+\code{SummarizedExperiment} related object, the assay name to use.}
 }
 \value{
 A matrix containing each gene coefficient for each group.
+If \code{data} is a \code{SummarizedExperiment} related object
+the function will add the marker metrics to \code{rowData}.
 }
 \description{
 Compute a matrix of coef describing best gene marker per group of samples
@@ -25,4 +34,6 @@ from a GLM net regression
 data("bulkLogCounts")
 data("sampleAnnot")
 res <- getMarkerGLMnet(bulkLogCounts,sampleAnnot$culture_media)
+sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+res <- getMarkerGLMnet(sce,sampleAnnot$culture_media)
 }

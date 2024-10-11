@@ -5,17 +5,19 @@
 \title{Faster Principal Component Analysis}
 \usage{
 fastPCA(
-  d,
+  data,
   transpose = TRUE,
   scale = FALSE,
   center = TRUE,
-  nPC = min(ncol(d) - 1, nrow(d) - 1, 30),
+  nPC = min(ncol(data) - 1, nrow(data) - 1, 30),
   weight.by.var = TRUE,
+  sce_assay = 1,
   ...
 )
 }
 \arguments{
-\item{d}{A matrix of numeric (in the RNA-Seq context, log counts).}
+\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).
+Can also be a SingleCellExperiment object.}
 
 \item{transpose}{Logical. If \code{transpose}, samples are columns and features
 are rows.}
@@ -28,6 +30,9 @@ are rows.}
 
 \item{weight.by.var}{Logical. Weight PC by variables. If TRUE return a
 regular PCA.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SingleCellExperiment} object, the assay name to use.}
 
 \item{...}{Other parameters passed to \code{irlba}.}
 }
@@ -49,6 +54,10 @@ computed axes.
 factors (means) for each principal component.
 \item isFastPCA: Logical. If TRUE, the PCA was computed using the \code{fastPCA}
 }
+
+If \code{data} is a \code{SingleCellExperiment}, returns a \code{SingleCellExperiment}
+with the PCA computed in the \code{reducedDims} slot. The complete PCA object
+is stored in the \code{metadata} slot at the index \code{PCA}.
 }
 \description{
 Faster Principal Component Analysis
@@ -57,4 +66,8 @@ Faster Principal Component Analysis
 data("bulkLogCounts")
 pca<-fastPCA(bulkLogCounts,nPC=10)
 pca2d(pca)
+
+sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+sce<-fastPCA(sce,nPC=10)
+reducedDims(sce)
 }

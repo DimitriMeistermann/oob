@@ -2,6 +2,9 @@
 #' Complex Heatmap wrapper optimized for RNA-Seq analyses...
 #'
 #' @inheritParams ComplexHeatmap::Heatmap
+#' @param matrix A matrix. Either numeric or character.
+#'   If it is a simple vector, it will be converted to a one-column matrix.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param preSet A value from `"expr"`, `"cor"`, `"dist"` or `NULL`. Change
 #'   other arguments given a specific preset (default preSet if NULL).
 #' @param autoFontSizeRow Logical, should row names font size automatically
@@ -53,6 +56,8 @@
 #' @param Nsignif Integer. Number of significant digits showed if `showValues`.
 #' @param squareHt Logical or NULL. Apply clustering columns on rows. If NULL
 #'   automatically turned TRUE if `ncol==nrow` and col/rownames are the same.
+#' @param sce_assay Integer or character, if `data`
+#'   is a `SummarizedExperiment` related object, the assay name to use.
 #' @param ... Other parameters passed to `Heatmap`.
 #'
 #' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the
@@ -117,8 +122,6 @@
 #' data("sampleAnnot")
 #' data("DEgenesPrime_Naive")
 #'
-#' library(ComplexHeatmap)
-#'
 #' bestDE <- rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,
 #'                                           decreasing = FALSE,
 #'                                           top = 50)]
@@ -148,6 +151,9 @@
 #'     colorScaleFun = circlize::colorRamp2(c(-0.2, 0, 0.2),
 #'       c("blue", "white", "red"))
 #' )
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts),
+#'    colData = sampleAnnot)
+#' heatmap.DM(sce[bestDE[seq_len(5)],], colData = c("line", "culture_media"))
 heatmap.DM <-
     function(matrix,
             preSet = "expr",
@@ -184,8 +190,26 @@ heatmap.DM <-
             squareHt = NULL,
             row_split = NULL,
             column_split = NULL,
+            sce_assay = 1,
             ...) {
-        args <- list()
+
+    if (inherits(matrix, "SummarizedExperiment")) {
+        if (!is.null(colData)) {
+            if(!inherits(colData, "character"))
+                stop("colData must be a character vector if the ",
+                    "input is a SummarizedExperiment object")
+            if (sum(!colData %in% colnames(colData(matrix))==0)) {
+                colData <- data.frame(colData(matrix)[colData])
+            } else {
+                stop(
+                setdiff(colData, colnames(colData(matrix))),
+                    "not found in colData of SingleCellExperiment"
+                )
+            }
+        }
+        matrix <- assay(matrix, sce_assay)
+    }
+    args <- list()
 
     if (is.null(preSet)) {
         if (is.null(clustering_distance_rows))
@@ -416,8 +440,8 @@ heatmap.DM <-
 #' @inheritParams drawSamplePerGroup
 #'
 #' @details Draw the same number of observation from each condition/group, and
-#'   take the top n marker per group. Heatmap is sliced by group for each gene
-#'   and
+#'   take the top n marker per group.
+#'   The Heatmap is sliced by group of samples, and by their respective markers.
 #'
 #' @return A Heatmap object if `returnHeatmap` or print the Heatmap in the
 #'   current graphical device.
@@ -428,7 +452,8 @@ heatmap.DM <-
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
-#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+#'     BPPARAM=BiocParallel::SnowParam(1))
 #' htMarker(bulkLogCounts,  group=sampleAnnot$culture_media,
 #'     markerData=extractFeatureMarkerData(markerData),
 #'     colData=sampleAnnot[c("line","passage")])

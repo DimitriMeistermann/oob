@@ -4,10 +4,11 @@
 \alias{PCA}
 \title{Principal Component Analysis}
 \usage{
-PCA(d, transpose = TRUE, scale = FALSE, center = TRUE)
+PCA(data, transpose = TRUE, scale = FALSE, center = TRUE, sce_assay = 1)
 }
 \arguments{
-\item{d}{A matrix of numeric (in the RNA-Seq context, log counts).}
+\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).
+Can also be a SingleCellExperiment object.}
 
 \item{transpose}{Logical. If \code{transpose}, samples are columns and features
 are rows.}
@@ -15,6 +16,9 @@ are rows.}
 \item{scale}{Logical. Divide features by their standard deviation.}
 
 \item{center}{Logical. Subtract features by their average.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SingleCellExperiment} object, the assay name to use.}
 }
 \value{
 A list with the following element:
@@ -34,6 +38,10 @@ The function princomp returns this in the element loadings.
 factors (means) for each principal component.
 \item isFastPCA: Logical. If TRUE, the PCA was computed using the \code{fastPCA}
 }
+
+If \code{data} is a \code{SingleCellExperiment.} returns a \code{SingleCellExperiment}
+with the PCA computed in the \code{reducedDims} slot. The complete PCA object
+is stored in the \code{metadata} slot at the index \code{PCA}.
 }
 \description{
 Principal Component Analysis
@@ -41,4 +49,8 @@ Principal Component Analysis
 \examples{
 data(iris)
 pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
+
+iris_sce <- SingleCellExperiment(assays = list(counts = iris[,seq_len(4)]))
+iris_sce<-PCA(iris_sce)
+reducedDims(iris_sce)
 }

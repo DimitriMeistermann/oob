@@ -21,8 +21,3 @@ A sparse adjacency matrix from the class \code{dgTMatrix}.
 \description{
 Compute an adjacency matrix from the nearest neighbor matrix of a UMAP model
 }
-\examples{
-data("bulkLogCounts")
-umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
-getAdjMatfromUMAPWithNN(umapWithNN)
-}

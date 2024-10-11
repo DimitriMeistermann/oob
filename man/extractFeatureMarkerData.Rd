@@ -8,7 +8,9 @@ dataframe}
 extractFeatureMarkerData(markerData, feature = "score")
 }
 \arguments{
-\item{markerData}{A dataframe returned by \link{getMarkers}.}
+\item{markerData}{A dataframe returned by \link{getMarkers}.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object where
+were \link{getMarkers} has been performed.}
 
 \item{feature}{The name of the feature that has to be extracted.}
 }
@@ -22,6 +24,11 @@ dataframe
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
-markerData <- getMarkers(bulkLogCounts, sampleAnnot$culture_media)
+markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+    BPPARAM=BiocParallel::SnowParam(1))
 extractFeatureMarkerData(markerData) |> chead()
+sc <- SingleCellExperiment(assays = list(counts = bulkLogCounts),
+   colData = sampleAnnot,
+   rowData = markerData)
+extractFeatureMarkerData(sc) |> chead()
 }

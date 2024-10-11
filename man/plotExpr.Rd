@@ -17,12 +17,14 @@ plotExpr(
   colorScale = mostDistantColor,
   legendTitle = "group",
   dodge.width = 0.9,
-  returnGraph = FALSE
+  returnGraph = FALSE,
+  sce_assay = 1
 )
 }
 \arguments{
 \item{expr}{Numeric 2D matrix. Each row is gene and each column a sample. Row
-must be named by genes.}
+must be named by genes.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{group}{Factor vector, same length as number of column in expr.
 Experimental group attributed to each sample.}
@@ -51,6 +53,9 @@ levels in group.}
 (violin/boxplot/dotplot).}
 
 \item{returnGraph}{Logical. Print the ggplot object or return it.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SummarizedExperiment} object, the assay name to use.}
 }
 \value{
 Plot in the current graphical device or a ggplot object if
@@ -82,4 +87,6 @@ plotExpr(exprMat,group = group,returnGraph = TRUE)+
     geom_point()
 
 plotExpr(exprMat,group = group,violinArgs = list(scale="area"))
+sce <- SingleCellExperiment(assays = list(counts = exprMat))
+plotExpr(sce["gene1",])
 }

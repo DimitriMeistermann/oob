@@ -2,23 +2,31 @@
 % Please edit documentation in R/countMatrix.R
 \name{TPMfullLength}
 \alias{TPMfullLength}
-\title{Transcript per milion (TPM) normalization for full-length transcript, short
+\title{Transcript per million (TPM) normalization for full-length transcript, short
 read sequencing.}
 \usage{
-TPMfullLength(data, gene.length)
+TPMfullLength(data, gene.length, sce_assay = 1)
 }
 \arguments{
-\item{data}{A raw count table with rows as genes}
+\item{data}{A raw count table with rows as genes.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{gene.length}{A vector of numeric corresponding to gene length in base
 pair. Must be named by genes.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SummarizedExperiment} related object,
+the assay name to use.}
 }
 \value{
 A normalized count table where 1 count is equal in theory to one
-transcript per milion.
+transcript per million.
+If \code{data} is a \code{SummarizedExperiment} related object, the function will
+add the normalized count to the \code{SummarizedExperiment} object as an
+assay named \code{tpm}.
 }
 \description{
-Transcript per milion (TPM) normalization for full-length transcript, short
+Transcript per million (TPM) normalization for full-length transcript, short
 read sequencing.
 }
 \examples{
@@ -30,4 +38,7 @@ countMat <-
     }) |> t()
     rownames(countMat)<-names(geneLengthGRCh38)
 TPMfullLength(countMat,geneLengthGRCh38) |> chead()
+
+sce <- SingleCellExperiment(assays = list(counts = countMat))
+assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> head()
 }

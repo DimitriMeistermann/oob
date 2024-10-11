@@ -6,31 +6,38 @@
 of samples.}
 \usage{
 getMarkers(
-  exprData,
+  data,
   groups,
-  transpose = FALSE,
+  transpose = TRUE,
   BPPARAM = NULL,
-  returnAsList = FALSE
+  returnAsList = FALSE,
+  sce_assay = 1
 )
 }
 \arguments{
-\item{exprData}{A dataframe with genes as rows and samples as columns.}
+\item{data}{A dataframe with genes as rows and samples as columns.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{groups}{A vector of group names, same size as the number of columns in
-\code{exprData}.}
+\code{data}.}
 
 \item{transpose}{If TRUE, the input data is transposed before processing.
-Default is FALSE.}
+Default is TRUE (feature as rows, samples as columns).}
 
 \item{BPPARAM}{A BPPARAM object as return by \code{\link[BiocParallel:register]{BiocParallel::bpparam()}}. Used
 for multi-threading.}
 
 \item{returnAsList}{Return a list where each element is dataframe containing
 the marker metrics of a group.}
+
+\item{sce_assay}{Integer or character, if \code{data} is a
+\code{SummarizedExperiment} related object, the assay name to use.}
 }
 \value{
 A dataframe containing four column per group: Log2(Fold-Change),
 AUROC, marker score (see details), p-value and BH adjusted p-value.
+If \code{data} is a \code{SummarizedExperiment} related object and \code{returnAsList} is
+\code{FALSE}, the function will add the marker metrics to \code{rowData}.
 }
 \description{
 Compute a dataframe with marker metrics describing best gene marker per group
@@ -48,7 +55,10 @@ gmean( abs(logFC), abs(aurocRes-0.5), -log10(pval) )
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
-markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
-
-
+# SnowParam(1) : monocore execution
+markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+    BPPARAM=BiocParallel::SnowParam(1))
+sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+sce <- getMarkers(sce, sampleAnnot$culture_media, sce_assay = "counts")
+rowData(sce) |> chead()
 }

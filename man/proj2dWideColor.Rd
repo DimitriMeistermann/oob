@@ -20,18 +20,22 @@ proj2dWideColor(
   na.color = "grey50",
   na.bg = TRUE,
   funAutoColorScale = oobColors,
+  reducedDimSlot = 1,
   ...
 )
 }
 \arguments{
 \item{coord}{Matrix or dataframe containing at least two vectors of numeric
-corresponding to the x/y coordinates.}
+corresponding to the x/y coordinates.
+Can also be a \code{SingleCellExperiment} object.}
 
 \item{axis}{A vector of 2 integer. The column index of \code{coord} containing
 respectively the x and y coordinates.}
 
 \item{colorBy}{A vector of factor or numeric same size as number of samples
-in PCA. Color each point on the projection by its corresponding value.}
+in PCA. Color each point on the projection by its corresponding value.
+If coord is a \code{SingleCellExperiment} object, colorBy must be the name of a
+column in its \code{colData}.}
 
 \item{pointSize}{Single numeric. Size of points.}
 
@@ -61,6 +65,9 @@ plot.}
 
 \item{funAutoColorScale}{A function that return n colors with n as a first
 argument. Responsible for color mapping of the levels.}
+
+\item{reducedDimSlot}{Character or integer. If \code{coord} is a
+\code{SingleCellExperiment} object, slot to use from \code{reducedDim}.}
 
 \item{...}{additional arguments passed to \code{oob::proj2d}}
 }

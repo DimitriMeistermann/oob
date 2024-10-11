@@ -1,12 +1,14 @@
 
 #' Principal Component Analysis
 #'
-#' @param d A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#'      Can also be a SingleCellExperiment object.
 #' @param transpose Logical. If `transpose`, samples are columns and features
 #'   are rows.
 #' @param scale Logical. Divide features by their standard deviation.
 #' @param center Logical. Subtract features by their average.
-#'
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SingleCellExperiment` object, the assay name to use.
 #' @return
 #' A list with the following element:
 #' - sdev: the standard deviations of the principal components (i.e.,
@@ -23,36 +25,50 @@
 #' - transform: a list containing the scaling (sdeviations) and centering
 #'    factors (means) for each principal component.
 #' - isFastPCA: Logical. If TRUE, the PCA was computed using the `fastPCA`
+#'
+#' If `data` is a `SingleCellExperiment.` returns a `SingleCellExperiment`
+#' with the PCA computed in the `reducedDims` slot. The complete PCA object
+#' is stored in the `metadata` slot at the index `PCA`.
 #' @export
 #'
 #' @examples
 #' data(iris)
 #' pca<-PCA(iris[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
-PCA <- function(d,
+#'
+#' iris_sce <- SingleCellExperiment(assays = list(counts = iris[,seq_len(4)]))
+#' iris_sce<-PCA(iris_sce)
+#' reducedDims(iris_sce)
+PCA <- function(data,
                 transpose = TRUE,
                 scale = FALSE,
-                center = TRUE) {
+                center = TRUE,
+                                sce_assay = 1) {
+        sce_obj <-NULL
+        if (inherits(data, "SingleCellExperiment")) {
+            sce_obj <- data
+            data <- assay(sce_obj, sce_assay)
+        }
     if (transpose)
-        d <- t(d)
+        data <- t(data)
 
     means <- 0
     sdeviations <- 1
     if (center) {
-        means <- apply(d, 2, mean)
-        d <- sweep(d, 2, means, "-")
+        means <- apply(data, 2, mean)
+        data <- sweep(data, 2, means, "-")
     }
     if (scale) {
-        sdeviations <- apply(d, 2, sd)
-        d <- sweep(d, 2, sdeviations, "/")
+        sdeviations <- apply(data, 2, sd)
+        data <- sweep(data, 2, sdeviations, "/")
     }
     resacp <- prcomp(
-        x = d,
+        x = data,
         retx = TRUE,
         center = FALSE,
         scale = FALSE
     )
 
-    resacp$n.obs <- dim(d)[1]
+    resacp$n.obs <- dim(data)[1]
 
     resacp$propExplVar <- resacp$sdev ^ 2 / sum(resacp$sdev ^ 2)
     resacp$scale <- scale
@@ -60,14 +76,22 @@ PCA <- function(d,
     resacp$transform <-
         list(sdeviations = sdeviations, means = means)
     resacp$isFastPCA <- FALSE
-    return(resacp)
+
+    if(is.null(sce_obj)){
+        return(resacp)
+    }else{
+        reducedDim(sce_obj,"PCA") <- resacp$x
+        metadata(sce_obj)$PCA <- resacp
+        return(sce_obj)
+    }
 
 }
 
 
 #' Faster Principal Component Analysis
 #'
-#' @param d A matrix of numeric (in the RNA-Seq context, log counts).
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#'   Can also be a SingleCellExperiment object.
 #' @param transpose Logical. If `transpose`, samples are columns and features
 #'   are rows.
 #' @param scale Logical. Divide features by their standard deviation.
@@ -75,6 +99,8 @@ PCA <- function(d,
 #' @param nPC Integer. Number of Principal Component to be computed.
 #' @param weight.by.var Logical. Weight PC by variables. If TRUE return a
 #'   regular PCA.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SingleCellExperiment` object, the assay name to use.
 #' @param ... Other parameters passed to `irlba`.
 #'
 #' @return
@@ -93,44 +119,61 @@ PCA <- function(d,
 #' - transform: a list containing the scaling (sdeviations) and centering
 #'    factors (means) for each principal component.
 #' - isFastPCA: Logical. If TRUE, the PCA was computed using the `fastPCA`
+#'
+#' If `data` is a `SingleCellExperiment`, returns a `SingleCellExperiment`
+#' with the PCA computed in the `reducedDims` slot. The complete PCA object
+#' is stored in the `metadata` slot at the index `PCA`.
 #' @export
 #'
 #' @examples
 #' data("bulkLogCounts")
 #' pca<-fastPCA(bulkLogCounts,nPC=10)
 #' pca2d(pca)
+#'
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' sce<-fastPCA(sce,nPC=10)
+#' reducedDims(sce)
 fastPCA <-
-    function(d,
+    function(data,
             transpose = TRUE,
             scale = FALSE,
             center = TRUE,
-            nPC = min(ncol(d) - 1, nrow(d) - 1, 30),
+            nPC = min(ncol(data) - 1, nrow(data) - 1, 30),
             weight.by.var = TRUE,
+            sce_assay = 1,
             ...) {
-        if (transpose)
-            d <- t(d)
 
-        d <- as.matrix(d)
+        sce_obj <-NULL
+        if (inherits(data, "SingleCellExperiment")) {
+                sce_obj <- data
+                data <- assay(sce_obj, sce_assay)
+        }else{
+                data <- as.matrix(data)
+        }
+        if (transpose)
+            data <- t(data)
+
+
         means <- 0
         sdeviations <- 1
         if (center | scale)
-            d <- scale(d, scale = scale, center = center)
+            data <- scale(data, scale = scale, center = center)
         if (center)
-            means <- attr(d, "scaled:center")
+            means <- attr(data, "scaled:center")
         if (scale)
-            sdeviations <- attr(d, "scaled:scale")
+            sdeviations <- attr(data, "scaled:scale")
 
         resacp <- list()
-        resacp$n.obs <- dim(d)[1]
+        resacp$n.obs <- dim(data)[1]
 
         resacp$scale <- scale
         resacp$center <- center
         resacp$transform <-
             list(sdeviations = sdeviations, means = means)
 
-        irlbaResults <- irlba::irlba(A = d, nv = nPC, ...)
+        irlbaResults <- irlba::irlba(A = data, nv = nPC, ...)
         rotation <- irlbaResults$v
-        resacp$sdev <- irlbaResults$d / sqrt(max(1, nrow(d) - 1))
+        resacp$sdev <- irlbaResults$d / sqrt(max(1, nrow(data) - 1))
         if (weight.by.var) {
             if (nPC > 1) {
                 reducedSpace <- irlbaResults$u %*% diag(irlbaResults$d)
@@ -140,20 +183,29 @@ fastPCA <-
         } else {
             reducedSpace <- irlbaResults$u
         }
-        rownames(rotation) <- colnames(d)
+        rownames(rotation) <- colnames(data)
         colnames(rotation) <- paste0("PC", seq_len(nPC))
-        rownames(reducedSpace) <- rownames(d)
+        rownames(reducedSpace) <- rownames(data)
         colnames(reducedSpace) <- colnames(rotation)
         resacp$x <- reducedSpace
         resacp$rotation <- rotation
         resacp$propExplVar <- resacp$sdev ^ 2 / sum(resacp$sdev ^ 2)
         resacp$isFastPCA <- TRUE
-        resacp
+
+        if(is.null(sce_obj)){
+            return(resacp)
+        }else{
+            reducedDim(sce_obj,"PCA") <- resacp$x
+            metadata(sce_obj)$PCA <- resacp
+            return(sce_obj)
+        }
     }
 
 #' Add new samples to an existing PCA.
 #'
 #' @param pca The existing PCA as an object returned by `PCA` or `fastPCA`.
+#'   Can also be a `SingleCellExperiment` object. Where one of these functions
+#'   have been performed.
 #' @param newSamplesMatrix The matrix of numeric of new samples. It must have
 #'   the same features than the original PCA.
 #' @param transpose Logical. If `transpose`, samples are columns and features
@@ -163,6 +215,7 @@ fastPCA <-
 #'
 #' @return A PCA list if `returnPCA` or a matrix of coordinates of samples on
 #'   PCs.
+#'
 #' @export
 #'
 #' @examples
@@ -173,12 +226,25 @@ fastPCA <-
 #' pca2d(pca,colorBy = iris1$Species)
 #' pcaUpdated<-pcaAddSamples(pca,iris2[,seq_len(4)],transpose = FALSE)
 #' pca2d(pcaUpdated,colorBy = iris$Species)
-
+#'
+#' iris_sce <- SingleCellExperiment(
+#'     assays = list(counts = t(iris1[,seq_len(4)])))
+#' iris_sce<-PCA(iris_sce, scale = TRUE, center = TRUE)
+#' pcaUpdated<-pcaAddSamples(iris_sce,iris2[,seq_len(4)],transpose = FALSE)
+#' pca2d(pcaUpdated,colorBy = iris$Species)
 pcaAddSamples <-
     function(pca,
             newSamplesMatrix,
             transpose = TRUE,
             returnPCA = TRUE) {
+        sce_obj <-NULL
+        if (inherits(pca, "SingleCellExperiment")) {
+                sce_obj <- pca
+                if (is.null(metadata(sce_obj)$PCA))
+                        stop("PCA not found in metadata,",
+                            " please run oob::PCA or oob::fastPCA first.")
+                pca <- metadata(sce_obj)$PCA
+        }
         if (transpose)
             newSamplesMatrix <- t(newSamplesMatrix)
         newSamplesMatrix <-
@@ -255,6 +321,7 @@ PCaov <- function(pca, colData, nComponent = 10) {
 #' UMAP projection
 #'
 #' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#'   Can also be a SingleCellExperiment object.
 #' @param nDimPCA Integer. If not NULL compute a PCA first and take n first
 #'   principal components.
 #' @param transpose Logical. If `transpose`, samples are columns and features
@@ -293,6 +360,8 @@ PCaov <- function(pca, colData, nComponent = 10) {
 #'   the nearest neighbors could be sensitive to data scaling, so be wary of
 #'   reusing nearest neighbor data if modifying the scale parameter. This
 #'   parameter can be used in conjunction with ret_model and ret_extra.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SingleCellExperiment` object, the assay name to use.
 #' @param ... Other parameters passed to uwot.
 #'
 #' @return A matrix of coordinates with samples as rows, or:
@@ -308,6 +377,10 @@ PCaov <- function(pca, colData, nComponent = 10) {
 #' itself containing a matrix idx with the integer ids of the neighbors;
 #' and a matrix dist with the distances. The nn list (or a sub-list)
 #' can be used as input to the nn_method parameter.
+#' - if data is a SingleCellExperiment object, returns a SingleCellExperiment
+#' object with the UMAP coordinates in the `reducedDims` slot, and the eventual
+#' complete UMAP model and nearest neighbor in the metadata slot at the index
+#' `UMAP`.
 #' @export
 #'
 #' @examples
@@ -315,9 +388,16 @@ PCaov <- function(pca, colData, nComponent = 10) {
 #' irisUMAP<-UMAP(iris[,seq_len(4)],transpose = FALSE)
 #' proj2d(irisUMAP,colorBy = iris$Species)
 #' irisUMAP<-UMAP(rowScale(iris[,seq_len(4)],center = TRUE,scaled = TRUE),
-#'     transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
+#'     transpose = FALSE,n_neighbors = nrow(iris),
+#'     ret_nn = TRUE, ret_model = TRUE)
 #' proj2d(irisUMAP$embedding,colorBy = iris$Species,
 #'     nnMatrix = irisUMAP$nn$euclidean$idx[,c(1, 2, 3)],fixedCoord = TRUE)
+#'
+#' irisSCE <- SingleCellExperiment::SingleCellExperiment(
+#'         assays = list(counts = t(iris[, -5])),
+#'         colData = iris[5]
+#' )
+#' irisSCE<-UMAP(irisSCE)
 UMAP <-
     function(data,
             nDimPCA = NULL,
@@ -329,47 +409,64 @@ UMAP <-
             metric = "euclidean",
             ret_model = FALSE,
             ret_nn = FALSE,
+            sce_assay = 1,
             ...) {
-        if (transpose)
-            data <- t(data)
-        if (nrow(data) < n_neighbors) {
-            n_neighbors <- nrow(data)
-            warning(
-                "n_neighbors must not exceed number of samples, ",
-                "adjusting n_neighbors to number of samples (",
-                n_neighbors,
-                ")"
-            )
-        }
-        if (is.null(n_neighbors))
-            n_neighbors <- nrow(data)
-        if (!is.null(nDimPCA)) {
-            data <- fastPCA(data,
-                            transpose = FALSE,
-                            scale = FALSE,
-                            nPC = nDimPCA)$x
-        }
-        res <-
-            uwot::umap(
-                as.matrix(data),
-                n_neighbors = n_neighbors,
-                n_components = n_components,
-                min_dist = min_dist,
-                init = init,
-                metric = metric,
-                ret_model = ret_model,
-                ret_nn = ret_nn,
-                ...
-            )
-        if (!ret_model & !ret_nn)
-            rownames(res) <- rownames(data)
-        res
+    sce_obj <-NULL
+    if (inherits(data, "SingleCellExperiment")) {
+            sce_obj <- data
+            data <- assay(sce_obj, sce_assay)
     }
+    if (transpose)
+        data <- t(data)
+    if (nrow(data) < n_neighbors) {
+        n_neighbors <- nrow(data)
+        warning(
+            "n_neighbors must not exceed number of samples, ",
+            "adjusting n_neighbors to number of samples (",
+            n_neighbors,
+            ")"
+        )
+    }
+    if (is.null(n_neighbors))
+        n_neighbors <- nrow(data)
+    if (!is.null(nDimPCA)) {
+        data <- fastPCA(data,
+                        transpose = FALSE,
+                        scale = FALSE,
+                        nPC = nDimPCA)$x
+    }
+    res <-
+        uwot::umap(
+            as.matrix(data),
+            n_neighbors = n_neighbors,
+            n_components = n_components,
+            min_dist = min_dist,
+            init = init,
+            metric = metric,
+            ret_model = ret_model,
+            ret_nn = ret_nn,
+            ...
+        )
+    if (!ret_model & !ret_nn)
+        rownames(res) <- rownames(data)
+    if(is.null(sce_obj)){
+            return(res)
+    }else{
+        if(ret_model | ret_nn){
+            reducedDim(sce_obj,"UMAP") <- res$embedding
+            metadata(sce_obj)$UMAP <- res
+        }else{
+            reducedDim(sce_obj,"UMAP") <- res
+        }
+        return(sce_obj)
+}
+}
 
 
 #' TriMap dimension reduction.
 #'
 #' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#'    Can also be a SingleCellExperiment object.
 #' @param n_dims Integer. Dimensions of the embedded space.
 #' @param transpose Logical. If `transpose`, samples are columns and features
 #'   are rows.
@@ -382,14 +479,25 @@ UMAP <-
 #' @param n_iters Number of iterations.
 #' @param knn_tuple Use the precomputed nearest-neighbors information in form of
 #'   a tuple (knn_nbrs, knn_distances).
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SingleCellExperiment` object, the assay name to use.
 #'
 #' @return A matrix of coordinates with samples as rows.
+#'
+#' If `data` is a `SingleCellExperiment` returns a `SingleCellExperiment`
+#' with the TriMap computed in the `reducedDims` slot at the index `TriMap`.
 #' @export
 #'
 #' @examples
 #' data(iris)
 #' irisTrimap<-TRIMAP(iris[,seq_len(4)],transpose=FALSE)
 #' proj2d(irisTrimap,colorBy = iris$Species)
+#'
+#' irisSCE <- SingleCellExperiment::SingleCellExperiment(
+#'         assays = list(counts = t(iris[, -5])),
+#'         colData = iris[5]
+#' )
+#' irisSCE<-TRIMAP(irisSCE)
 TRIMAP <-
     function(data,
             n_dims = 2,
@@ -398,14 +506,20 @@ TRIMAP <-
             n_outliers = 5,
             apply_pca = TRUE,
             n_iters = 400,
-            knn_tuple = NULL) {
+            knn_tuple = NULL,
+            sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SingleCellExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
     if (transpose)
         data <- t(data)
 
     proc <- basiliskStart(pythonEnv)
     on.exit(basiliskStop(proc))
 
-    basiliskRun(proc,
+    trimapOut<-basiliskRun(proc,
         fun=function(n_dims, n_inliers,n_outliers,
             apply_pca, n_iters, knn_tuple, data) {
 
@@ -423,5 +537,85 @@ TRIMAP <-
         rownames(res) <- rownames(data)
         res
     }, n_dims, n_inliers, n_outliers, apply_pca, n_iters, knn_tuple, data)
-
+    if(is.null(sce_obj)){
+        return(trimapOut)
+    }else{
+        reducedDim(sce_obj,"TriMap") <- trimapOut
+        return(sce_obj)
+    }
 }
+
+
+#' Non-metric Multidimensional Scaling (dimension reduction)
+#'
+#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
+#'   Can also be a SingleCellExperiment object.
+#' @param transpose Logical. If `transpose`, samples are columns and features
+#'   are rows.
+#' @param scale  Logical. Divide features by their standard deviation.
+#' @param center Logical. Subtract features by their average.
+#' @param metric A function that return a object of class "dist".
+#' @param ndim Integer. Dimensions of the embedded space.
+#' @param maxit The maximum number of iterations.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SingleCellExperiment` object, the assay name to use.
+#' @return A matrix of coordinates with samples as rows, or a
+#'   `SingleCellExperiment` object if `data` is a `SingleCellExperiment.` with
+#'   the NMDS stored in a `reducedDim` slot.
+#' @export
+#'
+#' @examples
+#' data("bulkLogCounts")
+#' NMDSproj<-NMDS(bulkLogCounts)
+#' proj2d(NMDSproj)
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' sce<-NMDS(sce)
+#' proj2d(sce)
+NMDS <-
+    function(data,
+        transpose = TRUE,
+        scale = FALSE,
+        center = FALSE,
+        metric = dist,
+        ndim = 2,
+        maxit = 100,
+        sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SingleCellExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
+    merged <- FALSE
+    if (transpose)
+        data <- t(data)
+    data <- metric(data)  # euclidean distances between the rows
+    if (min(data, na.rm = TRUE) == 0) {
+        merged <- TRUE
+        md <- merge0dist(data)
+        data <- md$distMat
+        mergedSample <- md$merged
+    }
+    fit <-
+        MASS::isoMDS(data, k = ndim, maxit = maxit) # k is the number of dim
+    fit$coord <- fit$points
+    fit$points <- NULL
+    if (merged) {
+        for (sple in names(mergedSample)) {
+            values <-
+                matrix(
+                    rep(fit$coord[sple, ], length(mergedSample[[sple]])),
+                    nrow = length(mergedSample[[sple]]),
+                    byrow = TRUE
+                )
+            rownames(values) <- mergedSample[[sple]]
+            fit$coord <- rbind(fit$coord, values)
+        }
+    }
+    if(is.null(sce_obj)){
+        return(fit$coord)
+    }else{
+        reducedDim(sce_obj,"NMDS") <- fit$coord
+        return(sce_obj)
+    }
+}
+

@@ -7,7 +7,9 @@
 pcaAddSamples(pca, newSamplesMatrix, transpose = TRUE, returnPCA = TRUE)
 }
 \arguments{
-\item{pca}{The existing PCA as an object returned by \code{PCA} or \code{fastPCA}.}
+\item{pca}{The existing PCA as an object returned by \code{PCA} or \code{fastPCA}.
+Can also be a \code{SingleCellExperiment} object. Where one of these functions
+have been performed.}
 
 \item{newSamplesMatrix}{The matrix of numeric of new samples. It must have
 the same features than the original PCA.}
@@ -32,5 +34,11 @@ iris2<-iris[76:150,]
 pca<-PCA(iris1[,seq_len(4)],transpose = FALSE,scale = TRUE,center = TRUE)
 pca2d(pca,colorBy = iris1$Species)
 pcaUpdated<-pcaAddSamples(pca,iris2[,seq_len(4)],transpose = FALSE)
+pca2d(pcaUpdated,colorBy = iris$Species)
+
+iris_sce <- SingleCellExperiment(
+    assays = list(counts = t(iris1[,seq_len(4)])))
+iris_sce<-PCA(iris_sce, scale = TRUE, center = TRUE)
+pcaUpdated<-pcaAddSamples(iris_sce,iris2[,seq_len(4)],transpose = FALSE)
 pca2d(pcaUpdated,colorBy = iris$Species)
 }

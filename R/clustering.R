@@ -2,6 +2,8 @@
 #'
 #' @param umapWithNN A list with the UMAP coordinates and the nearest neighbor
 #'   data as returned by `UMAP` if `ret_nn = TRUE`.
+#'   This can also be a `SingleCellExperiment` object with where the UMAP
+#'   function has been run with `ret_nn = TRUE`.
 #' @param n_neighbors The size of local neighborhood (in terms of number of
 #'   neighboring sample points) used for the Leiden clustering.
 #' @param metric Character. One of the metric used for computing the UMAP model.
@@ -27,12 +29,18 @@
 #'   default), then communities can be of any size.
 #' @return A vector of character or factor if `returnAsFactor`, same length as
 #'   number of samples in the UMAP. Cluster attribution of samples.
+#'   If `umapWithNN` is a `SingleCellExperiment` object, the function will add
+#'   the cluster attribution to the colData of the object and return the object.
 #' @export
 #'
 #' @examples
 #' data("bulkLogCounts")
 #' umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
 #' proj2d(umapWithNN$embedding, colorBy = leidenFromUMAP(umapWithNN))
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' sce <- UMAP(sce, ret_nn = TRUE)
+#' sce<-leidenFromUMAP(sce)
+#' proj2d(sce, colorBy = "leiden_cluster")
 leidenFromUMAP <- function(umapWithNN,
                     n_neighbors = 10,
                     metric = NULL,
@@ -53,6 +61,16 @@ leidenFromUMAP <- function(umapWithNN,
                     seed = 666,
                     initial_membership = NULL,
                     max_comm_size = 0L) {
+    sce_obj <-NULL
+    if (inherits(umapWithNN, "SingleCellExperiment")) {
+        sce_obj <- umapWithNN
+        if(!is.null(metadata(sce_obj)$UMAP)){
+                umapWithNN <- metadata(sce_obj)$UMAP
+        }else{
+                stop("UMAP model not found in the provided",
+                    "SingleCellExperiment object, please run oob::UMAP first.")
+        }
+    }
     if (is.null(metric)) {
         metric <- names(umapWithNN$nn)[1]
     } else {
@@ -73,14 +91,14 @@ leidenFromUMAP <- function(umapWithNN,
 
     proc <- basiliskStart(pythonEnv)
     on.exit(basiliskStop(proc))
-    basiliskRun(proc, function(adjMat, mode,returnAsFactor, n_iterations,
+    res<-basiliskRun(proc, function(adjMat, mode,returnAsFactor, n_iterations,
         resolution_parameter, seed, initial_membership,
         max_comm_size, partition_type){
             ig <- import("igraph")
 
             pygraph <- ig$Graph$Weighted_Adjacency(matrix = adjMat, mode = mode)
 
-                leidenFromPygraph(
+            leidenFromPygraph(
                     pygraph,
                     returnAsFactor = returnAsFactor,
                     n_iterations = n_iterations,
@@ -88,14 +106,20 @@ leidenFromUMAP <- function(umapWithNN,
                     seed = seed,
                     initial_membership = initial_membership,
                     max_comm_size = max_comm_size,
-                    partition_type = partition_type,
-        )
-            }, adjMat, mode = "undirected", returnAsFactor = returnAsFactor,
-                    n_iterations = n_iterations,
-                    resolution_parameter = resolution_parameter,
-                    seed = seed, initial_membership = initial_membership,
-                    max_comm_size = max_comm_size,
                     partition_type = partition_type)
+        }, adjMat, mode = "undirected", returnAsFactor = returnAsFactor,
+                n_iterations = n_iterations,
+                resolution_parameter = resolution_parameter,
+                seed = seed, initial_membership = initial_membership,
+                max_comm_size = max_comm_size,
+                partition_type = partition_type)
+
+    if(!is.null(sce_obj)){
+        colData(sce_obj)$leiden_cluster <- res
+        return(sce_obj)
+    }else{
+        return(res)
+    }
 }
 
 
@@ -227,12 +251,6 @@ leidenFromPygraph <-
 #'   model. If NULL take the first available one.
 #'
 #' @return A sparse adjacency matrix from the class `dgTMatrix`.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' umapWithNN <- UMAP(bulkLogCounts, ret_nn = TRUE)
-#' getAdjMatfromUMAPWithNN(umapWithNN)
 getAdjMatfromUMAPWithNN <-
     function(umapWithNN,
             n_neighbors = 10,

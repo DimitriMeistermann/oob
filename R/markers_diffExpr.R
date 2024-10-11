@@ -5,15 +5,19 @@
 #'   for multi-threading.
 #' @param returnAsList Return a list where each element is dataframe containing
 #'   the marker metrics of a group.
-#' @param exprData A dataframe with genes as rows and samples as columns.
+#' @param data A dataframe with genes as rows and samples as columns.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param groups A vector of group names, same size as the number of columns in
-#'   `exprData`.
+#'   `data`.
 #' @param transpose If TRUE, the input data is transposed before processing.
-#'   Default is FALSE.
+#'   Default is TRUE (feature as rows, samples as columns).
+#' @param sce_assay Integer or character, if `data` is a
+#'   `SummarizedExperiment` related object, the assay name to use.
 #'
 #' @return A dataframe containing four column per group: Log2(Fold-Change),
 #'   AUROC, marker score (see details), p-value and BH adjusted p-value.
-#'
+#'   If `data` is a `SummarizedExperiment` related object and `returnAsList` is
+#'   `FALSE`, the function will add the marker metrics to `rowData`.
 #' @details LogFC and pvalues are computed from a linear modelling of the data.
 #'
 #' Score is consisting of the geometrical mean of absolute LogFC, absolute(auroc
@@ -25,18 +29,28 @@
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
-#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
-#'
-#'
-getMarkers <- function (exprData,
+#' # SnowParam(1) : monocore execution
+#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+#'     BPPARAM=BiocParallel::SnowParam(1))
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' sce <- getMarkers(sce, sampleAnnot$culture_media, sce_assay = "counts")
+#' rowData(sce) |> chead()
+getMarkers <- function (data,
                         groups,
-                        transpose = FALSE,
+                        transpose = TRUE,
                         BPPARAM = NULL,
-                        returnAsList = FALSE) {
+                        returnAsList = FALSE,
+                        sce_assay = 1) {
     if (is.null(BPPARAM))
         BPPARAM <- BiocParallel::bpparam()
 
-    if(transpose) exprData <- t(exprData)
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
+
+    if(!transpose) data <- t(data)
     groups <- as.factor(make.names(groups))
     grpLvl <- levels(groups)
     resDF <- BiocParallel::bplapply(grpLvl,BPPARAM = BPPARAM,
@@ -45,7 +59,7 @@ getMarkers <- function (exprData,
             designMat <- cbind(1, logicGroup)
             n1 <- as.integer(sum(!logicGroup))
             n2 <- as.integer(sum(logicGroup))
-            resDFgroup <- apply(exprData, 1,
+            resDFgroup <- apply(data, 1,
                                 getGeneMarkerStat, designMat, n1, n2) |>
                 t() |> data.frame()
             colnames(resDFgroup) <-
@@ -56,10 +70,13 @@ getMarkers <- function (exprData,
         })
     names(resDF) <- grpLvl
 
-    if (returnAsList) {
+    if (returnAsList) return(resDF)
+        resDF<-do.call("cbind", resDF)
+    if(is.null(sce_obj)){
         return(resDF)
-    } else{
-        return(do.call("cbind", resDF))
+    }else{
+        rowData(sce_obj) <- cbind(rowData(sce_obj),resDF)
+        return(sce_obj)
     }
 
 }
@@ -140,6 +157,8 @@ qauroc <- function(score, boolVect) {
 #' dataframe
 #'
 #' @param markerData A dataframe returned by [oob::getMarkers].
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object where
+#'   were [oob::getMarkers] has been performed.
 #' @param feature The name of the feature that has to be extracted.
 #'
 #' @return
@@ -149,10 +168,18 @@ qauroc <- function(score, boolVect) {
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
-#' markerData <- getMarkers(bulkLogCounts, sampleAnnot$culture_media)
+#' markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+#'     BPPARAM=BiocParallel::SnowParam(1))
 #' extractFeatureMarkerData(markerData) |> chead()
+#' sc <- SingleCellExperiment(assays = list(counts = bulkLogCounts),
+#'    colData = sampleAnnot,
+#'    rowData = markerData)
+#' extractFeatureMarkerData(sc) |> chead()
 extractFeatureMarkerData <-
     function(markerData, feature = "score") {
+        if (inherits(markerData, "SummarizedExperiment")) {
+            markerData <- rowData(markerData)
+        }
         featureStrLen <- nchar(feature) + 1
         columns2Pick <-
             grep(paste0("^.*\\.", feature, "$"),
@@ -168,41 +195,67 @@ extractFeatureMarkerData <-
 #' Compute a matrix of coef describing best gene marker per group of samples
 #' from a GLM net regression
 #'
-#' @param expressionMatrix A matrix of numeric with rows as features (in the
-#'   RNA-Seq context, log counts).
+#' @param data A matrix of numeric with rows as features (in the
+#'   RNA-Seq context, log data).
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param group A feature of factor/character, same length as number of sample.
 #'   Describe group of each sample.
+#' @param transpose If TRUE, the input data is transposed before processing.
+#'   Default is TRUE (feature as rows, samples as columns).
+#' @param sce_assay Integer or character, if `data` is a
+#'   `SummarizedExperiment` related object, the assay name to use.
 #'
 #' @return A matrix containing each gene coefficient for each group.
+#'   If `data` is a `SummarizedExperiment` related object
+#'   the function will add the marker metrics to `rowData`.
+#'
 #' @export
 #'
 #' @examples
 #' data("bulkLogCounts")
 #' data("sampleAnnot")
 #' res <- getMarkerGLMnet(bulkLogCounts,sampleAnnot$culture_media)
-getMarkerGLMnet <- function(expressionMatrix, group) {
-    geneMatrix <- as.matrix(expressionMatrix) |> t()
+#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' res <- getMarkerGLMnet(sce,sampleAnnot$culture_media)
+getMarkerGLMnet <- function(data, group, transpose = TRUE, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
+    data <- as.matrix(data)
+    if (transpose) data <- t(data)
     fit <- glmnet(
-        geneMatrix,
+        data,
         group,
         family = "multinomial",
         alpha = .5,
-        lambda = cv.glmnet(geneMatrix, group, family = "multinomial")$lambda.1se
+        lambda = cv.glmnet(data, group, family = "multinomial")$lambda.1se
     )
 
     cf <- vapply(coef(fit), function(x)
-        x[seq(2,length(x))], numeric(ncol(geneMatrix)))
-    rownames(cf) <- colnames(geneMatrix)
-    cf
+        x[seq(2,length(x))], numeric(ncol(data)))
+    rownames(cf) <- colnames(data)
+        colnames(cf) <- paste0("coef_",colnames(cf))
+
+    if(is.null(sce_obj)){
+        return(cf)
+    }else{
+        rowData(sce_obj) <- cbind(rowData(sce_obj),cf)
+        return(sce_obj)
+    }
 }
 
 #' Compute over dispersion values for each gene.
 #'
-#' @param counts Normalized count table with genes as rows.
+#' @param data Normalized count table with genes as rows.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param minCount Minimum average expression to not be filtered out.
 #' @param plot Logical. Show the overdispersion plot.
 #' @param returnPlot Logical, if `plot` return it as a ggplot object instead of
 #'   printing it.
+#' @param sce_assay Integer or character, if `data` is a
+#'   `SummarizedExperiment` related object, the assay name to use.
 #'
 #' @return A ggplot graph if `returnPlot`, otherwise a dataframe with the
 #'   following columns:
@@ -213,56 +266,75 @@ getMarkerGLMnet <- function(expressionMatrix, group) {
 #'    overdispersion value.
 #' - residuals2: squared residuals
 #' - fitted: theoretical dispersion for the gene average (y value of the curve).
+#'
+#'   If `data` is a `SummarizedExperiment` related object
+#'   the function will add the gene metrics to `rowData`.
 #' @export
 #'
 #' @examples
 #' data("bulkLogCounts")
 #' normCount<-2^(bulkLogCounts-1)
 #' dispData<-getMostVariableGenes(normCount,minCount=1)
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = normCount))
+#' sce <- getMostVariableGenes(sce,minCount=1)
+#' rowData(sce) |> chead()
 getMostVariableGenes <-
-    function(counts,
+    function(data,
             minCount = 0.01,
             plot = TRUE,
-            returnPlot = FALSE) {
-        counts <- counts[rowMeans(counts) > minCount, ]
-        dispTable <-
-            data.frame(
-                mu = rowMeans(counts),
-                var = apply(counts, 1, var),
-                row.names = rownames(counts)
-            )
-        dispTable$cv2 <- dispTable$var / dispTable$mu ^ 2
-        sumNullvariance <- sum(dispTable$cv2 <= 0)
-        if (sumNullvariance > 0) {
-            warning(sumNullvariance, " have null variance and will be removed")
-            dispTable <- dispTable[dispTable$cv2 > 0, ]
-        }
-        fit <-
-            loess(as.formula("cv2 ~ mu"),
-                data = log10(dispTable[, c("mu", "cv2")]))
-        dispTable$residuals <- fit$residuals
-        dispTable$residuals2 <- dispTable$residuals ^ 2
-        dispTable$fitted <- 10 ^ fit$fitted
-        if (plot) {
-            g <-
-                ggplot(dispTable,
-                    aes(
-                        x = .data$mu,
-                        y = .data$cv2,
-                        label = rownames(dispTable),
-                        fill = .data$residuals
-                    )) +
-                geom_point(stroke = 1 / 8,
-                            colour = "black",
-                            shape = 21) +
-                geom_line(aes(y = fitted), color = "red", size = 1.5) +
-                scale_x_log10() + scale_y_log10()
-            if (returnPlot) {
-                return(g)
-            } else{
-                print(g)
-            }
-        }
-        dispTable
-    }
+            returnPlot = FALSE,
+            sce_assay = 1) {
 
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
+    data <- data[rowMeans(data) > minCount, ]
+    dispTable <-
+        data.frame(
+            mu = rowMeans(data),
+            var = apply(data, 1, var),
+            row.names = rownames(data)
+        )
+    dispTable$cv2 <- dispTable$var / dispTable$mu ^ 2
+    sumNullvariance <- sum(dispTable$cv2 <= 0)
+    if (sumNullvariance > 0) {
+        warning(sumNullvariance, " have null variance and will be removed")
+        dispTable <- dispTable[dispTable$cv2 > 0, ]
+    }
+    fit <-
+        loess(as.formula("cv2 ~ mu"),
+            data = log10(dispTable[, c("mu", "cv2")]))
+    dispTable$residuals <- fit$residuals
+    dispTable$residuals2 <- dispTable$residuals ^ 2
+    dispTable$fitted <- 10 ^ fit$fitted
+    if (plot) {
+        g <-
+            ggplot(dispTable,
+                aes(
+                    x = .data$mu,
+                    y = .data$cv2,
+                    label = rownames(dispTable),
+                    fill = .data$residuals
+                )) +
+            geom_point(stroke = 1 / 8,
+                        colour = "black",
+                        shape = 21) +
+            geom_line(aes(y = fitted), color = "red", size = 1.5) +
+            scale_x_log10() + scale_y_log10()
+        if (returnPlot) {
+            return(g)
+        } else{
+            print(g)
+        }
+    }
+    if(is.null(sce_obj)){
+        return(dispTable)
+    }else{
+        sce_obj <- sce_obj[rownames(dispTable),]
+        rowData(sce_obj) <- cbind(rowData(sce_obj),dispTable)
+        return(sce_obj)
+    }
+}

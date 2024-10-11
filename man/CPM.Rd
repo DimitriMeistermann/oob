@@ -4,13 +4,21 @@
 \alias{CPM}
 \title{Count Per Million normalization}
 \usage{
-CPM(data)
+CPM(data, sce_assay = 1)
 }
 \arguments{
-\item{data}{A raw count table with rows as genes}
+\item{data}{A raw count table with rows as genes
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SummarizedExperiment} related object,
+the assay name to use.}
 }
 \value{
 A normalized count table.
+If \code{data} is a \code{SummarizedExperiment} related object,
+the function will add the normalized
+count to the \code{SummarizedExperiment} object \code{cpm}.
 }
 \description{
 Count Per Million normalization
@@ -24,4 +32,6 @@ countMat <-
     }) |> t()
     rownames(countMat)<-names(geneLengthGRCh38)
 head(CPM(countMat))
+sce <- SingleCellExperiment(assays = list(counts = countMat))
+head(assay(CPM(sce),"cpm"))
 }

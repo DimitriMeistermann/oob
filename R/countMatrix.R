@@ -1,13 +1,19 @@
 #' Give QC metrics per sample
 #'
 #' @param x A matrix of numeric with samples as columns.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param uncenter uncenter the matrix first so the minimum is 0.
+#' @param sce_assay Integer or character, if `data` is a `SummarizedExperiment`
+#'    related object, the assay name to use.
 #'
 #' @return A data frame with each row as a sample and the following columns:
 #' * `mean`: average expression in the sample
 #' * `sd`: standard deviation
 #' * `TotalGenEx`: number of expressed gene (count>0) in the sample
 #' * `TotalCount`: sum of counts for the sample
+#'
+#' If `x` is a `SummarizedExperiment` related object, the function will
+#' add the columns to the `colData` slot.
 #' @export
 #'
 #' @examples
@@ -21,7 +27,15 @@
 #' rownames(countMat) <- names(geneLengthGRCh38)
 #' colnames(countMat) <- letters[seq_len(ncol(countMat))]
 #' computeQCmetricSamples(countMat)
-computeQCmetricSamples <- function(x, uncenter = FALSE) {
+#' sce <- SingleCellExperiment(assays = list(counts = countMat))
+#' sce <- computeQCmetricSamples(sce)
+#' colData(sce) |> head()
+computeQCmetricSamples <- function(x, uncenter = FALSE, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(x, "SummarizedExperiment")) {
+        sce_obj <- x
+        x <- assay(sce_obj, sce_assay)
+    }
     if (uncenter) {
         x <- x - min(x)
         zero <- 0
@@ -36,13 +50,19 @@ computeQCmetricSamples <- function(x, uncenter = FALSE) {
     for (i in seq_len(ncol(x)) )
         noGenEx[i] <- length(which(x[, i] > zero))
 
-    return(data.frame(
+    resDt<-data.frame(
         mean = mean,
         sd = sd,
         CV = CV,
         TotalGenEx = noGenEx,
         TotalCount = count
-    ))
+    )
+    if(is.null(sce_obj)){
+        return(resDt)
+    }else{
+        colData(sce_obj) <- cbind(colData(sce_obj), resDt)
+        return(sce_obj)
+    }
 }
 
 
@@ -74,66 +94,17 @@ merge0dist <- function(disMat) {
     return(list(distMat = as.dist(mat), merged = merged))
 }
 
-#' Non-metric Multidimensional Scaling (dimension reduction)
-#'
-#' @param data A matrix of numeric (in the RNA-Seq context, log counts).
-#' @param transpose Logical. If `transpose`, samples are columns and features
-#'   are rows.
-#' @param scale  Logical. Divide features by their standard deviation.
-#' @param center Logical. Subtract features by their average.
-#' @param metric A function that return a object of class "dist".
-#' @param ndim Integer. Dimensions of the embedded space.
-#' @param maxit The maximum number of iterations.
-#'
-#' @return A matrix of coordinates with samples as rows.
-#' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' NMDSproj<-NMDS(bulkLogCounts)
-#' proj2d(NMDSproj)
-NMDS <-
-    function(data,
-            transpose = TRUE,
-            scale = FALSE,
-            center = FALSE,
-            metric = dist,
-            ndim = 2,
-            maxit = 100) {
-        merged <- FALSE
-        if (transpose)
-            data <- t(data)
-        d <- metric(data)  # euclidean distances between the rows
-        if (min(d, na.rm = TRUE) == 0) {
-            merged <- TRUE
-            md <- merge0dist(d)
-            d <- md$distMat
-            mergedSample <- md$merged
-        }
-        fit <-
-            MASS::isoMDS(d, k = ndim, maxit = maxit) # k is the number of dim
-        fit$coord <- fit$points
-        fit$points <- NULL
-        if (merged) {
-            for (sple in names(mergedSample)) {
-                values <-
-                    matrix(
-                        rep(fit$coord[sple, ], length(mergedSample[[sple]])),
-                        nrow = length(mergedSample[[sple]]),
-                        byrow = TRUE
-                    )
-                rownames(values) <- mergedSample[[sple]]
-                fit$coord <- rbind(fit$coord, values)
-            }
-        }
-        return(fit$coord)
-    }
-
 #' Count Per Million normalization
 #'
 #' @param data A raw count table with rows as genes
-#'
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SummarizedExperiment` related object,
+#'   the assay name to use.
 #' @return A normalized count table.
+#'   If `data` is a `SummarizedExperiment` related object, 
+#'   the function will add the normalized 
+#'   count to the `SummarizedExperiment` object `cpm`.
 #' @export
 #'
 #' @examples
@@ -145,23 +116,42 @@ NMDS <-
 #'     }) |> t()
 #'     rownames(countMat)<-names(geneLengthGRCh38)
 #' head(CPM(countMat))
-CPM <- function(data) {
+#' sce <- SingleCellExperiment(assays = list(counts = countMat))
+#' head(assay(CPM(sce),"cpm"))
+CPM <- function(data, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
     #Normalisation CPM
     data.CPM <- sweep(data, 2, colSums(data), `/`)
     data.CPM <- data.CPM * 1000000
-    return(data.CPM)
+
+    if(is.null(sce_obj)){
+        return(data.CPM)
+    }else{
+        assay(sce_obj,"cpm") <- data.CPM
+        return(sce_obj)
+    }
 }
 
 
-#' Transcript per milion (TPM) normalization for full-length transcript, short
+#' Transcript per million (TPM) normalization for full-length transcript, short
 #' read sequencing.
 #'
-#' @param data A raw count table with rows as genes
+#' @param data A raw count table with rows as genes.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param gene.length A vector of numeric corresponding to gene length in base
 #'   pair. Must be named by genes.
-#'
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SummarizedExperiment` related object,
+#'   the assay name to use.
 #' @return A normalized count table where 1 count is equal in theory to one
-#'   transcript per milion.
+#'   transcript per million.
+#'   If `data` is a `SummarizedExperiment` related object, the function will
+#'   add the normalized count to the `SummarizedExperiment` object as an
+#'   assay named `tpm`.
 #' @export
 #'
 #' @examples
@@ -173,20 +163,39 @@ CPM <- function(data) {
 #'     }) |> t()
 #'     rownames(countMat)<-names(geneLengthGRCh38)
 #' TPMfullLength(countMat,geneLengthGRCh38) |> chead()
-TPMfullLength <- function(data, gene.length) {
+#'
+#' sce <- SingleCellExperiment(assays = list(counts = countMat))
+#' assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> head()
+TPMfullLength <- function(data, gene.length, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
     gene.length.kb <- gene.length[rownames(data)] / 1000
     data <- sweep(data, 1, gene.length.kb, `/`)
-    return(CPM(data))
+    res<-CPM(data)
+    if(is.null(sce_obj)){
+        return(res)
+    }else{
+        assay(sce_obj,"tpm") <- res
+        return(sce_obj)
+    }
 }
 
 #' Reads Per Kilobase per Million (RPKM) normalization for full-length
 #' transcript, short read sequencing.
 #'
-#' @param data A raw count table with rows as genes
+#' @param data A raw count table with rows as genes.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment`  object.
 #' @param gene.length A vector of numeric corresponding to gene length in base
 #'   pair. Must be named by genes.
-#'
+#' @param sce_assay Integer or character, if `data` is a
+#'   `SummarizedExperiment` related object, the assay name to use.
 #' @return A normalized count table of RPKM.
+#'   If `data` is a `SummarizedExperiment` object, the function will add the
+#'   normalized count to the `SummarizedExperiment` object as an assay named
+#'   `rpkm`.
 #' @export
 #'
 #' @examples
@@ -198,18 +207,39 @@ TPMfullLength <- function(data, gene.length) {
 #'     }) |> t()
 #' rownames(countMat)<-names(geneLengthGRCh38)
 #' chead(RPKM(countMat,geneLengthGRCh38))
-RPKM <- function(data, gene.length) {
+#'
+#' sce <- SingleCellExperiment(assays = list(counts = countMat))
+#' assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> head()
+RPKM <- function(data, gene.length, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(data, "SummarizedExperiment")) {
+        sce_obj <- data
+        data <- assay(sce_obj, sce_assay)
+    }
+
     gene.length.kb <- gene.length[rn(data)] / 1000
     data <- CPM(data)
-    sweep(data, 1, gene.length.kb, `/`)
+    res <- sweep(data, 1, gene.length.kb, `/`)
+    if(is.null(sce_obj)){
+        return(res)
+    }else{
+        assay(sce_obj,"rpkm") <- res
+        return(sce_obj)
+    }
 }
 
 
 #' Quick DESeq2 normalization
 #'
-#' @param countMatrix A raw count table with rows as genes
-#'
+#' @param countMatrix A raw count table with rows as genes.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment`  object.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SummarizedExperiment` related object,
+#'   the assay name to use.
 #' @return A normalized count table.
+#' If `data` is a `SummarizedExperiment` related object, the function will
+#'   add the normalized count to
+#'   the `SummarizedExperiment` object as an assay named `deseq2norm`.
 #' @export
 #'
 #' @examples
@@ -221,26 +251,39 @@ RPKM <- function(data, gene.length) {
 #'     }) |> t()
 #' rownames(countMat)<-names(geneLengthGRCh38)
 #' normDeseq(countMat)
-normDeseq <-
-    function(countMatrix) {
-        #matrix where genes are rows and samples are columns
-        # PS = pseudo reference sample
-        PS <-
-            apply(countMatrix, 1, gmean, keepZero = TRUE)
-        # get a vector which consist of the geometrical mean
-        # of each genes across all samples
-        keptRow <-
-            PS > 0 #get rid of genes containing one zero ore more
-        PS <- PS[keptRow]
-        ratioMat <- sweep(countMatrix[keptRow,], 1, PS, "/")
-        # get the ratio matrix (expression/expression from PS)
-        normFactors <-
-            apply(ratioMat, 2, median)
-        # get the median of the ratios for each sample
-        # to get the normalization factors
-        sweep(countMatrix, 2, normFactors, "/")
-        #divide each sample by the corresponding normalization factor
+#' sce <- SingleCellExperiment(assays = list(counts = countMat))
+#' assay(normDeseq(sce),"deseq2norm") |> head()
+normDeseq <-function(countMatrix, sce_assay = 1) {
+    sce_obj <-NULL
+    if (inherits(countMatrix, "SummarizedExperiment")) {
+        sce_obj <- countMatrix
+        countMatrix <- assay(sce_obj, sce_assay)
     }
+    #matrix where genes are rows and samples are columns
+    # PS = pseudo reference sample
+    PS <-
+        apply(countMatrix, 1, gmean, keepZero = TRUE)
+    # get a vector which consist of the geometrical mean
+    # of each genes across all samples
+    keptRow <-
+        PS > 0 #get rid of genes containing one zero ore more
+    PS <- PS[keptRow]
+    ratioMat <- sweep(countMatrix[keptRow,], 1, PS, "/")
+    # get the ratio matrix (expression/expression from PS)
+    normFactors <-
+        apply(ratioMat, 2, median)
+    # get the median of the ratios for each sample
+    # to get the normalization factors
+    res<-sweep(countMatrix, 2, normFactors, "/")
+    #divide each sample by the corresponding normalization factor
+    if(is.null(sce_obj)){
+        return(res)
+    }else{
+        assay(sce_obj,"deseq2norm") <- res
+        return(sce_obj)
+    }
+
+}
 
 # look at clusters <- quickCluster(sce)
 #' Quick single cell normalization (scran method).
@@ -321,11 +364,14 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 #' Rescale the counts so the range of each gene remains the same after the
 #' transformation.
 #' @param logCounts A matrix of numeric (in the RNA-Seq context, log counts).
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param batch A vector or factor specifying the batch of origin for all cells
 #' @param k An integer scalar specifying the number of nearest neighbors to
 #'   consider when identifying MNNs.
 #' @param returnRescale Logical. Use reScale on the output so the dynamic range
 #'   after batch correction of genes is the same than before.
+#' @param sce_assay Integer or character, if `data`
+#'   is a `SummarizedExperiment` related object, the assay name to use.
 #' @param ... Other parameters passed to fastMNN.
 #'
 #' @return A matrix of corrected count table.
@@ -341,12 +387,16 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 #' #warning because of the small matrix
 #' correctedMat<-oobFastMNN(countMat,batch = c(rep(1,10),rep(2,10)), k=5)
 #' heatmap.DM(correctedMat)
-oobFastMNN <-
-    function(logCounts, batch, k, returnRescale = TRUE, ...) {
-        scObj <- batchelor::fastMNN(logCounts, batch = batch, k = k, ...)
-        res <-
-            SummarizedExperiment::assay(scObj, "reconstructed") |> as.matrix()
-        if (returnRescale)
-            res <- reScale(res, logCounts)
-        res
+oobFastMNN <- function(logCounts, batch, k,
+    returnRescale = TRUE, sce_assay = 1, ...) {
+
+    if (inherits(data, "SummarizedExperiment")) {
+        data <- assay(data, sce_assay)
     }
+    scObj <- batchelor::fastMNN(logCounts, batch = batch, k = k, ...)
+    res <-
+        SummarizedExperiment::assay(scObj, "reconstructed") |> as.matrix()
+    if (returnRescale)
+        res <- reScale(res, logCounts)
+    res
+}

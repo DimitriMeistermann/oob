@@ -15,9 +15,11 @@
 #' @import rgl
 #' @import scattermore
 #' @import stringr
-#' @import stats
+
+#' @import SingleCellExperiment
+#' @import SummarizedExperiment
 #' @importFrom BiocGenerics
-#'    colnames
+#'  colnames
 #'  rownames
 #'  intersect
 #'  union
@@ -44,6 +46,32 @@
 #'  is_null
 #'  is_character
 #'  is_vector
+#' @importFrom stats
+#'  .lm.fit
+#'  aggregate
+#'  aov
+#'  as.dist
+#'  as.formula
+#'  as.hclust
+#'  coef
+#'  cor
+#'  cov
+#'  density
+#'  dist
+#'  fitted
+#'  formula
+#'  hclust
+#'  loess
+#'  median
+#'  na.omit
+#'  p.adjust
+#'  pbinom
+#'  phyper
+#'  prcomp
+#'  quantile
+#'  sd
+#'  var
+#' @importFrom S4Vectors metadata
 #' @importFrom batchelor fastMNN
 #' @importFrom circlize colorRamp2
 #' @importFrom glmnet cv.glmnet
@@ -56,9 +84,7 @@
 #' @importFrom methods as is
 #' @importFrom reticulate import
 #' @importFrom circlize colorRamp2
-#' @importFrom SummarizedExperiment colData assay
-#' @importFrom SingleCellExperiment SingleCellExperiment sizeFactors
-#' @importFrom utils write.table
+#' @importFrom utils write.table data
 #' @importFrom basilisk BasiliskEnvironment
 #' @useDynLib oob, .registration=TRUE
 ## usethis namespace: end

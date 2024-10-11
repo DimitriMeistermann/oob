@@ -12,11 +12,13 @@ TRIMAP(
   n_outliers = 5,
   apply_pca = TRUE,
   n_iters = 400,
-  knn_tuple = NULL
+  knn_tuple = NULL,
+  sce_assay = 1
 )
 }
 \arguments{
-\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).}
+\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).
+Can also be a SingleCellExperiment object.}
 
 \item{n_dims}{Integer. Dimensions of the embedded space.}
 
@@ -36,9 +38,15 @@ necessary before applying the nearest-neighbor search.}
 
 \item{knn_tuple}{Use the precomputed nearest-neighbors information in form of
 a tuple (knn_nbrs, knn_distances).}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SingleCellExperiment} object, the assay name to use.}
 }
 \value{
 A matrix of coordinates with samples as rows.
+
+If \code{data} is a \code{SingleCellExperiment} returns a \code{SingleCellExperiment}
+with the TriMap computed in the \code{reducedDims} slot at the index \code{TriMap}.
 }
 \description{
 TriMap dimension reduction.
@@ -47,4 +55,10 @@ TriMap dimension reduction.
 data(iris)
 irisTrimap<-TRIMAP(iris[,seq_len(4)],transpose=FALSE)
 proj2d(irisTrimap,colorBy = iris$Species)
+
+irisSCE <- SingleCellExperiment::SingleCellExperiment(
+        assays = list(counts = t(iris[, -5])),
+        colData = iris[5]
+)
+irisSCE<-TRIMAP(irisSCE)
 }

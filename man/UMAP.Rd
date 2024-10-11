@@ -15,11 +15,13 @@ UMAP(
   metric = "euclidean",
   ret_model = FALSE,
   ret_nn = FALSE,
+  sce_assay = 1,
   ...
 )
 }
 \arguments{
-\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).}
+\item{data}{A matrix of numeric (in the RNA-Seq context, log counts).
+Can also be a SingleCellExperiment object.}
 
 \item{nDimPCA}{Integer. If not NULL compute a PCA first and take n first
 principal components.}
@@ -68,6 +70,9 @@ the nearest neighbors could be sensitive to data scaling, so be wary of
 reusing nearest neighbor data if modifying the scale parameter. This
 parameter can be used in conjunction with ret_model and ret_extra.}
 
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SingleCellExperiment} object, the assay name to use.}
+
 \item{...}{Other parameters passed to uwot.}
 }
 \value{
@@ -85,6 +90,10 @@ This contains one list for each metric calculated,
 itself containing a matrix idx with the integer ids of the neighbors;
 and a matrix dist with the distances. The nn list (or a sub-list)
 can be used as input to the nn_method parameter.
+\item if data is a SingleCellExperiment object, returns a SingleCellExperiment
+object with the UMAP coordinates in the \code{reducedDims} slot, and the eventual
+complete UMAP model and nearest neighbor in the metadata slot at the index
+\code{UMAP}.
 }
 }
 \description{
@@ -95,7 +104,13 @@ data(iris)
 irisUMAP<-UMAP(iris[,seq_len(4)],transpose = FALSE)
 proj2d(irisUMAP,colorBy = iris$Species)
 irisUMAP<-UMAP(rowScale(iris[,seq_len(4)],center = TRUE,scaled = TRUE),
-    transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE)
+    transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE, ret_model = TRUE)
 proj2d(irisUMAP$embedding,colorBy = iris$Species,
     nnMatrix = irisUMAP$nn$euclidean$idx[,c(1, 2, 3)],fixedCoord = TRUE)
+
+irisSCE <- SingleCellExperiment::SingleCellExperiment(
+        assays = list(counts = t(iris[, -5])),
+        colData = iris[5]
+)
+irisSCE<-UMAP(irisSCE)
 }

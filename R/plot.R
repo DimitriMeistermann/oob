@@ -686,6 +686,7 @@ filledDoubleArrow <-
 #'
 #' @param expr Numeric 2D matrix. Each row is gene and each column a sample. Row
 #'   must be named by genes.
+#'   Can also be a `SummarizedExperiment` or `SingleCellExperiment` object.
 #' @param group Factor vector, same length as number of column in expr.
 #'   Experimental group attributed to each sample.
 #' @param log10Plus1yScale Logical or NULL. Use a `log10(x+1)` scale. By default
@@ -702,6 +703,8 @@ filledDoubleArrow <-
 #' @param dodge.width Numeric. Width of individual distribution element
 #'   (violin/boxplot/dotplot).
 #' @param returnGraph Logical. Print the ggplot object or return it.
+#' @param sce_assay Integer or character,
+#'   if `data` is a `SummarizedExperiment` object, the assay name to use.
 #'
 #' @return Plot in the current graphical device or a ggplot object if
 #'   `returnGraph=TRUE`.
@@ -730,6 +733,8 @@ filledDoubleArrow <-
 #'     geom_point()
 #'
 #' plotExpr(exprMat,group = group,violinArgs = list(scale="area"))
+#' sce <- SingleCellExperiment(assays = list(counts = exprMat))
+#' plotExpr(sce["gene1",])
 
 plotExpr <-
     function(expr,
@@ -744,7 +749,12 @@ plotExpr <-
             colorScale = mostDistantColor,
             legendTitle = "group",
             dodge.width = .9,
-            returnGraph = FALSE) {
+            returnGraph = FALSE,
+            sce_assay = 1) {
+
+        if (inherits(expr, "SummarizedExperiment")) {
+            expr <- assay(expr, sce_assay)
+        }
         barplotGraph <- greyGraph <- coloredGraph <- FALSE
 
         if (is.vector(expr))

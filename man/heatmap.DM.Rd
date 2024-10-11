@@ -40,11 +40,14 @@ heatmap.DM(
   squareHt = NULL,
   row_split = NULL,
   column_split = NULL,
+  sce_assay = 1,
   ...
 )
 }
 \arguments{
-\item{matrix}{A matrix. Either numeric or character. If it is a simple vector, it will be converted to a one-column matrix.}
+\item{matrix}{A matrix. Either numeric or character.
+If it is a simple vector, it will be converted to a one-column matrix.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{preSet}{A value from \code{"expr"}, \code{"cor"}, \code{"dist"} or \code{NULL}. Change
 other arguments given a specific preset (default preSet if NULL).}
@@ -142,6 +145,9 @@ automatically turned TRUE if \code{ncol==nrow} and col/rownames are the same.}
 
 \item{column_split}{Split on columns. For heatmap splitting, please refer to \url{https://jokergoo.github.io/ComplexHeatmap-reference/book/a-single-heatmap.html#heatmap-split} .}
 
+\item{sce_assay}{Integer or character, if \code{data}
+is a \code{SummarizedExperiment} related object, the assay name to use.}
+
 \item{...}{Other parameters passed to \code{Heatmap}.}
 }
 \value{
@@ -213,8 +219,6 @@ data("bulkLogCounts")
 data("sampleAnnot")
 data("DEgenesPrime_Naive")
 
-library(ComplexHeatmap)
-
 bestDE <- rownames(DEgenesPrime_Naive)[whichTop(DEgenesPrime_Naive$pvalue,
                                           decreasing = FALSE,
                                           top = 50)]
@@ -244,6 +248,9 @@ heatmap.DM(
     colorScaleFun = circlize::colorRamp2(c(-0.2, 0, 0.2),
       c("blue", "white", "red"))
 )
+sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts),
+   colData = sampleAnnot)
+heatmap.DM(sce[bestDE[seq_len(5)],], colData = c("line", "culture_media"))
 }
 \seealso{
 \code{\link[=genTopAnnot]{genTopAnnot()}}, \code{\link[=genRowAnnot]{genRowAnnot()}}

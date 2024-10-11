@@ -5,16 +5,23 @@
 \title{Reads Per Kilobase per Million (RPKM) normalization for full-length
 transcript, short read sequencing.}
 \usage{
-RPKM(data, gene.length)
+RPKM(data, gene.length, sce_assay = 1)
 }
 \arguments{
-\item{data}{A raw count table with rows as genes}
+\item{data}{A raw count table with rows as genes.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment}  object.}
 
 \item{gene.length}{A vector of numeric corresponding to gene length in base
 pair. Must be named by genes.}
+
+\item{sce_assay}{Integer or character, if \code{data} is a
+\code{SummarizedExperiment} related object, the assay name to use.}
 }
 \value{
 A normalized count table of RPKM.
+If \code{data} is a \code{SummarizedExperiment} object, the function will add the
+normalized count to the \code{SummarizedExperiment} object as an assay named
+\code{rpkm}.
 }
 \description{
 Reads Per Kilobase per Million (RPKM) normalization for full-length
@@ -29,4 +36,7 @@ countMat <-
     }) |> t()
 rownames(countMat)<-names(geneLengthGRCh38)
 chead(RPKM(countMat,geneLengthGRCh38))
+
+sce <- SingleCellExperiment(assays = list(counts = countMat))
+assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> head()
 }

@@ -7,3 +7,4 @@ vignettes/*.html
 vignettes/*.md
 vignettes/functionalities_cache
 vignettes/functionalities_files
+.BBSoptions

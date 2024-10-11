@@ -2,6 +2,8 @@
 #' Plot a PCA in 2D
 #'
 #' @param pca PCA object created by `PCA` function.
+#'   Can also be a `SingleCellExperiment` object. Where one of these functions
+#'   have been performed.
 #' @param comp A vector of 2 integer. Principal Component to be plotted.
 #' @param colorBy A vector of factor or numeric same size as number of samples
 #'   in PCA. Color each point on the projection by its corresponding value.
@@ -69,6 +71,11 @@
 #'     outlierLabelThres = .2,
 #'     returnGraph = TRUE
 #' ) + theme_dark()
+#'
+#' iris_sce <- SingleCellExperiment(assays =
+#'     list(counts = as.matrix(iris[, seq_len(4)])))
+#' iris_sce <- PCA(iris_sce, scale = TRUE, center = TRUE)
+#' pca2d(iris_sce)
 pca2d <-
     function(pca,
             comp = c(1, 2),
@@ -86,6 +93,13 @@ pca2d <-
             outlierLabelSize = 3,
             customRatio = NULL,
             ...) {
+        if (inherits(pca, "SingleCellExperiment")) {
+            sce_obj <- pca
+        if (is.null(metadata(sce_obj)$PCA))
+            stop("PCA not found in metadata,",
+                " please run oob::PCA or oob::fastPCA first.")
+            pca <- metadata(sce_obj)$PCA
+        }
         if (length(comp) != 2)
             stop("You must give a vector of 2 integer for comp parameter")
 
@@ -156,8 +170,11 @@ pca2d <-
 #'
 #' @param coord Matrix or dataframe containing at least two vectors of numeric
 #'   corresponding to the x/y coordinates.
+#'   Can also be a `SingleCellExperiment` object.
 #' @param colorBy A vector of factor or numeric same size as number of samples
 #'   in PCA. Color each point on the projection by its corresponding value.
+#'   If coord is a `SingleCellExperiment` object, colorBy must be the name of a
+#'   column in its `colData`.
 #' @param axis  A vector of 2 integer. The column index of `coord` containing
 #'   respectively the x and y coordinates.
 #' @param pointSize  Single numeric. Size of points.
@@ -201,6 +218,8 @@ pca2d <-
 #'   the points as a pixel image, difficult to modify afterward but quicker
 #'   plotting for very large datasets.
 #' @param customRatio Single numeric. Custom ratio for the plot.
+#' @param reducedDimSlot Character or integer. If `coord` is a
+#' `SingleCellExperiment` object, slot to use from `reducedDim`.
 #'
 #' @return Plot in the current graphical device or a ggplot object if
 #'   `returnGraph=TRUE`.
@@ -282,6 +301,14 @@ pca2d <-
 #'     useScatterMore = TRUE,
 #'     pointSize = 5
 #' )
+#'
+#' irisSCE <- SingleCellExperiment::SingleCellExperiment(
+#'         assays = list(counts = t(iris[, -5])),
+#'         colData = iris[5],
+#'         reducedDims = SimpleList(UMAP = as.matrix(umap$embedding))
+#' )
+#' proj2d(irisSCE,reducedDimSlot = "UMAP", colorBy = "Species")
+
 proj2d <-
     function(coord,
             colorBy = NULL,
@@ -310,13 +337,29 @@ proj2d <-
             nnMatrix = NULL,
             nnSegmentParam = list(alpha = .75, size = .1),
             useScatterMore = FALSE,
-            customRatio = NULL) {
+            customRatio = NULL,
+                    reducedDimSlot = 1) {
+
+    # Check if coord is a SingleCellExperiment object
+    if (inherits(coord, "SingleCellExperiment")) {
+        # Extract colorBy metadata (if not NULL) from colData
+        if (!is.null(colorBy)) {
+            if (colorBy %in% colnames(colData(coord))) {
+                colorBy <- data.frame(colData(coord)[colorBy])
+            } else {
+                stop(
+                    colorBy,
+                    "not found in colData of SingleCellExperiment"
+                )
+            }
+        }
+        coord <- reducedDims(coord)[[reducedDimSlot]]
+    }
 
     if ((!is.null(axis.names)) & length(axis.names) != 2)
-        stop("Error, if given axis.names parameter must contain 2 values.")
+        stop("If given axis.names parameter must contain 2 values.")
     if (!is.null(customRatio))
         fixedCoord <- TRUE
-
     coord <- data.frame(coord)
     if (is.null(rownames(coord)))
         rownames(coord) <- as.character(seq_len(nrow(coord)))
@@ -846,6 +889,7 @@ proj2dWideColor <-
             na.color = "grey50",
             na.bg = TRUE,
             funAutoColorScale = oobColors,
+                    reducedDimSlot = 1,
             ...) {
         proj2d(
             coord,
@@ -864,6 +908,7 @@ proj2dWideColor <-
             na.color = na.color,
             na.bg = na.bg,
             funAutoColorScale = ggplotColours,
+            reducedDimSlot = reducedDimSlot,
             ...
         )
     }
@@ -911,7 +956,7 @@ proj3d <-
             alpha = 1,
             ...) {
     if (!(is.factor(colorBy) | is.numeric(colorBy) | is.null(colorBy)))
-        stop("Error, colorBy must be numeric, factor or null.")
+        stop("colorBy must be numeric, factor or null.")
     if (length(axis) != 3)
         stop("You must give a vector of 3 integer for axis parameter")
 

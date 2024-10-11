@@ -55,13 +55,14 @@ Plot best marker per group on a tidy Heatmap
 }
 \details{
 Draw the same number of observation from each condition/group, and
-take the top n marker per group. Heatmap is sliced by group for each gene
-and
+take the top n marker per group.
+The Heatmap is sliced by group of samples, and by their respective markers.
 }
 \examples{
 data("bulkLogCounts")
 data("sampleAnnot")
-markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media)
+markerData <- getMarkers(bulkLogCounts,sampleAnnot$culture_media,
+    BPPARAM=BiocParallel::SnowParam(1))
 htMarker(bulkLogCounts,  group=sampleAnnot$culture_media,
     markerData=extractFeatureMarkerData(markerData),
     colData=sampleAnnot[c("line","passage")])

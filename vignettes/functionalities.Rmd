@@ -588,6 +588,33 @@ heatmap.DM(
     new color by interpolation.
     - `sortColorByDistance`: Sort a color palette by how close they are.
 
+## Compatibility with SummarizedExperiment and SingleCellExperiment
+
+The package is compatible with `SummarizedExperiment` and 
+`SingleCellExperiment` objects. The following functions can interact with these
+(see examples).
+
+- `getMostVariableGenes`
+- `getMarkers`
+- `getMarkerGLMnet`
+- `heatmap.DM`
+- `plotExpr`
+- `CPM`
+- `TPMfullLength`
+- `RPKM`
+- `computeQCmetricSamples`
+- `normDeseq`
+- `oobFastMNN`
+- `pcaAddSamples`
+- `PCA`
+- `fastPCA`
+- `UMAP`
+- `TRIMAP`
+- `NMDS`
+- `leidenFromUMAP`
+- `pca2d`
+- `proj2d`
+
 ## Session info
 ```{r}
 sessionInfo()

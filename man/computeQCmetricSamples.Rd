@@ -4,12 +4,16 @@
 \alias{computeQCmetricSamples}
 \title{Give QC metrics per sample}
 \usage{
-computeQCmetricSamples(x, uncenter = FALSE)
+computeQCmetricSamples(x, uncenter = FALSE, sce_assay = 1)
 }
 \arguments{
-\item{x}{A matrix of numeric with samples as columns.}
+\item{x}{A matrix of numeric with samples as columns.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment} object.}
 
 \item{uncenter}{uncenter the matrix first so the minimum is 0.}
+
+\item{sce_assay}{Integer or character, if \code{data} is a \code{SummarizedExperiment}
+related object, the assay name to use.}
 }
 \value{
 A data frame with each row as a sample and the following columns:
@@ -19,6 +23,9 @@ A data frame with each row as a sample and the following columns:
 \item \code{TotalGenEx}: number of expressed gene (count>0) in the sample
 \item \code{TotalCount}: sum of counts for the sample
 }
+
+If \code{x} is a \code{SummarizedExperiment} related object, the function will
+add the columns to the \code{colData} slot.
 }
 \description{
 Give QC metrics per sample
@@ -34,4 +41,7 @@ countMat <-
 rownames(countMat) <- names(geneLengthGRCh38)
 colnames(countMat) <- letters[seq_len(ncol(countMat))]
 computeQCmetricSamples(countMat)
+sce <- SingleCellExperiment(assays = list(counts = countMat))
+sce <- computeQCmetricSamples(sce)
+colData(sce) |> head()
 }

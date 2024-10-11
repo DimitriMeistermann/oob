@@ -4,13 +4,21 @@
 \alias{normDeseq}
 \title{Quick DESeq2 normalization}
 \usage{
-normDeseq(countMatrix)
+normDeseq(countMatrix, sce_assay = 1)
 }
 \arguments{
-\item{countMatrix}{A raw count table with rows as genes}
+\item{countMatrix}{A raw count table with rows as genes.
+Can also be a \code{SummarizedExperiment} or \code{SingleCellExperiment}  object.}
+
+\item{sce_assay}{Integer or character,
+if \code{data} is a \code{SummarizedExperiment} related object,
+the assay name to use.}
 }
 \value{
 A normalized count table.
+If \code{data} is a \code{SummarizedExperiment} related object, the function will
+add the normalized count to
+the \code{SummarizedExperiment} object as an assay named \code{deseq2norm}.
 }
 \description{
 Quick DESeq2 normalization
@@ -24,4 +32,6 @@ countMat <-
     }) |> t()
 rownames(countMat)<-names(geneLengthGRCh38)
 normDeseq(countMat)
+sce <- SingleCellExperiment(assays = list(counts = countMat))
+assay(normDeseq(sce),"deseq2norm") |> head()
 }
