@@ -104,7 +104,8 @@ data(iris)
 irisUMAP<-UMAP(iris[,seq_len(4)],transpose = FALSE)
 proj2d(irisUMAP,colorBy = iris$Species)
 irisUMAP<-UMAP(rowScale(iris[,seq_len(4)],center = TRUE,scaled = TRUE),
-    transpose = FALSE,n_neighbors = nrow(iris),ret_nn = TRUE, ret_model = TRUE)
+    transpose = FALSE,n_neighbors = nrow(iris),
+    ret_nn = TRUE, ret_model = TRUE)
 proj2d(irisUMAP$embedding,colorBy = iris$Species,
     nnMatrix = irisUMAP$nn$euclidean$idx[,c(1, 2, 3)],fixedCoord = TRUE)
 
