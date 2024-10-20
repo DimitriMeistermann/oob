@@ -1,7 +1,7 @@
 Package: oob
 Type: Package
 Title: oob: a toolbox for analyzing OMIC data, Out Of Bounds from any black box
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: person("Dimitri", "Meistermann", email = "dimitri.meistermann@helsinki.fi",role = c("aut", "cre"), comment=c(ORCID="0000-0001-6614-2325"))
 Description: A toolbox for analyzing OMIC data, Out Of Bounds from any black box by avoiding the use of complex objects.
     This package provide function for analyzing OMIC data, with a focus on plots and bulk/single-cell RNA-Seq.
