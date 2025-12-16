@@ -6,24 +6,47 @@
 \usage{
 mostDistantColor(
   n,
-  colorspace = NULL,
-  cvd = c("protan", "deutan", "tritan"),
-  cvd_severity = 0
+  colorspace = list(h = c(0, 360), s = c(0.1, 0.9), l = c(0.1, 0.9)),
+  cvd = c(protan = 0, deutan = 0, tritan = 0)
 )
 }
 \arguments{
 \item{n}{The number of colors to generate.}
 
-\item{colorspace}{A color space to generate colors from. See
-?qualpalr::qualpal. If NULL computed regarding the number of asked color.}
+\item{colorspace}{A color space to generate colors from. Can be any of the
+following:
+\itemize{
+\item A \code{\link{list}} that describes a color space in either
+HSL or LCHab color space. In the first case (HSL), the list must
+contain the following \emph{named} vectors,
+each of length two, giving a range for each item.
+\describe{
+\item{\code{h}}{Hue, in range from -360 to 360}
+\item{\code{s}}{Saturation, in the range from 0 to 1}
+\item{\code{l}}{Lightness, in the range from 0 to 1}
+}
+In the second case (LCHab), the list must contain the following
+\emph{named} vectors,
+each of length two, giving a range for each item.
+\describe{
+\item{\code{h}}{Hue, in range from -360 to 360}
+\item{\code{c}}{Chroma, in the range from 0 to infinity}
+\item{\code{l}}{Lightness, in the range from 0 to 100}
+}
+In these cases, \code{qualpal()} will generate
+\item A \code{\link{character}} vector of length one in
+the form of "Source:Palette", where \emph{Domain} is the name of a
+source that provides a color palette, and \emph{Palette} is the name of
+a color palette from that source. See \code{\link[qualpalr:list_palettes]{list_palettes()}} for
+available palettes.
+\item A matrix or data frame of RGB values (with values between 0 and
+1).
+}}
 
-\item{cvd}{Color vision deficiency adaptation. Use cvd_severity to set the
-severity of color vision deficiency to adapt to. Permissible values are
-"protan", "deutan", and "tritan".}
-
-\item{cvd_severity}{Severity of color vision deficiency to adapt to. Can take
-any value from 0, for normal vision (the default), and 1, for dichromatic
-vision.}
+\item{cvd}{Color vision deficiency adaptation. This must be a named
+vector with names \code{protan}, \code{deutan}, and \code{tritan} and values
+between 0 and 1, where 0 means no adaptation and 1 means full
+adaptation.}
 }
 \value{
 Colors in hex format.

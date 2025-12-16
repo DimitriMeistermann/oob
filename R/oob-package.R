@@ -15,7 +15,6 @@
 #' @import rgl
 #' @import scattermore
 #' @import stringr
-
 #' @import SingleCellExperiment
 #' @import SummarizedExperiment
 #' @importFrom BiocGenerics
@@ -71,6 +70,13 @@
 #'  quantile
 #'  sd
 #'  var
+#' @importFrom edgeR
+#'  DGEList
+#'  filterByExpr
+#'  estimateDisp
+#'  glmQLFit
+#'  glmQLFTest
+#' @importFrom limma decideTests
 #' @importFrom S4Vectors metadata
 #' @importFrom batchelor fastMNN
 #' @importFrom circlize colorRamp2

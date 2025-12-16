@@ -9,9 +9,9 @@ getMarkers(
   data,
   groups,
   transpose = TRUE,
-  BPPARAM = NULL,
+  BPPARAM = BiocParallel::SnowParam(1),
   returnAsList = FALSE,
-  sce_assay = 1
+  sce_assay = "logcounts"
 )
 }
 \arguments{

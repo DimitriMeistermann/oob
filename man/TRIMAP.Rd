@@ -13,7 +13,7 @@ TRIMAP(
   apply_pca = TRUE,
   n_iters = 400,
   knn_tuple = NULL,
-  sce_assay = 1
+  sce_assay = "logcounts"
 )
 }
 \arguments{

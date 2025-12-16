@@ -153,33 +153,31 @@ ConvertKey <- function(keyList,
 #' data("humanGeneIDtable")
 #' bulkLogCountsEntrez<-ConvertKeyMatrix(bulkLogCounts,
 #'     tabKey = humanGeneIDtable, colOldKey = "SYMBOL",colNewKey = "ENTREZID")
-ConvertKeyMatrix <-
-    function(tab,
-            tabKey,
-            colOldKey = 1,
-            colNewKey = 2,
-            first = TRUE,
-            dim = 1,
-            fun) {
-        if (dim == 2)
-            tab <- t(tab)
-        keyList <- rownames(tab)
-        newkey <- ConvertKey(keyList, tabKey, colOldKey, colNewKey)
-        names(newkey) <- as.character(seq_along(newkey))
-        if (first) {
-            newkey <- newkey[which(!is.na(newkey))]
-            newkey <- takefirst(newkey)
-            tab <- tab[as.numeric(names(newkey)), ]
-            rownames(tab) <- newkey
-        } else{
-            tab <- tab[which(!is.na(newkey)), ]
-            newkey <- newkey[which(!is.na(newkey))]
-            tab <- aggregate(x = tab, by = newkey, FUN = fun)
-        }
-        if (dim == 2)
-            tab <- t(tab)
-        return(tab)
-    }
+ConvertKeyMatrix <- function (tab, tabKey, colOldKey = 1, colNewKey = 2, first = TRUE,
+															dim = 1, fun) {
+	if (dim == 2)
+		tab <- t(tab)
+	keyList <- rownames(tab)
+	newkey <- ConvertKey(keyList, tabKey, colOldKey, colNewKey)
+	names(newkey) <- as.character(seq_along(newkey))
+	if (first) {
+		newkey <- newkey[which(!is.na(newkey))]
+		newkey <- takefirst(newkey)
+		tab <- tab[as.numeric(names(newkey)), ]
+		rownames(tab) <- newkey
+	}
+	else {
+		tab <- tab[which(!is.na(newkey)), ]
+		newkey <- newkey[which(!is.na(newkey))]
+		tab <- aggregate(x = tab, by = list(newkey), FUN = fun)
+		rownames(tab) <- tab[, 1]
+		tab <- as.matrix(tab[, -1])
+	}
+	if (dim == 2)
+		tab <- t(tab)
+	return(tab)
+}
+
 
 #' Delete row/column in a matrix/df with NA names
 #'
@@ -309,30 +307,31 @@ reScale <- function(matToAdjust, matGoodRange) {
 #' res$b
 #' attr(res, "colorScale")
 formatAnnotFromMeta <- function(annotDataFrame, metaAnnot) {
-    colorScales <- list()
-    for (feature in rownames(metaAnnot)) {
-        if (feature %in% colnames(annotDataFrame))
-            annotDataFrame[, feature] <-
-                do.call(paste0("as.", metaAnnot[feature, "Type"]),
-                        list(x = annotDataFrame[, feature]))
-        if (metaAnnot[feature, "colorScale"] != "") {
-            colorScale <-
-                strsplit(str_remove_all(metaAnnot[feature, "colorScale"], " "),
-                        split = ",")[[1]]
-            splitted <-
-                vapply(colorScale, function(x)
-                    strsplit(x, "=")[[1]], FUN.VALUE = character(2))
-            colorScales[[feature]] <- splitted[2, ]
-            names(colorScales[[feature]]) <- splitted[1, ]
-            if (metaAnnot[feature, "Type"] == "factor") {
-                annotDataFrame[, feature] <-
-                    factor(annotDataFrame[, feature],
-                            levels = names(colorScales[[feature]]))
-            }
-        }
-    }
-    attr(annotDataFrame, "colorScales") <- colorScales
-    annotDataFrame
+	colorScales <- list()
+	for (feature in rownames(metaAnnot)) {
+		if (feature %in% colnames(annotDataFrame)) {
+			type <- metaAnnot[feature, "Type"]
+			if (!(type == "" | is.na(type))) {
+				annotDataFrame[, feature] <-
+					do.call(paste0("as.", type), list(x = annotDataFrame[, feature]))
+			}
+			if (metaAnnot[feature, "colorScale"] != "") {
+				colorScale <-
+					strsplit(str_remove_all(metaAnnot[feature, "colorScale"], " "), split = ",")[[1]]
+				splitted <-
+					vapply(colorScale, function(x)
+						strsplit(x, "=")[[1]], FUN.VALUE = character(2))
+				colorScales[[feature]] <- splitted[2, ]
+				names(colorScales[[feature]]) <- splitted[1, ]
+				if (metaAnnot[feature, "Type"] == "factor") {
+					annotDataFrame[, feature] <-
+						factor(annotDataFrame[, feature], levels = names(colorScales[[feature]]))
+				}
+			}
+		}
+	}
+	attr(annotDataFrame, "colorScales") <- colorScales
+	annotDataFrame
 }
 
 
@@ -372,27 +371,82 @@ factorAsStrings <- function(dt) {
 #' data(iris)
 #' aggregMatPerVector(iris[,seq_len(4)],iris$Species)
 aggregMatPerVector <- function(x, by, FUN = mean, byRow = NULL) {
-    if (is.null(byRow)) {
-        if (length(by) == nrow(x)) {
-            byRow <- TRUE
-        } else if (length(by) == ncol(x)) {
-            byRow <- FALSE
-        } else{
-            stop("Number of element should be the same than number of columns ",
-                "or rows in x")
-        }
-    }
-    if (!byRow)
-        x <- t(x)
-    res <- aggregate(x, by = list(by), FUN = FUN)
-    rownames(res) <- res$Group.1
-    res$Group.1 <- NULL
-    if (!byRow)
-        res <- t(res)
-    return(as.matrix(res))
+	if(is.data.frame(x)) x <- as.matrix(x)
+	stopifnot(is.matrix(x) || inherits(x, "Matrix"))
+	nr <- nrow(x); nc <- ncol(x)
+
+	if (is.null(byRow)) {
+		if (length(by) == nr) byRow <- TRUE
+		else if (length(by) == nc) byRow <- FALSE
+		else stop("`by` length must match nrow(x) or ncol(x).")
+	}
+
+	# Prepare grouping as an integer factor (cheap & consistent)
+	f <- factor(by, exclude = NULL)                # keep NAs separate if present
+	g <- as.integer(f)
+	labs <- levels(f)
+	k <- nlevels(f)
+	cnt <- tabulate(g, nbins = k)
+
+	is_sparse <- inherits(x, "dgCMatrix")
+
+	if (byRow) {
+		if (is_sparse && (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean") ||
+											identical(FUN, sum)  || identical(FUN, base::sum)  || identical(FUN, "sum"))) {
+			# Sparse row-group sum via G %*% x
+			G <- Matrix::sparseMatrix(i = g, j = seq_len(nr), x = 1L, dims = c(k, nr))
+			out <- G %*% x                              # (k x nr) %*% (nr x nc) -> (k x nc)
+			if (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean")) {
+				out <- Matrix::Diagonal(x = 1 / pmax(cnt, 1L)) %*% out
+			}
+			rownames(out) <- labs
+			return(as.matrix(out))
+		} else if (!is_sparse && (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean"))) {
+			out <- rowsum(x, group = g, reorder = FALSE)  # dense, fast C code
+			out <- out / pmax(cnt, 1L)
+			rownames(out) <- labs
+			return(as.matrix(out))
+		} else if (!is_sparse && (identical(FUN, sum) || identical(FUN, base::sum) || identical(FUN, "sum"))) {
+			out <- rowsum(x, group = g, reorder = FALSE)
+			rownames(out) <- labs
+			return(as.matrix(out))
+		} else {
+			# Generic FUN (slower): apply per group without copying whole matrix
+			idx <- split(seq_len(nr), g, drop = TRUE)
+			out <- vapply(idx, function(ix) apply(x[ix, , drop = FALSE], 2, FUN), numeric(nc))
+			out <- t(out)
+			rownames(out) <- labs
+			return(as.matrix(out))
+		}
+	} else { # group columns
+		if (is_sparse && (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean") ||
+											identical(FUN, sum)  || identical(FUN, base::sum)  || identical(FUN, "sum"))) {
+			# Sparse col-group sum via x %*% t(G)
+			Gt <- Matrix::sparseMatrix(i = seq_len(nc), j = g, x = 1L, dims = c(nc, k)) # this is t(G)
+			out <- x %*% Gt                           # (nr x nc) %*% (nc x k) -> (nr x k)
+			if (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean")) {
+				out <- Matrix::t(Matrix::t(out) / pmax(cnt, 1L))  # sweep-like without dense copy
+			}
+			colnames(out) <- labs
+			return(as.matrix(out))
+		} else if (!is_sparse && (identical(FUN, mean) || identical(FUN, base::mean) || identical(FUN, "mean"))) {
+			# Dense columns: avoid data.frames; one transpose (fast BLAS) is usually OK
+			out <- t(rowsum(t(x), g, reorder = FALSE))   # sum per column-group
+			out <- sweep(out, 2, pmax(cnt, 1L), "/")
+			colnames(out) <- labs
+			return(as.matrix(out))
+		} else if (!is_sparse && (identical(FUN, sum) || identical(FUN, base::sum) || identical(FUN, "sum"))) {
+			out <- t(rowsum(t(x), g, reorder = FALSE))
+			colnames(out) <- labs
+			return(as.matrix(out))
+		} else {
+			idx <- split(seq_len(nc), g, drop = TRUE)
+			out <- vapply(idx, function(ix) apply(x[, ix, drop = FALSE], 1, FUN), numeric(nr))
+			colnames(out) <- labs
+			return(as.matrix(out))
+		}
+	}
 }
-
-
 #' Draw n samples from each population and return it has a named vector
 #'
 #' @param sampleNames A character vector of the name of the samples.
@@ -438,3 +492,8 @@ drawSamplePerGroup<-function(sampleNames, group, maxDrawSize = NULL,
     }))
     return(group[drawCells])
 }
+
+
+
+
+

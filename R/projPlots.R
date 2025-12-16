@@ -338,7 +338,7 @@ proj2d <-
             nnSegmentParam = list(alpha = .75, size = .1),
             useScatterMore = FALSE,
             customRatio = NULL,
-                    reducedDimSlot = 1) {
+            reducedDimSlot = 1) {
 
     # Check if coord is a SingleCellExperiment object
     if (inherits(coord, "SingleCellExperiment")) {
@@ -558,6 +558,9 @@ proj2d <-
                     ratio = ifelse(is.null(customRatio), 1, customRatio)
                 )
     if (plotFactorsCentroids) {
+    		if(!colorByIsFactor) stop("If plotFactorsCentroids=TRUE,
+    															colorBy must be a factor")
+    	  colorByWtoNA <- colorBy
         samplePerFactor <-
             lapply(levels(colorBy), function(x)
                 which(colorBy == x))

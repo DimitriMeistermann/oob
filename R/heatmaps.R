@@ -190,21 +190,20 @@ heatmap.DM <-
             squareHt = NULL,
             row_split = NULL,
             column_split = NULL,
-            sce_assay = 1,
+            sce_assay = "logcounts",
             ...) {
 
     if (inherits(matrix, "SummarizedExperiment")) {
         if (!is.null(colData)) {
-            if(!inherits(colData, "character"))
-                stop("colData must be a character vector if the ",
-                    "input is a SummarizedExperiment object")
-            if (sum(!colData %in% colnames(colData(matrix))==0)) {
-                colData <- data.frame(colData(matrix)[colData])
-            } else {
-                stop(
-                setdiff(colData, colnames(colData(matrix))),
-                    "not found in colData of SingleCellExperiment"
-                )
+            if(inherits(colData, "character")){
+            	if (sum(!colData %in% colnames(colData(matrix))==0)) {
+            		colData <- data.frame(colData(matrix)[colData])
+            	} else {
+            		stop(
+            			setdiff(colData, colnames(colData(matrix))),
+            			"not found in colData of SingleCellExperiment"
+            		)
+          	  }
             }
         }
         matrix <- assay(matrix, sce_assay)
@@ -292,7 +291,7 @@ heatmap.DM <-
     }
     matrix <- as.matrix(matrix)
 
-    if (min(apply(matrix, 1, sd)) == 0 &
+    if (min(apply(matrix, 1, sd, na.rm = TRUE)) == 0 &
         (scale |
         identical(corrDist, clustering_distance_rows))) {
         warning(
@@ -310,7 +309,7 @@ heatmap.DM <-
         matrix <-
         rowScale(matrix, scaled = scale, center = center)
     if (is.null(midColorIs0)) {
-        if (min(matrix) < 0 & max(matrix) > 0) {
+        if (min(matrix, na.rm = TRUE) < 0 & max(matrix, na.rm = TRUE) > 0) {
             midColorIs0 <- TRUE
         } else{
             midColorIs0 <- FALSE

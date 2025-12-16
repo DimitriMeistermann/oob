@@ -386,6 +386,7 @@ proj2d(
 )
 ```
 
+
 We now pick the best marker per cluster with `getMarkers`, which use the `auroc`
 function for computing marker scores, along with *log2Fold-Change* and
 *p-value*.
@@ -576,6 +577,11 @@ heatmap.DM(
     from a 1D coordinate in a matrix.
 - `matrixFromDimnames`: Return the row and column index (2D coordinate) from a 
     1D coordinate in a matrix.
+- `assoc2vector`: Associate each pair of level from two vectors pf multilevel 
+	  factor of the same length. The typical use case is to associate clusters to
+	  samples in the context of scRNA-Seq.
+- `to_clipboard`: Copy data to the clipboard, for quickly pasting somewhere else!
+- `diff_abundance`: Propoper differential abundance in the context of scRNA-Seq.
 - `factorAsStrings` : Convert the factors of a data frame to strings.
 - *oob* features additional functions for dealing with colors:
     - `oobColors`: Generate pretty and distinct values for a qualitative scale.

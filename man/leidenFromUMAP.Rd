@@ -17,7 +17,8 @@ leidenFromUMAP(
   resolution_parameter = 0.5,
   seed = 666,
   initial_membership = NULL,
-  max_comm_size = 0L
+  max_comm_size = 0L,
+  prefix = "k"
 )
 }
 \arguments{
@@ -55,7 +56,9 @@ seed if nothing is specified.}
 \item{initial_membership}{Initial membership for the partition. If \code{NULL}
 then defaults to a singleton partition.}
 
-\item{max_comm_size}{Maximal total size of nodes in a community. If zero (the
+\item{max_comm_size}{Maximal total size of nodes in a community. If zero (the}
+
+\item{prefix}{Prefix for the cluster
 default), then communities can be of any size.}
 }
 \value{

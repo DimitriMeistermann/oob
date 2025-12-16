@@ -1,3 +1,25 @@
+getGeneMarkerStat<-function(gene, designMat, n1, n2){
+	aurocRes <- aurocCPP(
+		score = gene,
+		boolVect = designMat[, 2],
+		n1 = n1,
+		n2 = n2
+	)
+	lmOut <- .lm.fit(designMat, gene)
+	pval <- pvalLmFit(
+		lmOut$residuals,
+		lmOut$coefficients,
+		p = lmOut$rank,
+		qr = lmOut$qr
+	)[2]
+	coef <- lmOut$coefficients[2]
+	score <-
+		sign(coef) * prod(c(abs(coef), abs(aurocRes - 0.5),
+												min(-log10(pval), 324))) ^ (1 / 3)
+	#min(-log10(pval),324): avoid Inf
+	return(c(coef, aurocRes, score, pval))
+}
+
 #' Compute a dataframe with marker metrics describing best gene marker per group
 #' of samples.
 #'
@@ -38,9 +60,9 @@
 getMarkers <- function (data,
                         groups,
                         transpose = TRUE,
-                        BPPARAM = NULL,
+                        BPPARAM = BiocParallel::SnowParam(1),
                         returnAsList = FALSE,
-                        sce_assay = 1) {
+                        sce_assay = "logcounts") {
     if (is.null(BPPARAM))
         BPPARAM <- BiocParallel::bpparam()
 
@@ -79,29 +101,6 @@ getMarkers <- function (data,
         return(sce_obj)
     }
 
-}
-
-
-getGeneMarkerStat<-function(gene, designMat, n1, n2){
-    aurocRes <- aurocCPP(
-        score = gene,
-        boolVect = designMat[, 2],
-        n1 = n1,
-        n2 = n2
-    )
-    lmOut <- .lm.fit(designMat, gene)
-    pval <- pvalLmFit(
-        lmOut$residuals,
-        lmOut$coefficients,
-        p = lmOut$rank,
-        qr = lmOut$qr
-    )[2]
-    coef <- lmOut$coefficients[2]
-    score <-
-        sign(coef) * prod(c(abs(coef), abs(aurocRes - 0.5),
-                            min(-log10(pval), 324))) ^ (1 / 3)
-    #min(-log10(pval),324): avoid Inf
-    return(c(coef, aurocRes, score, pval))
 }
 
 

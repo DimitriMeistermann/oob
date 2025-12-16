@@ -11,7 +11,7 @@ fastPCA(
   center = TRUE,
   nPC = min(ncol(data) - 1, nrow(data) - 1, 30),
   weight.by.var = TRUE,
-  sce_assay = 1,
+  sce_assay = "logcounts",
   ...
 )
 }

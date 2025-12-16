@@ -12,7 +12,7 @@ NMDS(
   metric = dist,
   ndim = 2,
   maxit = 100,
-  sce_assay = 1
+  sce_assay = "logcounts"
 )
 }
 \arguments{

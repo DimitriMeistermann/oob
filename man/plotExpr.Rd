@@ -14,7 +14,7 @@ plotExpr(
   violinArgs = list(),
   boxplotArgs = list(),
   dotplotArgs = list(),
-  colorScale = mostDistantColor,
+  colorScale = oobColors,
   legendTitle = "group",
   dodge.width = 0.9,
   returnGraph = FALSE,

@@ -4,7 +4,13 @@
 \alias{PCA}
 \title{Principal Component Analysis}
 \usage{
-PCA(data, transpose = TRUE, scale = FALSE, center = TRUE, sce_assay = 1)
+PCA(
+  data,
+  transpose = TRUE,
+  scale = FALSE,
+  center = TRUE,
+  sce_assay = "logcounts"
+)
 }
 \arguments{
 \item{data}{A matrix of numeric (in the RNA-Seq context, log counts).

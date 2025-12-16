@@ -28,7 +28,7 @@ oobqplot(
 \item{data}{Data frame to use (optional).  If not specified, will create one,
 extracting vectors from the current environment.}
 
-\item{facets}{faceting formula to use. Picks \code{\link[=facet_wrap]{facet_wrap()}} or \code{\link[=facet_grid]{facet_grid()}}
+\item{facets}{faceting formula to use. Picks \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} or \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}}
 depending on whether the formula is one- or two-sided}
 
 \item{margins}{See \code{facet_grid()}: display marginal facets?}

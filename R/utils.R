@@ -482,3 +482,52 @@ inter <- function(x, y, ...){
     intersect(x, y, ...)
 }
 
+
+#' Copy data to clipboard (only on Windows)
+#'
+#' @param x A dataframe / matrix / table / vector to copy to the clipboard
+#' @param vectSep Character used for separating vector
+#' @param ... currently not used
+#'
+#' @returns Nothing! but copy the input to the clipboard,
+#' ready to be paste somewhere else
+#' @export
+#'
+#' @examples
+#' v <- seq_len(3)
+#' names(v) <- c("A", "B", "C")
+#' to_clipboard(V)
+#'
+to_clipboard <- function(x, vectSep="\n",...) {
+	if(.Platform$OS.type != "windows") stop("only available in Windows")
+	if(inherits(x, "data.frame") ){
+		cols        <- lapply(x, format, ...)
+		header_text <- paste(names(x), collapse = "\t")
+		body_text   <- do.call(paste, c(cols, sep = "\t", collapse = "\n"))
+		all_text    <- paste0(header_text, "\n", body_text)
+	} else if(inherits(x, "matrix") | inherits(x, "table")){
+		hasRowNames <- !is.null(row.names(x))
+		hasColNames <- !is.null(colnames(x))
+		if(hasRowNames & hasColNames){
+			all_text <- "\t"
+		} else {
+			all_text <- ""
+		}
+		if (hasColNames) {
+			all_text <- paste0(all_text, paste(colnames(x), collapse = "\t"),"\n")
+		}
+		rows <- apply(x, 1, function(x) paste(x, collapse = "\t"))
+		if(hasRowNames) rows <- paste0(row.names(x), "\t", rows)
+		all_text <- paste0(all_text, paste(rows, collapse = "\n"))
+		paste0(all_text, paste(apply(x, 1, function(x) paste(x, collapse = "\t")), collapse = "\n"))
+	} else {
+		all_text <- paste0(x, collapse = vectSep)
+	}
+	# Format the input as a tab-separated table
+
+	# Write the formatted text to the system clipboard
+	utils::writeClipboard(all_text)
+
+	# Return the input, invisibly
+	invisible(all_text)
+}

@@ -26,6 +26,7 @@
 #' @param initial_membership Initial membership for the partition. If `NULL`
 #'   then defaults to a singleton partition.
 #' @param max_comm_size Maximal total size of nodes in a community. If zero (the
+#' @param prefix Prefix for the cluster
 #'   default), then communities can be of any size.
 #' @return A vector of character or factor if `returnAsFactor`, same length as
 #'   number of samples in the UMAP. Cluster attribution of samples.
@@ -60,7 +61,8 @@ leidenFromUMAP <- function(umapWithNN,
                     resolution_parameter = .5,
                     seed = 666,
                     initial_membership = NULL,
-                    max_comm_size = 0L) {
+                    max_comm_size = 0L,
+										prefix = "k") {
     sce_obj <-NULL
     if (inherits(umapWithNN, "SingleCellExperiment")) {
         sce_obj <- umapWithNN
@@ -106,7 +108,8 @@ leidenFromUMAP <- function(umapWithNN,
                     seed = seed,
                     initial_membership = initial_membership,
                     max_comm_size = max_comm_size,
-                    partition_type = partition_type)
+                    partition_type = partition_type,
+                    prefix = prefix)
         }, adjMat, mode = "undirected", returnAsFactor = returnAsFactor,
                 n_iterations = n_iterations,
                 resolution_parameter = resolution_parameter,
@@ -132,6 +135,7 @@ leidenFromPygraph <-
             initial_membership = NULL,
             max_comm_size = 0L,
             node_sizes = NULL,
+    				prefix = "k",
             partition_type = c(
                 "RBConfigurationVertexPartition",
                 "ModularityVertexPartition",
@@ -234,7 +238,7 @@ leidenFromPygraph <-
                     "as a string out of those documented"
                 )
             )
-        res<-paste0("k", formatNumber2Character(part$membership + 1))
+        res<-paste0(prefix, formatNumber2Character(part$membership + 1))
         if (returnAsFactor) {
             res <- as.factor(res)
         }
@@ -251,41 +255,29 @@ leidenFromPygraph <-
 #'   model. If NULL take the first available one.
 #'
 #' @return A sparse adjacency matrix from the class `dgTMatrix`.
-getAdjMatfromUMAPWithNN <-
-    function(umapWithNN,
-            n_neighbors = 10,
-            metric = NULL) {
-    if (is.null(metric)) {
-        metric <- names(umapWithNN$nn)[1]
-    } else {
-        if (!metric %in% names(umapWithNN$nn)) {
-            stop(metric,
-                " distance metric is not computed in the provided model")
-        }
-    }
-    if (ncol(umapWithNN$nn[[metric]]$idx) < n_neighbors) {
-        stop(
-            "The provided umap model contains the data for ",
-            ncol(umapWithNN$nn[[metric]]$idx),
-            " neighbors, please decrease the n_neighbors parameter ",
-            "or recompute the model on a higher number of neighbors"
-        )
-    }
-    # from 2 --> rm diagonals
-    knn_indices <- umapWithNN$nn[[metric]]$idx[, 2:n_neighbors]
-    knn_dists <- umapWithNN$nn[[metric]]$dist[, 2:n_neighbors]
-
-    n <- nrow(knn_indices)
-    as(
-        Matrix::sparseMatrix(
-            i = as.integer(rep(seq_len(n), each = ncol(knn_indices))),
-            j = as.integer(as.vector(t(knn_indices))),
-            x = as.numeric(as.vector(t(knn_dists))),
-            dims = c(n, n)
-        ),
-        "TsparseMatrix"
-    )
-}
+getAdjMatfromUMAPWithNN<- function (umapWithNN, n_neighbors = 10, metric = NULL)
+{
+	if (is.null(metric)) {
+		metric <- names(umapWithNN$nn)[1]
+	}
+	else {
+		if (!metric %in% names(umapWithNN$nn)) {
+			stop(metric, " distance metric is not computed in the provided model")
+		}
+	}
+	if (ncol(umapWithNN$nn[[metric]]$idx) < n_neighbors) {
+		stop("The provided umap model contains the data for ",
+				 ncol(umapWithNN$nn[[metric]]$idx), " neighbors, please decrease the n_neighbors parameter ",
+				 "or recompute the model on a higher number of neighbors")
+	}
+	knn_indices <- umapWithNN$nn[[metric]]$idx[, 1:n_neighbors]
+	knn_dists <- umapWithNN$nn[[metric]]$dist[, 1:n_neighbors]
+	knn_dists <- knn_dists/knn_dists
+	n <- nrow(knn_indices)
+	as(Matrix::sparseMatrix(i = as.integer(rep(seq_len(n), each = ncol(knn_indices))),
+													j = as.integer(as.vector(t(knn_indices))), x = as.numeric(as.vector(t(knn_dists))),
+													dims = c(n, n)), "TsparseMatrix")
+};assignInNamespace("getAdjMatfromUMAPWithNN",getAdjMatfromUMAPWithNN,"oob")
 
 
 

@@ -30,7 +30,7 @@
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
 #' sce <- computeQCmetricSamples(sce)
 #' colData(sce) |> head()
-computeQCmetricSamples <- function(x, uncenter = FALSE, sce_assay = 1) {
+computeQCmetricSamples <- function(x, uncenter = FALSE, sce_assay = "logcounts") {
     sce_obj <-NULL
     if (inherits(x, "SummarizedExperiment")) {
         sce_obj <- x
@@ -102,8 +102,8 @@ merge0dist <- function(disMat) {
 #'   if `data` is a `SummarizedExperiment` related object,
 #'   the assay name to use.
 #' @return A normalized count table.
-#'   If `data` is a `SummarizedExperiment` related object, 
-#'   the function will add the normalized 
+#'   If `data` is a `SummarizedExperiment` related object,
+#'   the function will add the normalized
 #'   count to the `SummarizedExperiment` object `cpm`.
 #' @export
 #'
@@ -388,7 +388,7 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 #' correctedMat<-oobFastMNN(countMat,batch = c(rep(1,10),rep(2,10)), k=5)
 #' heatmap.DM(correctedMat)
 oobFastMNN <- function(logCounts, batch, k,
-    returnRescale = TRUE, sce_assay = 1, ...) {
+    returnRescale = TRUE, sce_assay = "logcounts", ...) {
 
     if (inherits(data, "SummarizedExperiment")) {
         data <- assay(data, sce_assay)
@@ -400,3 +400,40 @@ oobFastMNN <- function(logCounts, batch, k,
         res <- reScale(res, logCounts)
     res
 }
+
+
+#' Differential abundance testing
+#' @param clusters A vector (factor or charater) containing computed clusters.
+#' @param samples A vector (factor or charater) containing the sample to which
+#' the cell is coming from.
+#' @param sample_annot The sample annotation sheet,
+#' first column must contain the group, and row names must be samples.
+#' @details
+#' Greatly inspired by [Multi-Sample Single-Cell Analyses with Bioconductor](https://bioconductor.org/books/3.13/OSCA.multisample/differential-abundance.html)
+#' @returns see ?edgeR::glmQLFTest, return in addition the abundance table
+#' @export
+#'
+#' @examples
+#' samples = sample(c("s1","s2","s3","s4","S5","S6"), replace = TRUE, size = 600, prob = c(.1,.3,.2,.2,.1,.1))
+#' clusters = rep(c("c1","c2","c3"),200)
+#' sample_annot = data.frame(row.names = unique(samples), group = rep(c("A","B"),each=3))
+#' diff_abundance(clusters, samples, sample_annot)
+#'
+diff_abundance <- function(clusters, samples, sample_annot) {
+		abundance <- table(clusters, samples)
+		#print(abundance)
+		sampleCol <- colnames(sample_annot)[1]
+		sample_annot <- sample_annot[colnames(abundance), , drop = FALSE]
+		y.ab <- DGEList(abundance, samples = sample_annot)
+		keep <- filterByExpr(y.ab, group = y.ab$samples[, sampleCol])
+		y.ab <- y.ab[keep, TRUE]
+		#print(summary(keep))
+		design <- model.matrix(as.formula(paste0("~factor(", sampleCol, ")")), y.ab$samples)
+		y.ab <- estimateDisp(y.ab, design, trend = "none")
+		fit.ab <- glmQLFit(y.ab, design, robust = TRUE, abundance.trend = FALSE)
+		res <- glmQLFTest(fit.ab, coef = ncol(design))
+		res$abundance <- abundance
+		#print(summary(decideTests(res)))
+		res
+}
+

@@ -1,3 +1,6 @@
+oobFunctionalities
+================
+
 # oob: A Toolbox for Analyzing OMIC Data Out Of Bounds
 
 This package provide function for analyzing OMIC data, with a focus on
@@ -214,7 +217,7 @@ p3 <-qplotDensity(m1Rescale[1, ], returnGraph = TRUE) +
 multiplot(p1, p2, p3, cols = 2) 
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 `qplotDensity` used here is a quick plotting function for visualizing
 distribution. *oob* contains several quick plot wrapper from *ggplot2*:
@@ -236,13 +239,13 @@ data("sampleAnnot")
 aggregMatPerVector(bulkLogCounts[c(
     'KHDC1L','DNMT3L','NLRP7','SPIC','OLAH','MAGEB2'
 ),], sampleAnnot$culture_media)
-#>               E7    Fibro   KSR+FGF2  mTeSR1     RSeT   T2iLGO
-#> KHDC1L 2.2209000 1.484425 1.49697778 1.60990 5.553344 8.647927
-#> DNMT3L 2.5441500 1.417825 1.86412222 1.64406 5.764344 8.024754
-#> NLRP7  1.6627375 0.956650 0.83468889 0.97890 4.465220 6.317400
-#> SPIC   0.2433500 0.044725 0.08795556 0.36446 1.471476 3.400135
-#> OLAH   1.3360875 0.248050 0.31224444 0.75298 2.090316 3.762662
-#> MAGEB2 0.5168875 0.165325 0.26643333 0.62160 2.083200 3.695100
+#>               E7     Fibro  KSR+FGF2  mTeSR1     RSeT      T2iLGO
+#> KHDC1L 1.0061875 34.708400 24.982900 3.55344 0.538912 0.228373077
+#> DNMT3L 1.0275375 36.027150 23.182622 4.07064 0.671084 0.218126923
+#> NLRP7  0.6118125 27.907625 18.250267 2.66038 0.300488 0.147176923
+#> SPIC   0.2277875  9.196725  9.822611 0.38936 0.031664 0.006880769
+#> OLAH   0.4706125 13.064475 10.869911 2.13774 0.112408 0.038161538
+#> MAGEB2 0.3885000 13.020000 10.674733 0.82702 0.095916 0.025434615
 ```
 
 ## Normalization of RNA-Seq
@@ -366,7 +369,7 @@ multiplot(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-10-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-12-1.png" width="100%" style="display: block; margin: auto;" />
 
 In the gene contribution plot, `pointdensity.nrd` is used for estimating
 the 2 density of points. `pcaAddSamples` is another PCA function than
@@ -395,7 +398,7 @@ ggBorderedFactors(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
 The culture media seems to be linked here with PC 1 & 2. Note in the
 code the use of `mostDistantColor` for generating a color scale with
@@ -411,7 +414,7 @@ normCount <- 2 ^ (bulkLogCounts - 1)
 dispData <- getMostVariableGenes(normCount, minCount = 1)
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 ``` r
 overdispersedGenes <- rn(dispData)[dispData$residuals > 0]
@@ -452,11 +455,11 @@ coordTRIMAP <- TRIMAP(reducedSpace)
 #> found nearest neighbors
 #> sampled triplets
 #> running TriMap with dbd
-#> Iteration:  100, Loss: 3.010, Violated triplets: 0.0711
-#> Iteration:  200, Loss: 2.857, Violated triplets: 0.0675
-#> Iteration:  300, Loss: 2.756, Violated triplets: 0.0651
-#> Iteration:  400, Loss: 2.686, Violated triplets: 0.0634
-#> Elapsed time: 0:00:00.136649
+#> Iteration:  100, Loss: 3.143, Violated triplets: 0.0742
+#> Iteration:  200, Loss: 3.001, Violated triplets: 0.0709
+#> Iteration:  300, Loss: 2.904, Violated triplets: 0.0686
+#> Iteration:  400, Loss: 2.836, Violated triplets: 0.0670
+#> Elapsed time: 0:00:00.376595
 multiplot(
     cols = 2,
     pca2d(
@@ -490,7 +493,7 @@ multiplot(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-14-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-16-1.png" width="100%" style="display: block; margin: auto;" />
 
 `proj1d` and `proj3d` are also available for 1D and 3D projections. Note
 that `proj3d` is using the `rgl` package. The knn graph used can also be
@@ -513,7 +516,7 @@ proj2d(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
 
 We now pick the best marker per cluster with `getMarkers`, which use the
 `auroc` function for computing marker scores, along with
@@ -523,12 +526,12 @@ We now pick the best marker per cluster with `getMarkers`, which use the
 markerPerCluster <-getMarkers(bulkLogCounts[overdispersedGenes, ],
     group = sampleAnnot$leidenClusters)
 chead(markerPerCluster)
-#>            k1.lfc  k1.auroc  k1.score      k1.pval      k1.padj
-#> A1BG   -1.0768310 0.1554422 -1.389625 5.855828e-08 2.227316e-07
-#> A4GALT  1.1012386 0.9578231  1.969951 6.869410e-16 9.013024e-15
-#> AAK1   -0.1796876 0.4027211 -0.233799 1.857275e-01 2.166552e-01
-#> AARS2   0.8521467 0.8782313  1.428687 8.959301e-10 4.516654e-09
-#> AASS   -0.8434000 0.2734694 -0.827172 1.090721e-03 1.883973e-03
+#>             k1.lfc  k1.auroc   k1.score      k1.pval      k1.padj
+#> A1BG   -0.04353028 0.5826241  0.0000000 1.000000e+00 1.000000e+00
+#> A4GALT -0.87928014 0.1439716 -1.3579995 1.000129e-08 7.067575e-08
+#> AAK1   -0.17031433 0.4290780 -0.1989542 2.228591e-01 2.917376e-01
+#> AARS2  -0.43358936 0.2744681 -0.6045051 5.508271e-03 1.198019e-02
+#> AASS    1.79940390 0.9744681  2.3471458 7.152666e-16 2.087749e-14
 ```
 
 Now we pick up the best marker per cluster, and plot them. Note the
@@ -541,13 +544,13 @@ cluster per gene (by default the marker score).
 ``` r
 markerScorePerCluster <- extractFeatureMarkerData(markerPerCluster)
 head(markerScorePerCluster) #matrix of marker scores
-#>                k1         k2         k3
-#> A1BG   -1.3896249  0.0000000  2.6999342
-#> A4GALT  1.9699515 -1.3579995 -0.5425076
-#> AAK1   -0.2337990 -0.1989542  0.9002681
-#> AARS2   1.4286870 -0.6045051 -1.0212258
-#> AASS   -0.8271720  2.3471458 -1.6273016
-#> ABCA1   0.7786247 -1.1834598  0.3623288
+#>                k1         k2         k3         k4
+#> A1BG    0.0000000 -0.7081178 -0.9010741  2.6999342
+#> A4GALT -1.3579995  1.3740506  0.7109833 -0.5425076
+#> AAK1   -0.1989542 -0.4568981  0.1542318  0.9002681
+#> AARS2  -0.6045051  1.0112324  0.5693577 -1.0212258
+#> AASS    2.3471458 -0.5321372 -0.4512988 -1.6273016
+#> ABCA1  -1.1834598  0.0000000  1.3389569  0.3623288
 top20MarkerPerCluster <-
     apply(markerScorePerCluster, 2, function(x)
         rownames(markerPerCluster)[whichTop(x, top = 20)]) |> 
@@ -559,7 +562,7 @@ plotExpr(normCount[topGenePerCluster, ],
         legendTitle = "Leiden cluster")
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
 
 We then used those marker for plotting an heatmap with the dedicated
 function.
@@ -574,7 +577,7 @@ htMarker(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-18-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-20-1.png" width="100%" style="display: block; margin: auto;" />
 
 Note that we can obtain the same result with more struggles using the
 more general function `heatmap.DM`:
@@ -600,7 +603,7 @@ heatmap.DM(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-19-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-21-1.png" width="100%" style="display: block; margin: auto;" />
 
 `autoGparFontSizeMatrix` is used by `heatmap.DM` to adjust row and
 column size to the number of samples / features. `heatmap.DM` is a
@@ -621,7 +624,7 @@ computeColorScaleFun(
     plotPalette()
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
 
 `computeColorScaleFun` can also return a ggplot scale if
 `returnGGscale=TRUE`. `volcanoPlot.DESeq2` is designed to show the
@@ -640,7 +643,7 @@ volcanoPlot.DESeq2(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
 
 Finally, `richUpset` is used to compare intersection between gene set
 with an additional value of enrichment. Here we compare the marker of
@@ -660,7 +663,7 @@ sets = list(
 richUpset(sets, universe = rn(markerPerCluster))
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-22-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-24-1.png" width="100%" style="display: block; margin: auto;" />
 
 You can get the values computed for `richUpset` with `richUpsetStats`.
 The more general function `enrichSetIntersection` is used internally to
@@ -699,13 +702,13 @@ geneClustering <- hierarchicalClustering(
 plot(geneClustering, hang=-1, labels = FALSE)
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-25-1.png" style="display: block; margin: auto;" />
 
 ``` r
 best.cutree(geneClustering, graph = TRUE)
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-23-2.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-25-2.png" style="display: block; margin: auto;" />
 
 With the help of `best.cutree` and the shape of the plotted dendrogram,
 we can deduce that 3 clusters is a good choice for the number of
@@ -726,7 +729,7 @@ heatmap.DM(
 )
 ```
 
-<img src="ReadMe_files/figure-gfm/unnamed-chunk-24-1.png" style="display: block; margin: auto;" />
+<img src="ReadMe_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
 
 ## Other utilities functions:
 
@@ -746,6 +749,13 @@ heatmap.DM(
   from a 1D coordinate in a matrix.
 - `matrixFromDimnames`: Return the row and column index (2D coordinate)
   from a 1D coordinate in a matrix.
+- `assoc2vector`: Associate each pair of level from two vectors pf
+  multilevel factor of the same length. The typical use case is to
+  associate clusters to samples in the context of scRNA-Seq.
+- `to_clipboard`: Copy data to the clipboard, for quickly pasting
+  somewhere else!
+- `diff_abundance`: Propoper differential abundance in the context of
+  scRNA-Seq.
 - `factorAsStrings` : Convert the factors of a data frame to strings.
 - *oob* features additional functions for dealing with colors:
   - `oobColors`: Generate pretty and distinct values for a qualitative
@@ -791,15 +801,16 @@ with these (see examples).
 
 ``` r
 sessionInfo()
-#> R version 4.4.1 (2024-06-14 ucrt)
+#> R version 4.5.2 (2025-10-31 ucrt)
 #> Platform: x86_64-w64-mingw32/x64
 #> Running under: Windows 11 x64 (build 22631)
 #> 
 #> Matrix products: default
-#> 
+#>   LAPACK version 3.12.1
 #> 
 #> locale:
-#> [1] LC_COLLATE=French_France.utf8  LC_CTYPE=French_France.utf8    LC_MONETARY=French_France.utf8 LC_NUMERIC=C                   LC_TIME=French_France.utf8    
+#> [1] LC_COLLATE=Finnish_Finland.utf8  LC_CTYPE=Finnish_Finland.utf8    LC_MONETARY=Finnish_Finland.utf8 LC_NUMERIC=C                    
+#> [5] LC_TIME=Finnish_Finland.utf8    
 #> 
 #> time zone: Europe/Helsinki
 #> tzcode source: internal
@@ -808,40 +819,43 @@ sessionInfo()
 #> [1] stats4    grid      stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#>  [1] rmarkdown_2.28              ggbeeswarm_0.7.2            MASS_7.3-61                 oob_0.99.0                  SingleCellExperiment_1.26.0
-#>  [6] SummarizedExperiment_1.34.0 Biobase_2.64.0              GenomicRanges_1.56.1        GenomeInfoDb_1.40.1         IRanges_2.38.1             
-#> [11] S4Vectors_0.42.1            BiocGenerics_0.50.0         MatrixGenerics_1.16.0       matrixStats_1.4.1           ComplexHeatmap_2.20.0      
-#> [16] ggplot2_3.5.1              
+#>  [1] GenomeInfoDb_1.46.2         rmarkdown_2.30              oob_0.99.2                  ggbeeswarm_0.7.3            MASS_7.3-65                
+#>  [6] SingleCellExperiment_1.32.0 SummarizedExperiment_1.40.0 Biobase_2.70.0              GenomicRanges_1.62.0        Seqinfo_1.0.0              
+#> [11] IRanges_2.44.0              S4Vectors_0.48.0            BiocGenerics_0.56.0         generics_0.1.4              MatrixGenerics_1.22.0      
+#> [16] matrixStats_1.5.0           ComplexHeatmap_2.26.0       ggplot2_4.0.1              
 #> 
 #> loaded via a namespace (and not attached):
-#>   [1] splines_4.4.1             batchelor_1.20.0          bitops_1.0-8              filelock_1.0.3            tibble_3.2.1              preprocessCore_1.66.0    
-#>   [7] basilisk.utils_1.16.0     graph_1.82.0              rpart_4.1.23              XML_3.99-0.17             lifecycle_1.0.4           httr2_1.0.4              
-#>  [13] fastcluster_1.2.6         gert_2.1.1                edgeR_4.2.1               doParallel_1.0.17         processx_3.8.4            lattice_0.22-6           
-#>  [19] qualpalr_0.4.4            credentials_2.0.1         backports_1.5.0           SnowballC_0.7.1           magrittr_2.0.3            Hmisc_5.1-3              
-#>  [25] limma_3.60.4              yaml_2.3.10               metapod_1.12.0            askpass_1.2.0             RUnit_0.4.33              reticulate_1.39.0        
-#>  [31] DBI_1.2.3                 RColorBrewer_1.1-3        ResidualMatrix_1.14.1     abind_1.4-8               zlibbioc_1.50.0           purrr_1.0.2              
-#>  [37] RCurl_1.98-1.16           nnet_7.3-19               rgl_1.3.1                 rappdirs_0.3.3            circlize_0.4.16           GenomeInfoDbData_1.2.12  
-#>  [43] ggrepel_0.9.6             irlba_2.3.5.1             dqrng_0.4.1               commonmark_1.9.1          DelayedMatrixStats_1.26.0 codetools_0.2-20         
-#>  [49] DelayedArray_0.30.1       scuttle_1.14.0            xml2_1.3.6                tidyselect_1.2.1          shape_1.4.6.1             UCSC.utils_1.0.0         
-#>  [55] farver_2.1.2              randtoolbox_2.0.4         ScaledMatrix_1.12.0       viridis_0.6.5             dynamicTreeCut_1.63-1     BiocFileCache_2.12.0     
-#>  [61] base64enc_0.1-3           jsonlite_1.8.8            GetoptLong_1.0.5          BiocNeighbors_1.22.0      Formula_1.2-5             survival_3.7-0           
-#>  [67] scater_1.32.1             iterators_1.0.14          foreach_1.5.2             dbscan_1.2-0              tools_4.4.1               snow_0.4-4               
-#>  [73] stringdist_0.9.12         Rcpp_1.0.13               glue_1.7.0                gridExtra_2.3             SparseArray_1.4.8         BiocBaseUtils_1.6.0      
-#>  [79] xfun_0.47                 dplyr_1.1.4               withr_3.0.1               BiocManager_1.30.25       fastmap_1.2.0             basilisk_1.16.0          
-#>  [85] bluster_1.14.0            fansi_1.0.6               openssl_2.2.1             callr_3.7.6               digest_0.6.37             rsvd_1.0.5               
-#>  [91] R6_2.5.1                  colorspace_2.1-1          GO.db_3.19.1              Cairo_1.6-2               scattermore_1.2           RSQLite_2.3.7            
-#>  [97] utf8_1.2.4                generics_0.1.3            data.table_1.16.0         FNN_1.1.4                 httr_1.4.7                htmlwidgets_1.6.4        
-#> [103] S4Arrays_1.4.1            rngWELL_0.10-9            uwot_0.2.2                pkgconfig_2.0.3           gtable_0.3.5              blob_1.2.4               
-#> [109] impute_1.78.0             XVector_0.44.0            sys_3.4.2                 htmltools_0.5.8.1         RBGL_1.80.0               clue_0.3-65              
-#> [115] scales_1.3.0              png_0.1-8                 scran_1.32.0              knitr_1.48                rstudioapi_0.16.0         reshape2_1.4.4           
-#> [121] rjson_0.2.23              checkmate_2.3.2           curl_5.2.2                biocViews_1.72.0          cachem_1.1.0              GlobalOptions_0.1.2      
-#> [127] stringr_1.5.1             parallel_4.4.1            vipor_0.4.7               foreign_0.8-87            AnnotationDbi_1.66.0      pillar_1.9.0             
-#> [133] vctrs_0.6.5               lsa_0.73.3                BiocSingular_1.20.0       dbplyr_2.5.0              beachmat_2.20.0           cluster_2.1.6            
-#> [139] htmlTable_2.4.3           beeswarm_0.4.0            evaluate_1.0.0            cli_3.6.3                 locfit_1.5-9.10           compiler_4.4.1           
-#> [145] rlang_1.1.4               crayon_1.5.3              labeling_0.4.3            RcppArmadillo_14.0.2-1    ps_1.8.0                  plyr_1.8.9               
-#> [151] stringi_1.8.4             WGCNA_1.72-5              viridisLite_0.4.2         BiocParallel_1.38.0       assertthat_0.2.1          BiocCheck_1.40.0         
-#> [157] Biostrings_2.72.1         munsell_0.5.1             glmnet_4.1-8              Matrix_1.7-0              dir.expiry_1.12.0         sparseMatrixStats_1.16.0 
-#> [163] bit64_4.0.5               KEGGREST_1.44.1           statmod_1.5.0             highr_0.11                igraph_2.0.3              memoise_2.0.1            
-#> [169] bit_4.0.5
+#>   [1] RcppAnnoy_0.0.22          splines_4.5.2             batchelor_1.26.0          filelock_1.0.3            tibble_3.3.0             
+#>   [6] preprocessCore_1.72.0     rpart_4.1.24              lifecycle_1.0.4           aricode_1.0.3             fastcluster_1.3.0        
+#>  [11] edgeR_4.8.0               doParallel_1.0.17         rprojroot_2.1.1           lattice_0.22-7            qualpalr_1.0.1           
+#>  [16] backports_1.5.0           SnowballC_0.7.1           magrittr_2.0.4            limma_3.66.0              Hmisc_5.2-4              
+#>  [21] yaml_2.3.12               remotes_2.5.0             metapod_1.18.0            sessioninfo_1.2.3         pkgbuild_1.4.8           
+#>  [26] reticulate_1.44.1         DBI_1.2.3                 RColorBrewer_1.1-3        ResidualMatrix_1.20.0     abind_1.4-8              
+#>  [31] pkgload_1.4.1             purrr_1.2.0               rgl_1.3.31                nnet_7.3-20               rappdirs_0.3.3           
+#>  [36] pvclust_2.2-0             SingleR_2.12.0            circlize_0.4.17           ggrepel_0.9.6             irlba_2.3.5.1            
+#>  [41] testthat_3.3.1            RSpectra_0.16-2           dqrng_0.4.1               commonmark_2.0.0          DelayedMatrixStats_1.32.0
+#>  [46] codetools_0.2-20          DelayedArray_0.36.0       scuttle_1.20.0            xml2_1.5.1                tidyselect_1.2.1         
+#>  [51] shape_1.4.6.1             UCSC.utils_1.6.0          farver_2.1.2              viridis_0.6.5             ScaledMatrix_1.18.0      
+#>  [56] dynamicTreeCut_1.63-1     base64enc_0.1-3           roxygen2_7.3.3            jsonlite_2.0.0            GetoptLong_1.1.0         
+#>  [61] BiocNeighbors_2.4.0       ellipsis_0.3.2            Formula_1.2-5             scater_1.38.0             survival_3.8-3           
+#>  [66] iterators_1.0.14          foreach_1.5.2             dbscan_1.2.3              tools_4.5.2               Rcpp_1.1.0               
+#>  [71] glue_1.8.0                gridExtra_2.3             SparseArray_1.10.6        xfun_0.54                 usethis_3.2.1            
+#>  [76] dplyr_1.1.4               withr_3.0.2               fastmap_1.2.0             basilisk_1.22.0           bluster_1.20.0           
+#>  [81] digest_0.6.39             rsvd_1.0.5                R6_2.6.1                  colorspace_2.1-2          scattermore_1.2          
+#>  [86] GO.db_3.22.0              Cairo_1.7-0               RSQLite_2.4.5             data.table_1.17.8         FNN_1.1.4.1              
+#>  [91] httr_1.4.7                htmlwidgets_1.6.4         S4Arrays_1.10.1           uwot_0.2.4                pkgconfig_2.0.3          
+#>  [96] gtable_0.3.6              blob_1.2.4                S7_0.2.1                  impute_1.84.0             XVector_0.50.0           
+#> [101] brio_1.1.5                htmltools_0.5.9           carData_3.0-5             clue_0.3-66               scales_1.4.0             
+#> [106] png_0.1-8                 scran_1.38.0              knitr_1.50                rstudioapi_0.17.1         reshape2_1.4.5           
+#> [111] rjson_0.2.23              checkmate_2.3.3           cachem_1.1.0              GlobalOptions_0.1.3       stringr_1.6.0            
+#> [116] parallel_4.5.2            vipor_0.4.7               foreign_0.8-90            AnnotationDbi_1.72.0      desc_1.4.3               
+#> [121] pillar_1.11.1             vctrs_0.6.5               lsa_0.73.3                BiocSingular_1.26.1       car_3.1-3                
+#> [126] beachmat_2.26.0           cluster_2.1.8.1           beeswarm_0.4.0            htmlTable_2.4.3           evaluate_1.0.5           
+#> [131] magick_2.9.0              cli_3.6.5                 locfit_1.5-9.12           compiler_4.5.2            rlang_1.1.6              
+#> [136] crayon_1.5.3              labeling_0.4.3            RcppArmadillo_15.2.2-1    plyr_1.8.9                fs_1.6.6                 
+#> [141] stringi_1.8.7             viridisLite_0.4.2         WGCNA_1.73                BiocParallel_1.44.0       Biostrings_2.78.0        
+#> [146] devtools_2.4.6            glmnet_4.1-10             Matrix_1.7-4              dir.expiry_1.18.0         sparseMatrixStats_1.22.0 
+#> [151] bit64_4.6.0-1             KEGGREST_1.50.0           statmod_1.5.1             igraph_2.2.1              memoise_2.0.1            
+#> [156] bit_4.6.0
 ```
 

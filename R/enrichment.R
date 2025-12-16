@@ -351,3 +351,101 @@ addHbarUpset <- function(y, offsetPerSplit, colPerSplit, gp = NULL) {
         )
     })
 }
+
+
+
+#' Association enrichment between the levels of 2 vectors
+#'
+#' @param a A vector of factor, same size than `b`.
+#' @param b A vector of factor, same size than `a`.
+#' @param varnames The names of `a` and `b` as a 2 character vector.
+#'
+#' @returns
+#' A dataframe with the following columns, for each combination of levels from `a` and `b`, with the following columns:
+#' - The first two columns contain the level names
+#' - observed: observed intersection between the two levels
+#' - expected: expected intersection size under the null hypothesis
+#' - nA: number of observations equal to the examined level of `a`
+#' - nB: number of observations equal to the examined level of `b`
+#' - margin: number of observations that are either from one of the levels
+#' - universe: total number of observation
+#' - OEdeviation: Effect size of the association `(observed - expected) / sqrt(universeSize)`
+#' - AMI: Adjusted Mutual Information
+#' - ARI: Adjusted Rand Index
+#' - Jacard: Jacard distance (`observed/margin`)
+#' - phi: "correlation" between the two levels
+#' - OR: Odds Ratio
+#' - pval: p-value (Fisher exact test)
+#' - padj: BH adjusted p-value
+#' @export
+#'
+#' @examples
+#' data("sampleAnnot")
+#' assoc2vector(sampleAnnot$culture_media, sampleAnnot$line) |> head()
+assoc2vector  = function(a,b,varnames=c(deparse(substitute(a)),deparse(substitute(b)))){
+	if(length(a) != length(b) ) stop("a and b must have the same size")
+
+	levelsA<-as.factor(a) |> levels()
+	levelsB<-as.factor(b) |> levels()
+
+	binA<-sapply(levelsA, function(x) x == a); colnames(binA)<-levelsA
+	binB<-sapply(levelsB, function(x) x == b); colnames(binB)<-levelsB
+
+	allComb <- expand.grid(levelsA,levelsB)
+
+	resList<-vector("list",length(levelsA)*length(levelsB))
+	names(resList)<-apply(allComb,1,paste0,collapse = "_")
+
+	for(lvlA in levelsA){
+		for(lvlB in levelsB){
+			vectA<-binA[,lvlA]
+			vectB<-binB[,lvlB]
+			resList[[paste0(lvlA,"_",lvlB)]]<-computeAssociationVals(vectA,vectB)
+		}
+	}
+	res<-do.call(rbind,resList) |> data.frame()
+	res$padj <- p.adjust(res$pval,method="BH")
+	lvlNames <- allComb[,c(1,2)]
+	colnames(lvlNames) <- c(varnames[1],varnames[2])
+	cbind(lvlNames, res)
+
+}
+
+computeAssociationVals <- function(a, b) {
+	a <- as.logical(a)
+	b <- as.logical(b)
+
+	nA <- sum(a)
+	nB <- sum(b)
+	universeSize <- length(a)
+
+	n11 <- sum(a & b)          # observed overlap
+	n10 <- nA - n11            # a=1, b=0
+	n01 <- nB - n11            # a=0, b=1
+	n00 <- universeSize - (n11 + n10 + n01)
+
+	observedSize  <- n11
+	expectedSize  <- (nA * nB) / universeSize
+	unionSize     <- sum(a | b)
+
+	fisherRes <- fisher.test(matrix(c(n11, n10, n01, n00), nrow = 2))
+
+	denom <- sqrt(nA * (universeSize - nA) * nB * (universeSize - nB))
+	phi <- if (denom == 0) NA_real_ else (n11 * n00 - n10 * n01) / denom
+
+	c(
+		"observed" = observedSize,
+		"expected" = expectedSize,
+		"nA" = nA,
+		"nB" = nB,
+		"margin" = unionSize,
+		"universe" = universeSize,
+		"OEdeviation" = (observedSize - expectedSize) / sqrt(universeSize),
+		"AMI" = aricode::AMI(a, b),
+		"ARI" = aricode::ARI(a, b),
+		"Jacard" = observedSize / unionSize,
+		"phi" = phi,
+		"OR" = as.vector(fisherRes$estimate),
+		"pval" = fisherRes$p.value
+	)
+}

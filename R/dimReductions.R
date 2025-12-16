@@ -42,7 +42,7 @@ PCA <- function(data,
                 transpose = TRUE,
                 scale = FALSE,
                 center = TRUE,
-                                sce_assay = 1) {
+                sce_assay = "logcounts") {
         sce_obj <-NULL
         if (inherits(data, "SingleCellExperiment")) {
             sce_obj <- data
@@ -140,7 +140,7 @@ fastPCA <-
             center = TRUE,
             nPC = min(ncol(data) - 1, nrow(data) - 1, 30),
             weight.by.var = TRUE,
-            sce_assay = 1,
+            sce_assay = "logcounts",
             ...) {
 
         sce_obj <-NULL
@@ -269,53 +269,84 @@ pcaAddSamples <-
         }
     }
 
-
-#' Principal Component analysis of variance
+#' Principal Component analysis of variance (Type II ANOVA)
 #'
 #' @param pca A PCA as an object returned by `PCA` or `fastPCA`.
-#' @param colData A dataframe of feature (numeric or factor) with rows as
-#'   samples.
+#' @param colData A dataframe of feature (numeric or factor) with rows as samples.
 #' @param nComponent Integer, number of PC used for the analysis.
 #'
-#' @return A dataframe with the PC, percentage of sum of square and the
-#'   corresponding p-value.
+#' @return A dataframe with the PC, (partial) percentage of sum of squares and the
+#'   corresponding p-value (Type II tests).
 #' @export
-#'
-#' @examples
-#' data("bulkLogCounts")
-#' data("sampleAnnot")
-#' pca<-fastPCA(bulkLogCounts,nPC=10)
-#' PCaov(pca, colData=sampleAnnot[,c("culture_media","line","passage")])
 PCaov <- function(pca, colData, nComponent = 10) {
-    aovFormula <-
-        paste0(" ~ ", paste0(rev(colnames(colData)), collapse = " + "))
-    modelData <- data.frame(colData, pca$x)
-    nVar <- ncol(colData)
+	stopifnot(is.data.frame(colData))
+	if (is.null(pca$x)) stop("`pca` must have a score matrix in `pca$x`.")
+	if (!requireNamespace("car", quietly = TRUE)) {
+		stop("Type II ANOVA requires the 'car' package. Install with: install.packages('car')")
+	}
 
-    anovPerPCdt <-
-        do.call("rbind", lapply(colnames(pca$x[, seq_len(nComponent)]),
-                function(PC) {
-                    anova_model <-
-                        aov(formula(paste0(PC, aovFormula)), data = modelData)
-                    pvals <-
-                        summary(anova_model)[[1]][["Pr(>F)"]][seq_len(nVar)]
-                    sumsq <- summary(anova_model)[[1]][["Sum Sq"]]
-                    sumSqPercent <- sumsq[seq_len(nVar)] / sum(sumsq) * 100
-                    data.frame(feature = rev(colnames(colData)),
-                                PC,
-                                sumSqPercent,
-                                pval = pvals)
-                }))
+	pcs <- colnames(pca$x)
+	if (is.null(pcs)) pcs <- paste0("PC", seq_len(ncol(pca$x)))
+	nComponent <- min(nComponent, length(pcs))
 
-    anovPerPCdt$feature <- as.factor(anovPerPCdt$feature)
-    anovPerPCdt$padj <- p.adjust(anovPerPCdt$pval)
-    anovPerPCdt$PC <-
-        paste0("PC",
-                formatNumber2Character(
-                    substr(anovPerPCdt$PC, 3, nchar(anovPerPCdt$PC)))
-        )
-    return(anovPerPCdt)
+	# Type II/III ANOVA is typically used with sum-to-zero contrasts
+	old_contr <- options("contrasts")
+	on.exit(options(old_contr), add = TRUE)
+	options(contrasts = c("contr.sum", "contr.poly"))
+
+	features <- colnames(colData)
+	rhs <- paste(sprintf("`%s`", features), collapse = " + ")
+	lm_formula <- stats::as.formula(paste0(".PC ~ ", rhs))
+
+	anovPerPCdt <- do.call(
+		"rbind",
+		lapply(pcs[seq_len(nComponent)], function(PC) {
+			md <- data.frame(colData, .PC = pca$x[, PC], check.names = FALSE)
+			fit <- stats::lm(lm_formula, data = md, na.action = stats::na.omit)
+
+			a2 <- car::Anova(fit, type = 2)
+
+			# Extract in the same order as input features
+			rn <- rownames(a2)
+			idx <- match(features, rn)
+			if (anyNA(idx)) {
+				# fallback if matching fails for non-syntactic names
+				tl <- attr(stats::terms(fit), "term.labels")
+				idx <- match(tl, rn)
+				feat_out <- tl
+			} else {
+				feat_out <- features
+			}
+
+			ss <- a2[idx, "Sum Sq"]
+			pvals <- a2[idx, "Pr(>F)"]
+
+			# For Type II SS, use partial SS (%): SS_term / (SS_term + SS_resid)
+			rss <- sum(stats::residuals(fit)^2)
+			sumSqPercent <- (ss / (ss + rss)) * 100
+
+			data.frame(
+				feature = feat_out,
+				PC = PC,
+				sumSqPercent = as.numeric(sumSqPercent),
+				pval = as.numeric(pvals),
+				row.names = NULL
+			)
+		})
+	)
+
+	anovPerPCdt$feature <- factor(anovPerPCdt$feature, levels = features)
+	anovPerPCdt$padj <- p.adjust(anovPerPCdt$pval)
+
+	# Keep your original PC formatting logic when possible
+	pc_num <- suppressWarnings(as.integer(sub("^PC", "", anovPerPCdt$PC)))
+	if (!all(is.na(pc_num))) {
+		anovPerPCdt$PC <- paste0("PC", formatNumber2Character(as.character(pc_num)))
+	}
+
+	anovPerPCdt
 }
+
 
 
 #' UMAP projection
@@ -409,7 +440,7 @@ UMAP <-
             metric = "euclidean",
             ret_model = FALSE,
             ret_nn = FALSE,
-            sce_assay = 1,
+            sce_assay = "logcounts",
             ...) {
     sce_obj <-NULL
     if (inherits(data, "SingleCellExperiment")) {
@@ -507,7 +538,7 @@ TRIMAP <-
             apply_pca = TRUE,
             n_iters = 400,
             knn_tuple = NULL,
-            sce_assay = 1) {
+            sce_assay = "logcounts") {
     sce_obj <-NULL
     if (inherits(data, "SingleCellExperiment")) {
         sce_obj <- data
@@ -568,7 +599,7 @@ TRIMAP <-
 #' data("bulkLogCounts")
 #' NMDSproj<-NMDS(bulkLogCounts)
 #' proj2d(NMDSproj)
-#' sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+#' sce <- SingleCellExperiment(assays = list(logcounts = bulkLogCounts))
 #' sce<-NMDS(sce)
 #' proj2d(sce)
 NMDS <-
@@ -579,7 +610,7 @@ NMDS <-
         metric = dist,
         ndim = 2,
         maxit = 100,
-        sce_assay = 1) {
+        sce_assay = "logcounts") {
     sce_obj <-NULL
     if (inherits(data, "SingleCellExperiment")) {
         sce_obj <- data

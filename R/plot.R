@@ -159,16 +159,7 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 
 #' Best theoretical color palette (wrapper for qualpal)
 #'
-#' @param n The number of colors to generate.
-#' @param colorspace A color space to generate colors from. See
-#'   ?qualpalr::qualpal. If NULL computed regarding the number of asked color.
-#' @param cvd Color vision deficiency adaptation. Use cvd_severity to set the
-#'   severity of color vision deficiency to adapt to. Permissible values are
-#'   "protan", "deutan", and "tritan".
-#' @param cvd_severity Severity of color vision deficiency to adapt to. Can take
-#'   any value from 0, for normal vision (the default), and 1, for dichromatic
-#'   vision.
-#'
+#' @inheritParams qualpalr::qualpal
 #' @return Colors in hex format.
 #' @export
 #'
@@ -177,9 +168,8 @@ convertColorAdd2Sub <- function(color, returnHex = TRUE) {
 #'
 mostDistantColor <-
     function(n,
-            colorspace = NULL,
-            cvd = c("protan", "deutan", "tritan"),
-            cvd_severity = 0) {
+            colorspace = list(h = c(0, 360), s = c(0.1, 0.9), l = c(0.1, 0.9)),
+            cvd = c(protan = 0, deutan = 0, tritan = 0)) {
         if (n == 1)
             return("#000000")
         # test if qualpalr is installed
@@ -188,18 +178,10 @@ mostDistantColor <-
                     "please install for getting better colors.")
             return(ggplotColours(n))
         } else{
-            if (is.null(colorspace)) {
-                if (n < 7) {
-                    colorspace <- "pretty"
-                } else{
-                    colorspace <- "rainbow"
-                }
-            }
             qualpalr::qualpal(
                 n = n,
                 colorspace = colorspace,
-                cvd = cvd,
-                cvd_severity = cvd_severity
+                cvd = cvd
             )$hex
         }
 
@@ -381,57 +363,56 @@ plotPalette <- function(colorScale, continuousStep = NULL) {
 #'         useProb = TRUE,
 #'         geomAes = "fill"
 #'     )
-computeColorScaleFun <-
-    function(colors,
-            values,
-            useProb = FALSE,
-            probs = NULL,
-            minProb = 0.05,
-            maxProb = 0.95,
-            midColorIs0 = FALSE,
-            returnColorFun = TRUE,
-            returnGGscale = FALSE,
-            geomAes = "fill",
-            geomArgument = list()) {
-        if (is.null(values))
-            stop("values cannot be NULL")
-        if (!useProb) {
-            breaks <- seq(min(values), max(values), length.out = length(colors))
-        } else{
-            if (is.null(probs)) {
-                probs <- seq(minProb, maxProb, length.out = length(colors))
-            }
-            breaks <- quantile(values, probs = probs)
-        }
-        if (midColorIs0 & (length(colors) %% 2 == 1)) {
-            breaks[ceiling(length(breaks) / 2)] <- 0
-        }
-        colorFun <-
-            circlize::colorRamp2(breaks = breaks, colors = colors)
-        if (returnGGscale) {
-            scaledBreaks <-
-                linearScale(values, c(0, 1), returnFunction = TRUE)(breaks)
-            if (scaledBreaks[1] > 0) {
-                scaledBreaks <- c(0, scaledBreaks)
-                colors <- c(colors[1], colors)
-            }
-            if (scaledBreaks[length(scaledBreaks)] < 1) {
-                scaledBreaks <- c(scaledBreaks, 1)
-                colors <- c(colors, colors[length(colors)])
-            }
-
-            geomArgument$values <- scaledBreaks
-            geomArgument$colors <- colors
-            return(do.call(paste0("scale_", geomAes, "_gradientn"),
-                        geomArgument))
-        }
-        if (returnColorFun) {
-            return(colorFun)
-        } else{
-            return(colorFun(values))
-        }
-    }
-
+computeColorScaleFun <- function (colors,
+																	values,
+																	useProb = FALSE,
+																	probs = NULL,
+																	minProb = 0.05,
+																	maxProb = 0.95,
+																	midColorIs0 = FALSE,
+																	returnColorFun = TRUE,
+																	returnGGscale = FALSE,
+																	geomAes = "fill",
+																	geomArgument = list())
+{
+	if (is.null(values))
+		stop("values cannot be NULL")
+	if (!useProb) {
+		breaks <- seq(min(values, na.rm = TRUE),
+									max(values, na.rm = TRUE),
+									length.out = length(colors))
+	}
+	else {
+		if (is.null(probs)) {
+			probs <- seq(minProb, maxProb, length.out = length(colors))
+		}
+		breaks <- quantile(values, probs = probs, na.rm = TRUE)
+	}
+	if (midColorIs0 & (length(colors) %% 2 == 1)) {
+		breaks[ceiling(length(breaks) / 2)] <- 0
+	}
+	colorFun <- circlize::colorRamp2(breaks = breaks, colors = colors)
+	if (returnGGscale) {
+		scaledBreaks <- linearScale(values, c(0, 1), returnFunction = TRUE)(breaks)
+		if (scaledBreaks[1] > 0) {
+			scaledBreaks <- c(0, scaledBreaks)
+			colors <- c(colors[1], colors)
+		}
+		if (scaledBreaks[length(scaledBreaks)] < 1) {
+			scaledBreaks <- c(scaledBreaks, 1)
+			colors <- c(colors, colors[length(colors)])
+		}
+		geomArgument$values <- scaledBreaks
+		geomArgument$colors <- colors
+		return(do.call(paste0("scale_", geomAes, "_gradientn"), geomArgument))
+	}
+	if (returnColorFun) {
+		return(colorFun)
+	}
+	else {
+		return(colorFun(values))
+	}
+}
 
 
 #' Generate a list of value/color mapping
@@ -624,7 +605,7 @@ ggBorderedFactors <- function(gg,
     nX <- nlevels(as.factor(gg$data[, quo_name(gg$mapping$x)]))
     gg + geom_vline(
         xintercept = seq(1.5, nX - 0.5, 1),
-        size = borderSize,
+        linewidth = borderSize,
         color = borderColor
     ) +
         scale_x_discrete(expand = c(0, 0.5, 0, 0.5)) +
@@ -746,7 +727,7 @@ plotExpr <-
             violinArgs = list(),
             boxplotArgs = list(),
             dotplotArgs = list(),
-            colorScale = mostDistantColor,
+            colorScale = oobColors,
             legendTitle = "group",
             dodge.width = .9,
             returnGraph = FALSE,

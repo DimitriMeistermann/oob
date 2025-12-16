@@ -40,7 +40,7 @@ heatmap.DM(
   squareHt = NULL,
   row_split = NULL,
   column_split = NULL,
-  sce_assay = 1,
+  sce_assay = "logcounts",
   ...
 )
 }

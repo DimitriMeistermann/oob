@@ -15,7 +15,7 @@ UMAP(
   metric = "euclidean",
   ret_model = FALSE,
   ret_nn = FALSE,
-  sce_assay = 1,
+  sce_assay = "logcounts",
   ...
 )
 }

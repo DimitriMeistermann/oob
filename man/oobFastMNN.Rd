@@ -4,7 +4,14 @@
 \alias{oobFastMNN}
 \title{Execute a fastMNN and rescale the counts.}
 \usage{
-oobFastMNN(logCounts, batch, k, returnRescale = TRUE, sce_assay = 1, ...)
+oobFastMNN(
+  logCounts,
+  batch,
+  k,
+  returnRescale = TRUE,
+  sce_assay = "logcounts",
+  ...
+)
 }
 \arguments{
 \item{logCounts}{A matrix of numeric (in the RNA-Seq context, log counts).

@@ -2,28 +2,21 @@
 % Please edit documentation in R/dimReductions.R
 \name{PCaov}
 \alias{PCaov}
-\title{Principal Component analysis of variance}
+\title{Principal Component analysis of variance (Type II ANOVA)}
 \usage{
 PCaov(pca, colData, nComponent = 10)
 }
 \arguments{
 \item{pca}{A PCA as an object returned by \code{PCA} or \code{fastPCA}.}
 
-\item{colData}{A dataframe of feature (numeric or factor) with rows as
-samples.}
+\item{colData}{A dataframe of feature (numeric or factor) with rows as samples.}
 
 \item{nComponent}{Integer, number of PC used for the analysis.}
 }
 \value{
-A dataframe with the PC, percentage of sum of square and the
-corresponding p-value.
+A dataframe with the PC, (partial) percentage of sum of squares and the
+corresponding p-value (Type II tests).
 }
 \description{
-Principal Component analysis of variance
-}
-\examples{
-data("bulkLogCounts")
-data("sampleAnnot")
-pca<-fastPCA(bulkLogCounts,nPC=10)
-PCaov(pca, colData=sampleAnnot[,c("culture_media","line","passage")])
+Principal Component analysis of variance (Type II ANOVA)
 }

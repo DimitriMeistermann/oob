@@ -4,7 +4,7 @@
 \alias{computeQCmetricSamples}
 \title{Give QC metrics per sample}
 \usage{
-computeQCmetricSamples(x, uncenter = FALSE, sce_assay = 1)
+computeQCmetricSamples(x, uncenter = FALSE, sce_assay = "logcounts")
 }
 \arguments{
 \item{x}{A matrix of numeric with samples as columns.
