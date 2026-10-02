@@ -26,5 +26,5 @@ Correlation from one gene to all others.
 }
 \examples{
 data("bulkLogCounts")
-corGeneToOthers("NANOG",bulkLogCounts) |> head()
+corGeneToOthers("NANOG",bulkLogCounts) |> chead()
 }

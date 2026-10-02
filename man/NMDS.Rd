@@ -47,7 +47,7 @@ Non-metric Multidimensional Scaling (dimension reduction)
 data("bulkLogCounts")
 NMDSproj<-NMDS(bulkLogCounts)
 proj2d(NMDSproj)
-sce <- SingleCellExperiment(assays = list(counts = bulkLogCounts))
+sce <- SingleCellExperiment(assays = list(logcounts = bulkLogCounts))
 sce<-NMDS(sce)
 proj2d(sce)
 }

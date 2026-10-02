@@ -149,18 +149,16 @@ richUpsetStats<-function(featurePerGroupList, universe=NULL){
 #' @inheritParams richUpsetStats
 #' @param pvalThreshold Numeric. The threshold for the pvalue, represented by a
 #'   horizontal red bar. Default is 0.01.
-#'
+#' @param row_names_gp size of row names of the plot, computed automatically if null.
+#' @param ... Other parameters passed to `ComplexHeatmap::Upset`
 #' @description In addition to Upset plot, this method computes and represents
 #' additional values useful for understanding the relationship between sets. The
 #' main ones are a p-value for each overlap, and the effect size of the
 #' association as the OEdev: `(observed - expected) / sqrt(universeSize)`
-#'
-#'
 #' @return Plot in the current graphical device. In the pval bar graph, the red
 #' line indicates an adjusted pval of 0.01 (-log10 = 2). U indicates the
 #' universe size (total number of elements).
 #' @export
-#'
 #' @examples
 #' lt <- list(set1 = sample(letters, 5),
 #'                     set2 = sample(letters, 10),
@@ -169,12 +167,12 @@ richUpsetStats<-function(featurePerGroupList, universe=NULL){
 #' lt$set4 <- unique(c(lt$set1,lt$set2))
 #'
 #' richUpset(lt, universe = letters)
-#'
 #' @seealso [richUpsetStats()]
 richUpset <-
     function(featurePerGroupList,
             universe = NULL,
-            pvalThreshold = 0.01) {
+    				row_names_gp =NULL,
+            pvalThreshold = 0.01, ...) {
 
         richUpsetStatsRes <- richUpsetStats(featurePerGroupList, universe)
         regionEnrichRes<-richUpsetStatsRes$enrichStats
@@ -228,7 +226,7 @@ richUpset <-
             annotation_name_gp = gpar(fontface = "bold"),
             annotation_label = paste0("Set\nsize\n(U=", universeSize, ")")
         )
-
+				if(is.null(row_names_gp)) row_names_gp <- gpar(fontsize = min(1 / max(nchar(rownames(upsetMatrix))) * 260, 20))
         ht <- draw(
             UpSet(
                 upsetMatrix,
@@ -237,9 +235,9 @@ richUpset <-
                 right_annotation = set_size_ha,
                 border = TRUE,
                 column_split = combDegree,
-                row_names_gp = gpar(fontsize = min(1 / max(
-                    nchar(rownames(upsetMatrix))
-                ) * 260, 20))#automatic fontsize to avoid out of bound text
+                row_names_gp = row_names_gp,
+                ...
+                #automatic fontsize to avoid out of bound text
             )
             %v% Heatmap(
                 OEdevMatrix,
@@ -381,7 +379,7 @@ addHbarUpset <- function(y, offsetPerSplit, colPerSplit, gp = NULL) {
 #'
 #' @examples
 #' data("sampleAnnot")
-#' assoc2vector(sampleAnnot$culture_media, sampleAnnot$line) |> head()
+#' assoc2vector(sampleAnnot$culture_media, sampleAnnot$line) |> chead()
 assoc2vector  = function(a,b,varnames=c(deparse(substitute(a)),deparse(substitute(b)))){
 	if(length(a) != length(b) ) stop("a and b must have the same size")
 
@@ -448,4 +446,35 @@ computeAssociationVals <- function(a, b) {
 		"OR" = as.vector(fisherRes$estimate),
 		"pval" = fisherRes$p.value
 	)
+}
+
+
+
+
+#' Download transcription factors of a species from the JASPAR database
+#' @param taxID NCBI Taxonomy ID
+#'
+#' @returns A vector of TF genes
+#' @export
+#'
+#' @examples
+#' TFsOfHuman <- dl_JAFAR_geneSyms()
+#' head(TFsOfHuman)
+dl_JASPAR_geneSyms <- function(taxID = 9606) {
+	if (!(requireNamespace("JASPAR2024", quietly = TRUE))) {
+		stop("Error, please install 'JASPAR2024' package, then retry")
+	}
+	JASPAR2024 <- JASPAR2024::JASPAR2024()
+	JASPARConnect <- dbConnect(SQLite(), JASPAR2024::db(JASPAR2024))
+	geneNames <- dbGetQuery(
+		JASPARConnect,
+		paste0(
+			"SELECT DISTINCT m.name FROM matrix AS m
+	  JOIN matrix_species AS ms ON ms.id = m.id
+	  WHERE ms.tax_id = ",
+			taxID,
+			";"
+		)
+	)[, "NAME"]
+	strsplit(geneNames, split = ":", fixed = T) |> unlist() |> unique()
 }

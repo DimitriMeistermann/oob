@@ -81,7 +81,7 @@ data("DEgenesPrime_Naive")
 genesPerSet <- factorToVectorList(
     DEgenesPrime_Naive$isDE, factorNames = rn(DEgenesPrime_Naive)
 )
-lapply(genesPerSet, head)
+lapply(genesPerSet, chead)
 #> $DOWNREG
 #> [1] "A1BG"    "AADAT"   "AASS"    "ABAT"    "ABHD17B" "ABI2"   
 #> 
@@ -91,7 +91,7 @@ lapply(genesPerSet, head)
 #> $UPREG
 #> [1] "A4GALT" "AARS2"  "ABCA1"  "ABCC13" "ABCC2"  "ABCF2"
 write.vectorList(genesPerSet, "test/genesDE.tsv")
-read.vectorList("test/genesDE.tsv") |> lapply(head)
+read.vectorList("test/genesDE.tsv") |> lapply(chead)
 #> $DOWNREG
 #> [1] "A1BG"    "AADAT"   "AASS"    "ABAT"    "ABHD17B" "ABI2"   
 #> 
@@ -543,7 +543,7 @@ cluster per gene (by default the marker score).
 
 ``` r
 markerScorePerCluster <- extractFeatureMarkerData(markerPerCluster)
-head(markerScorePerCluster) #matrix of marker scores
+chead(markerScorePerCluster) #matrix of marker scores
 #>                k1         k2         k3         k4
 #> A1BG    0.0000000 -0.7081178 -0.9010741  2.6999342
 #> A4GALT -1.3579995  1.3740506  0.7109833 -0.5425076

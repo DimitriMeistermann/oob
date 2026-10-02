@@ -40,5 +40,5 @@ countMat <-
 TPMfullLength(countMat,geneLengthGRCh38) |> chead()
 
 sce <- SingleCellExperiment(assays = list(counts = countMat))
-assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> head()
+assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> chead()
 }

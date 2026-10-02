@@ -337,6 +337,7 @@ proj2d <-
             nnMatrix = NULL,
             nnSegmentParam = list(alpha = .75, size = .1),
             useScatterMore = FALSE,
+            scattermorePixels = NULL,
             customRatio = NULL,
             reducedDimSlot = 1) {
 
@@ -498,11 +499,21 @@ proj2d <-
                     ratioY <- 1 / ratio
                 }
             }
+            # scattermore renders into a fixed-size raster that then gets stretched to fill
+            # the panel regardless of the eventual output device/save resolution -- a
+            # too-low pixel count here is what makes useScatterMore=TRUE look blurry
+            # compared to the plain geom_point path (most visible at typical ggsave/pdf
+            # sizes, e.g. a 12x10in save yields well under 100 effective pixels per inch
+            # at the old baseline of 1000). Bumped the default baseline up as a safer
+            # out-of-the-box value; scattermorePixels lets a caller match their own
+            # intended output size exactly (e.g. width*dpi, height*dpi from their ggsave()
+            # call) when the higher default still isn't enough.
+            pixelBaseline <- if (is.null(scattermorePixels)) 2500 else scattermorePixels
             if (is.null(colorBy)) {
                 graph <-
                     graph + geom_scattermore(
                         pointsize = pointSize * 2,
-                        pixels = c(1000 * ratioX, 1000 * ratioY),
+                        pixels = c(pixelBaseline * ratioX, pixelBaseline * ratioY),
                         interpolate = TRUE
                     )
             } else{
@@ -510,7 +521,7 @@ proj2d <-
                     graph + geom_scattermore(
                         pointsize = pointSize * 2,
                         mapping = aes(color = .data$colorBy),
-                        pixels = c(1000 * ratioX, 1000 * ratioY),
+                        pixels = c(pixelBaseline * ratioX, pixelBaseline * ratioY),
                         interpolate = TRUE
                     )
             }

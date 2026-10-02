@@ -17,6 +17,7 @@
 #' @import stringr
 #' @import SingleCellExperiment
 #' @import SummarizedExperiment
+#' @import GSDS
 #' @importFrom BiocGenerics
 #'  colnames
 #'  rownames

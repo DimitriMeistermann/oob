@@ -449,6 +449,11 @@ UMAP <-
     }
     if (transpose)
         data <- t(data)
+    # NULL must resolve before the size comparison below -- `nrow(data) < NULL` is
+    # logical(0), and `if(logical(0))` throws, so the NULL fallback would never be reached
+    # if left after that check.
+    if (is.null(n_neighbors))
+        n_neighbors <- nrow(data)
     if (nrow(data) < n_neighbors) {
         n_neighbors <- nrow(data)
         warning(
@@ -458,8 +463,6 @@ UMAP <-
             ")"
         )
     }
-    if (is.null(n_neighbors))
-        n_neighbors <- nrow(data)
     if (!is.null(nDimPCA)) {
         data <- fastPCA(data,
                         transpose = FALSE,

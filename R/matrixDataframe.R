@@ -1,26 +1,3 @@
-#' Scale per row
-#'
-#' @param data A matrix or dataframe of numerics.
-#' @param center either a logical value or numeric-alike vector of length equal
-#'   to the number of columns of x, where ‘numeric-alike’ means that
-#'   as.numeric(.) will be applied successfully if is.numeric(.) is not true.
-#' @param scaled either a logical value or a numeric-alike vector of length
-#'   equal to the number of columns of x.
-#'
-#' @return For scale.default, the centered, scaled matrix. The numeric centering
-#'   and scalings used (if any) are returned as attributes "scaled:center" and
-#'   "scaled:scale"
-#' @export
-#'
-#' @examples
-#' rowScale(matrix(rnorm(100),ncol = 5))
-rowScale <- function(data,
-                    center = TRUE,
-                    scaled = FALSE) {
-    data <- t(data)
-    data <- t(scale(data, center = center, scale = scaled))
-    return(data)
-}
 
 #' Print first columns and rows of a matrix/d
 #'
@@ -35,68 +12,6 @@ rowScale <- function(data,
 #' chead(sampleAnnot)
 chead <- function(x, n = 5) {
     print(x[seq_len(min(n, nrow(x))), seq_len(min(n, ncol(x)))])
-}
-
-#' Compute correlation distance
-#'
-#' @param x A matrix of numeric. The function will compute the distance between
-#'   the rows (same as `dist`).
-#' @param method Character. Name of the method to compute correlation. See
-#'   `method` argument from `cor`.
-#' @param ... Other arguments to be passed to `cor`.
-#'
-#' @return An object of class "dist".
-#' @export
-#'
-#' @examples
-#' data("iris")
-#' corrDist(t(iris[,seq_len(3)]))
-corrDist <- function(x, method = "pearson", ...) {
-    x <- Matrix::t(x)
-    if(requireNamespace("WGCNA", quietly = TRUE)) {
-        x <- WGCNA::cor(x, method = method)
-    } else {
-        x <- stats::cor(x, method = method)
-        message("Consider installing WGCNA for better performance when ",
-                "computing correlation.")
-    }
-    return(as.dist( (1 - x)/2 ))
-}
-
-#' Compute cosine distance
-#'
-#' @param x  A matrix of numeric. The function will compute the distance between
-#'   the rows (same as `dist`).
-#'
-#' @return An object of class "dist".
-#' @export
-#'
-#' @examples
-#' data("iris")
-#' cosineDist(t(iris[,seq_len(3)]))
-cosineDist<-function(x){
-    1 - lsa::cosine(
-        Matrix::t(x)
-    ) |> as.dist()
-}
-
-
-#' Compute covariance distance
-#'
-#' @param x  A matrix of numeric. The function will compute the distance between
-#'   the rows (same as `dist`).
-#'
-#' @return  An object of class "dist".
-#' @export
-#'
-#' @examples
-#' data("iris")
-#' covDist(t(iris[,seq_len(3)]))
-covDist<-function(x){
-    x<-cov(
-        Matrix::t(x)
-    )
-    max(x)-x |> as.dist()
 }
 
 
@@ -447,52 +362,6 @@ aggregMatPerVector <- function(x, by, FUN = mean, byRow = NULL) {
 		}
 	}
 }
-#' Draw n samples from each population and return it has a named vector
-#'
-#' @param sampleNames A character vector of the name of the samples.
-#' @param group A factor or a character vector of the same length as
-#'   `sampleNames`. Describe the population of each sample.
-#' @param maxDrawSize Maximum number of observation to draw per group.
-#' @param minDrawSize Minimum number of observation to draw per group.
-#' @param replace Logical. Should the sample be drawn with replacement.
-#'
-#' @return A named vector with `sampleNames` with the population of each sample.
-#' @export
-#'
-#' @examples
-#' sampleNames<-paste0("sample",1:20)
-#' group<-c(rep("A",5),rep("B",12),rep("C",3))
-#' drawSamplePerGroup(sampleNames,group)
-#' drawSamplePerGroup(sampleNames,group,minDrawSize=6)
-#' drawSamplePerGroup(sampleNames,group,maxDrawSize=2)
-#'
-#' # If minDrawSize > number of sample in a group and replace=TRUE, samples
-#' # will be drawn with replacement in this group
-#' drawSamplePerGroup(sampleNames,group,minDrawSize=6, replace=TRUE)
-drawSamplePerGroup<-function(sampleNames, group, maxDrawSize = NULL,
-                            minDrawSize = NULL,replace=FALSE){
-    if (is.null(group))
-        return(sampleNames)
-    if (is.null(names(group)))
-        names(group)<-sampleNames
-    if(! (is.factor(group) | is.character(group)))
-        stop("group must be a factor or a character vector")
-    drawSize <- min(table(group))
-    if (!is.null(maxDrawSize))
-        drawSize <- min(drawSize, maxDrawSize)
-    if (!is.null(minDrawSize))
-        drawSize <- max(drawSize, minDrawSize)
-    drawCells <- unlist(lapply(unique(group), function(lvl) {
-        cells <- sampleNames[group == lvl]
-        if(replace & length(cells)<drawSize){
-            return(sample(cells, drawSize, replace = TRUE))
-        } else {
-            sample(cells, min(drawSize, length(cells)))
-        }
-    }))
-    return(group[drawCells])
-}
-
 
 
 

@@ -38,6 +38,122 @@ getRandState <- function() {
     get0(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
 }
 
+
+
+
+#' Rename module levels by the best-scoring gene
+#'
+#' For each level in a module/cluster column, this function picks the gene with
+#' the highest value in `interestCol` among `candidates` (restricted to genes
+#' present in `rownames(df)`). If no candidate is present for a module, it falls
+#' back to using all genes in that module. The chosen gene name (plus
+#' `newnameSuffix`) becomes the new label for that module level.
+#'
+#' Typical usage: rename gene modules using a list of transcription factors.
+#'
+#' @param df A data.frame (or tibble) with gene identifiers in `rownames(df)`.
+#' @param candidates Character vector of candidate gene names.
+#' @param ModuleNameCol Name of the column in `df` containing module labels.
+#'   Will be converted to a factor if needed.
+#' @param interestCol Name of the numeric column used to choose the "best" gene
+#'   (max value) within each module.
+#' @param newNameCol Name of an additional column to store the renamed module
+#'   labels. If equal to `ModuleNameCol`, only `ModuleNameCol` is updated.
+#' @param newnameSuffix Suffix appended to the chosen best gene to form the new
+#'   module label.
+#'
+#' @return `df` with:
+#' \itemize{
+#'   \item `oldModuleName`: the original module labels
+#'   \item updated factor levels in `ModuleNameCol`
+#'   \item `newNameCol` (if different from `ModuleNameCol`): the renamed labels
+#' }
+#' Additionally, an attribute `level_map` (data.frame) is attached, giving the
+#' old level, new level, and best gene per module.
+#'
+#' @export
+#'
+#' @examples
+#' df <- data.frame  (
+#'   Module = rep(c("M1","M2"), each = 5), Contribution = seq_len(10),
+#'   row.names = c("TFAP2A", "SOX10", "TYR", "DCT", "PMEL", "OCA2", "SLC24A5", "SLC45A2", "MC1R", "MITF")
+#' )
+#' candidates <- c("TFAP2A", "MITF", "SOX10")
+#' print(renameLevelsByBestVal(df, candidates))
+#'
+renameLevelsByBestVal <- function(
+		df,
+		candidates,
+		ModuleNameCol = "Module",
+		interestCol   = "Contribution",
+		newNameCol    = paste0(ModuleNameCol, "_newName"),
+		newnameSuffix = ".Mod"
+) {
+	stopifnot(is.data.frame(df))
+
+	if (is.null(rownames(df)) || anyNA(rownames(df)) || any(duplicated(rownames(df)))) {
+		stop("`df` must have non-missing, unique `rownames(df)` (gene identifiers).")
+	}
+	if (!ModuleNameCol %in% colnames(df)) {
+		stop("`ModuleNameCol` not found in `df`: ", ModuleNameCol)
+	}
+	if (!interestCol %in% colnames(df)) {
+		stop("`interestCol` not found in `df`: ", interestCol)
+	}
+
+	# Ensure module labels are a factor (stable levels)
+	module <- df[[ModuleNameCol]]
+	if (!is.factor(module)) module <- as.factor(module)
+
+	score <- df[[interestCol]]
+	if (!is.numeric(score)) {
+		stop("`interestCol` must be numeric (got class: ", paste(class(score), collapse = "/"), ").")
+	}
+
+	candidates <- unique(as.character(candidates))
+	candidates <- intersect(candidates, rownames(df))
+
+	modules <- levels(module)
+	newLevels <- setNames(character(length(modules)), modules)
+	bestGene  <- setNames(rep(NA_character_, length(modules)), modules)
+
+	for (m in modules) {
+		idx <- which(module == m)
+		if (length(idx) == 0L) {
+			newLevels[m] <- m
+			next
+		}
+
+		genes <- rownames(df)[idx]
+		ok <- !is.na(score[idx])
+
+		genes_ok <- genes[ok]
+		if (length(genes_ok) == 0L) {
+			# No usable score in that module: keep original label
+			newLevels[m] <- m
+			next
+		}
+
+		pool <- intersect(genes_ok, candidates)
+		if (length(pool) == 0L) pool <- genes_ok
+
+		pool_idx <- match(pool, rownames(df))
+		pool_scores <- score[pool_idx]
+
+		best <- pool[which.max(pool_scores)]
+		bestGene[m]  <- best
+		newLevels[m] <- paste0(best, newnameSuffix)
+	}
+
+
+	# Apply renaming to ModuleNameCol
+	renamed <- factor(module, levels = modules, labels = unname(newLevels))
+	df[[newNameCol]] <- renamed
+	df
+}
+
+
+
 #' Set the precise random seed state
 #' @param state Object saved by getRandState
 #' @export
@@ -307,87 +423,7 @@ factorToVectorList <- function(factorValues, factorNames = NULL) {
     res
 }
 
-#' Convert a list to a named factor vector
-#'
-#' @param listOfVector A named list. Each element must contain a character
-#'   vector.
-#'
-#' @return A named factor vector.
-#' @export
-#'
-#' @examples
-#' VectorListToFactor(list(a=c("x1","x2"),b=c("x3","x4"),c=c("x5","x6","x7")))
-#'
-#' @seealso factorToVectorList
-VectorListToFactor <- function(listOfVector) {
-    res <-
-        factor(unlist(lapply(seq_along(listOfVector), function(i)
-            rep(names(listOfVector)[i], length(listOfVector[[i]])))),
-            levels = names(listOfVector))
-    names(res) <- unlist(listOfVector)
-    res
-}
 
-
-#' Transform a range of value to another by a linear relationship.
-#'
-#' @description Similar to the javascript function `d3.scaleLinear()`.
-#'
-#' @param vals A numeric vector. Values to be transposed in the new range.
-#' @param newRange A vector of two numeric values: the new minimum and maximum.
-#' @param returnFunction Logical. Return the linear scale as a function instead
-#'   of the transposed values in a new scale. If set to `TRUE`, `vals` argument
-#'   can be also a vector of 2 numeric corresponding to the minimum and maximum
-#'   of the old range.
-#' @return A vector of value or a function if `returnFunction=TRUE`.
-#' @export
-#'
-#' @examples
-#' oldValues<-seq_len(10)
-#' linearScale(oldValues,c(0,1),returnFunction = FALSE)
-#' scaleFun<-linearScale(c(1,10),c(0,1),returnFunction = TRUE)
-#' scaleFun(oldValues)
-linearScale <- function(vals, newRange, returnFunction = TRUE) {
-    if (!is.numeric(vals))
-        stop("x should be a vector of numerics")
-    if (length(newRange) != 2 |
-        !is.numeric(newRange))
-        stop("newRange should be a vector of 2 numerics")
-
-    oldMin <- min(vals)
-    oldMax <- max(vals)
-    newMin <- newRange[1]
-    newMax <- newRange[2]
-
-    mfac <- (newMax - newMin) / (oldMax - oldMin)
-    scaleFun <- function(x)
-        newMin + (x - oldMin) * mfac
-
-    if (returnFunction) {
-        scaleFun
-    } else{
-        scaleFun(vals)
-    }
-}
-
-#' Return ordered index of element with top n value.
-#'
-#' @param x Numeric vector.
-#' @param top Integer. Number of element to be returned.
-#' @param decreasing Logical, return top element by decreasing or increasing
-#'   order.
-#'
-#' @return A vector of integer.
-#' @export
-#'
-#' @examples
-#' x<-c(1,5,6,10,5.2,3,8)
-#' whichTop(x)
-#' whichTop(x,top=3)
-#' whichTop(x,decreasing=FALSE)
-whichTop <- function(x, top = 5, decreasing = TRUE) {
-    order(x, decreasing = decreasing)[seq_len(top)]
-}
 
 #alias
 

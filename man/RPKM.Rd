@@ -38,5 +38,5 @@ rownames(countMat)<-names(geneLengthGRCh38)
 chead(RPKM(countMat,geneLengthGRCh38))
 
 sce <- SingleCellExperiment(assays = list(counts = countMat))
-assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> head()
+assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> chead()
 }

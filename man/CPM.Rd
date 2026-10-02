@@ -31,7 +31,7 @@ countMat <-
                      mu = abs(rnorm(1, mean = 10, sd = 20)))
     }) |> t()
     rownames(countMat)<-names(geneLengthGRCh38)
-head(CPM(countMat))
+chead(CPM(countMat))
 sce <- SingleCellExperiment(assays = list(counts = countMat))
-head(assay(CPM(sce),"cpm"))
+chead(assay(CPM(sce),"cpm"))
 }

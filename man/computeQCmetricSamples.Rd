@@ -43,5 +43,5 @@ colnames(countMat) <- letters[seq_len(ncol(countMat))]
 computeQCmetricSamples(countMat)
 sce <- SingleCellExperiment(assays = list(counts = countMat))
 sce <- computeQCmetricSamples(sce)
-colData(sce) |> head()
+colData(sce) |> chead()
 }

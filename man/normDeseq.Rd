@@ -33,5 +33,5 @@ countMat <-
 rownames(countMat)<-names(geneLengthGRCh38)
 normDeseq(countMat)
 sce <- SingleCellExperiment(assays = list(counts = countMat))
-assay(normDeseq(sce),"deseq2norm") |> head()
+assay(normDeseq(sce),"deseq2norm") |> chead()
 }

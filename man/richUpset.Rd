@@ -4,7 +4,13 @@
 \alias{richUpset}
 \title{Upset plot with additional enrichment values.}
 \usage{
-richUpset(featurePerGroupList, universe = NULL, pvalThreshold = 0.01)
+richUpset(
+  featurePerGroupList,
+  universe = NULL,
+  row_names_gp = NULL,
+  pvalThreshold = 0.01,
+  ...
+)
 }
 \arguments{
 \item{featurePerGroupList}{A list of sets (vector of character)}
@@ -12,8 +18,12 @@ richUpset(featurePerGroupList, universe = NULL, pvalThreshold = 0.01)
 \item{universe}{NULL or vector of Character. The entire list of features
 (Universal set)}
 
+\item{row_names_gp}{size of row names of the plot, computed automatically if null.}
+
 \item{pvalThreshold}{Numeric. The threshold for the pvalue, represented by a
 horizontal red bar. Default is 0.01.}
+
+\item{...}{Other parameters passed to \code{ComplexHeatmap::Upset}}
 }
 \value{
 Plot in the current graphical device. In the pval bar graph, the red
@@ -34,7 +44,6 @@ lt <- list(set1 = sample(letters, 5),
 lt$set4 <- unique(c(lt$set1,lt$set2))
 
 richUpset(lt, universe = letters)
-
 }
 \seealso{
 \code{\link[=richUpsetStats]{richUpsetStats()}}

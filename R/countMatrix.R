@@ -29,7 +29,7 @@
 #' computeQCmetricSamples(countMat)
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
 #' sce <- computeQCmetricSamples(sce)
-#' colData(sce) |> head()
+#' colData(sce) |> chead()
 computeQCmetricSamples <- function(x, uncenter = FALSE, sce_assay = "logcounts") {
     sce_obj <-NULL
     if (inherits(x, "SummarizedExperiment")) {
@@ -73,12 +73,14 @@ merge0dist <- function(disMat) {
     found <- TRUE
     while (found == TRUE) {
         found <- FALSE
-        for (i in 2:nrow(mat)) {
+        # 2:nrow(mat) counts *downward* (e.g. 2:1 = c(2,1)) once mat has shrunk to a single
+        # row -- seq_len(nrow(mat))[-1] is empty in that case instead, as intended.
+        for (i in seq_len(nrow(mat))[-1]) {
             for (j in seq_len(i - 1)) {
                 if (mat[i, j] == 0) {
                     newNames <- rownames(mat)
                     newNames <- newNames[-i]
-                    newMat <- mat[-i, -i]
+                    newMat <- mat[-i, -i, drop = FALSE]
                     colnames(newMat) <- rownames(newMat) <- newNames
                     merged[[rownames(mat)[j]]] <-
                         c(merged[[rownames(mat)[j]]], rownames(mat)[i])
@@ -115,9 +117,9 @@ merge0dist <- function(disMat) {
 #'                      mu = abs(rnorm(1, mean = 10, sd = 20)))
 #'     }) |> t()
 #'     rownames(countMat)<-names(geneLengthGRCh38)
-#' head(CPM(countMat))
+#' chead(CPM(countMat))
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
-#' head(assay(CPM(sce),"cpm"))
+#' chead(assay(CPM(sce),"cpm"))
 CPM <- function(data, sce_assay = 1) {
     sce_obj <-NULL
     if (inherits(data, "SummarizedExperiment")) {
@@ -165,7 +167,7 @@ CPM <- function(data, sce_assay = 1) {
 #' TPMfullLength(countMat,geneLengthGRCh38) |> chead()
 #'
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
-#' assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> head()
+#' assay(TPMfullLength(sce,geneLengthGRCh38),"tpm") |> chead()
 TPMfullLength <- function(data, gene.length, sce_assay = 1) {
     sce_obj <-NULL
     if (inherits(data, "SummarizedExperiment")) {
@@ -209,7 +211,7 @@ TPMfullLength <- function(data, gene.length, sce_assay = 1) {
 #' chead(RPKM(countMat,geneLengthGRCh38))
 #'
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
-#' assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> head()
+#' assay(RPKM(sce,geneLengthGRCh38),"rpkm") |> chead()
 RPKM <- function(data, gene.length, sce_assay = 1) {
     sce_obj <-NULL
     if (inherits(data, "SummarizedExperiment")) {
@@ -252,7 +254,7 @@ RPKM <- function(data, gene.length, sce_assay = 1) {
 #' rownames(countMat)<-names(geneLengthGRCh38)
 #' normDeseq(countMat)
 #' sce <- SingleCellExperiment(assays = list(counts = countMat))
-#' assay(normDeseq(sce),"deseq2norm") |> head()
+#' assay(normDeseq(sce),"deseq2norm") |> chead()
 normDeseq <-function(countMatrix, sce_assay = 1) {
     sce_obj <-NULL
     if (inherits(countMatrix, "SummarizedExperiment")) {
@@ -352,7 +354,7 @@ quickSCnorm <-
 #'
 #' @examples
 #' data("bulkLogCounts")
-#' corGeneToOthers("NANOG",bulkLogCounts) |> head()
+#' corGeneToOthers("NANOG",bulkLogCounts) |> chead()
 corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
     expression <- as.matrix(expression)
     t(corFun(expression[gene, ], t(expression), ...))[, 1]
@@ -390,8 +392,8 @@ corGeneToOthers <- function(gene, expression, corFun = cor, ...) {
 oobFastMNN <- function(logCounts, batch, k,
     returnRescale = TRUE, sce_assay = "logcounts", ...) {
 
-    if (inherits(data, "SummarizedExperiment")) {
-        data <- assay(data, sce_assay)
+    if (inherits(logCounts, "SummarizedExperiment")) {
+        logCounts <- assay(logCounts, sce_assay)
     }
     scObj <- batchelor::fastMNN(logCounts, batch = batch, k = k, ...)
     res <-

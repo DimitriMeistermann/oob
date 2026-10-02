@@ -22,7 +22,7 @@ Depends:
     R (>= 4.4.0),
     ggplot2,
     stats,
-    ComplexHeatmap,
+    GSDS,
     SingleCellExperiment
 Imports:
 		aricode,
@@ -35,6 +35,7 @@ Imports:
     data.table,
     dbscan,
     edgeR,
+    fastcluster,
     ggbeeswarm,
     ggrepel,
     glmnet,

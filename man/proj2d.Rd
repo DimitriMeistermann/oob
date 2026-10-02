@@ -32,6 +32,7 @@ proj2d(
   nnMatrix = NULL,
   nnSegmentParam = list(alpha = 0.75, size = 0.1),
   useScatterMore = FALSE,
+  scattermorePixels = NULL,
   customRatio = NULL,
   reducedDimSlot = 1
 )
